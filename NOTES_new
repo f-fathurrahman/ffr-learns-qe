@@ -2,8 +2,15 @@
 ----------------
 
 Updating to qe-6.0. (Now it use the name `qe` instead of `espresso`)
+
 Uploaded to github.
+
 Changed the the name to `ffr-learns-qe`.
+
+Array `igk` (formerly in module `wvfct` file: `pwcom.f90`) is not used
+anymore.
+
+The subroutine `realspace_grids_init()` is not used anymore.
 
 
 19 May 2016
