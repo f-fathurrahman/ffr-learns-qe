@@ -1,0 +1,20 @@
+QE_DIR = /Users/efefer/WORK_osx/espresso-5.2.1
+INCLUDE_MOD = $(QE_DIR)/Modules
+INCLUDE_PW = $(QE_DIR)/PW/src
+
+LIB_BLAS = $(QE_DIR)/BLAS/blas.a
+LIB_LAPACK = $(QE_DIR)/lapack-3.2/lapack.a
+LIB_FFT =
+LIB_QE = $(QE_DIR)/PW/src/libpw.a $(QE_DIR)/PP/src/libpp.a \
+				 $(QE_DIR)/Modules/libqemod.a \
+				 $(QE_DIR)/flib/ptools.a \
+				 $(QE_DIR)/flib/flib.a \
+				 $(QE_DIR)/clib/clib.a \
+				 $(QE_DIR)/iotk/src/libiotk.a
+LIB_QE_MATH = $(LIB_QE) $(LIB_BLAS) $(LIB_LAPACK) $(LIB_FFT)
+LIBS = libmain.a $(LIB_QE) $(LIB_BLAS) $(LIB_LAPACK) $(LIB_FFT) 
+
+F90 = mpif90-openmpi-mp
+F90_OPTS = -x f95-cpp-input
+
+
