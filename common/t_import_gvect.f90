@@ -1,5 +1,6 @@
 ! ffr, 24 June 2016
 
+! import variables from `module gvect`.
 SUBROUTINE t_import_gvect()
   USE gvect, ONLY : ngm, ngm_g, ngl, ngmx, ecutrho, gcutm
   USE gvect, ONLY : nl, nlm
@@ -13,7 +14,7 @@ SUBROUTINE t_import_gvect()
   USE gvect, ONLY : mill_g
   USE gvect, ONLY : eigts1, eigts2, eigts3
 
-
+  WRITE(*,*)
   WRITE(*,*) '-----------------------------------------------------------------'
   WRITE(*,*) 't_import_gvect(): START'
   WRITE(*,*) '-----------------------------------------------------------------'
