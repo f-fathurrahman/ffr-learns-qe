@@ -24,6 +24,7 @@ SUBROUTINE ewald_debug()
   WRITE(*,*) 'alat       = ', alat
   WRITE(*,*) 'shape(ityp) = ', shape(ityp)
   WRITE(*,*) 'shape(zv)   = ', shape(zv)
+  WRITE(*,*) 'zv = ', zv
 
   Ene_Ewald = ewald( alat, nat, nsp, ityp, zv, at, bg, tau, &
                 omega, g, gg, ngm, gcutm, gstart, gamma_only, strf )
