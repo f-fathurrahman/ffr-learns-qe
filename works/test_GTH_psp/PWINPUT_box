@@ -10,9 +10,8 @@
   ibrav   = 0
   ntyp    = 1
   nat     = 1
-  ecutwfc = 50.0
-  nbnd    = 1
-  occupations = 'from_input'
+  ecutwfc = 35.0
+  nbnd    = 2
 /
 
 &ELECTRONS
@@ -21,10 +20,10 @@
 /
 
 ATOMIC_SPECIES
-H   1.00  H.1.LDA.gth
+C   12.00  C.4.PBE.gth
 
 ATOMIC_POSITIONS crystal
-H   0.0  0.0  0.0
+C   0.0  0.0  0.0
 
 K_POINTS crystal
 1
@@ -35,6 +34,4 @@ CELL_PARAMETERS bohr
  0.0  16.0   0.0
  0.0   0.0  16.0
 
-OCCUPATIONS
- 1.0
 
