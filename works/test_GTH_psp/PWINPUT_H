@@ -21,7 +21,7 @@
 /
 
 ATOMIC_SPECIES
-H   1.00  H.1.PBE.gth
+H   1.00  H.1.LDA.gth
 
 ATOMIC_POSITIONS crystal
 H   0.0  0.0  0.0
