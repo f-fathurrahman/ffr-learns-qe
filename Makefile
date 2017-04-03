@@ -24,8 +24,20 @@ OBJ = $(SRC:.f90=.o) $(SRC:.f=.o) $(SRC:.c=.o)
 lib: $(OBJ)
 	ar rcs libmain.a *.o
 
+test_gth:
+	$(F90) $(F90_OPTS) $(INC_ALL) test_gth.f90 $(LIB_ALL) -o test_gth.x
+
+test_uspp:
+	$(F90) $(F90_OPTS) $(INC_ALL) test_uspp.f90 $(LIB_ALL) -o test_uspp.x
+
+pw01:
+	$(F90) $(F90_OPTS) $(INC_ALL) pw01.f90 $(LIB_ALL) -o pw01.x
+
+pw02:
+	$(F90) $(F90_OPTS) $(INC_ALL) pw02.f90 $(LIB_ALL) -o pw02.x
+
 t_mp:
-	$(F90) $(F90_OPTS) $(INC_ALL) t_mp.f90 $(LIB_QE_MATH) -o t_mp.x
+	$(F90) $(F90_OPTS) $(INC_ALL) t_mp.f90 $(LIB_ALL) -o t_mp.x
 
 pwt_electrons_v2:
 	$(F90) $(F90_OPTS) $(INC_ALL) cheFSI.f90 pwt_electrons_v2.f90 \
