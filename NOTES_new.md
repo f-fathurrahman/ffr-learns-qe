@@ -1,5 +1,5 @@
-3 April 2017
-------------
+# 3 April 2017
+
 
 I tried to learn how to apply non-local pseudopotential to wavefunction.
 
@@ -21,8 +21,7 @@ SUBROUTINE calbec_k( npw, beta, psi, betapsi, nbnd )
 ```
 
 
-25 December 2016
-----------------
+# 25 December 2016
 
 Updating to qe-6.0. (Now it use the name `qe` instead of `espresso`)
 
@@ -36,8 +35,7 @@ anymore.
 The subroutine `realspace_grids_init()` is not used anymore.
 
 
-19 May 2016
------------
+# 19 May 2016
 
 Updating to espresso-5.4.0
 
@@ -48,8 +46,8 @@ Updating to espresso-5.4.0
   in error.
 
 
-21 Feb 2016
------------
+# 21 Feb 2016
+
 
 Updating to espresso-5.3.0.
 
@@ -57,7 +55,6 @@ Updating to espresso-5.3.0.
   Include and library paths must be changed accordingly.
 
 * All calls to flush_unit are replaced by FLUSH( stdout )
-
 
 
 Project: implementing steepest descent (SD) method to solve Kohn-Sham
@@ -78,6 +75,3 @@ How about the orthogonality problem?
 Alternatively, the DFT++ formalism may be used.
 One initial important task that is needed is to implement various
 operators.
-
-
-
