@@ -1,3 +1,26 @@
+3 April 2017
+------------
+
+I tried to learn how to apply non-local pseudopotential to wavefunction.
+
+In `h_psi`, the relevant calls seem to be `calbec()` and `add_vuspsi()`,
+for non-real space algorithm.
+
+```fortran
+CALL calbec( n, vkb, psi, becp, m )
+CALL add_vuspsi( lda, n, m, hpsi )
+```
+
+Array `vkb` is initialized by calling `init_us_2()`
+
+`calbec()` is defined in `Modules/becmod.f90`.
+
+```fortran
+SUBROUTINE calbec_bec_type( npw, beta, psi, betapsi, nbnd )
+SUBROUTINE calbec_k( npw, beta, psi, betapsi, nbnd )
+```
+
+
 25 December 2016
 ----------------
 

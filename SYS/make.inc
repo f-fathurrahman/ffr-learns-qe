@@ -1,4 +1,4 @@
-QE_DIR = /home/efefer/WORKS/QE/qe-6.0
+QE_DIR = /home/efefer/WORKS/QE/qe-6.1
 
 # import several variables from here
 include $(QE_DIR)/make.inc
@@ -27,6 +27,8 @@ LIB_CLIB  = $(QE_DIR)/clib/clib.a
 LIB_IOTK  = $(QE_DIR)/iotk/src/libiotk.a
 LIB_QE    = $(LIB_PW) $(LIB_PP) $(LIB_QEMOD) $(LIB_QEFFT) $(LIB_QELA) \
             $(LIB_CLIB) $(LIB_IOTK)
+LIB_ALL   = $(LIB_QE) $(LIB_LINALG) $(LIB_FFT)
+
 
 # This is required if F90 is not defined (or commented out) in make.inc
 # file of QE

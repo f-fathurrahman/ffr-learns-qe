@@ -8,10 +8,9 @@
 
 &SYSTEM
   ibrav   = 0
-  ntyp    = 1
-  nat     = 1
-  ecutwfc = 35.0
-  nbnd    = 2
+  ntyp    = 2
+  nat     = 2
+  ecutwfc = 50.0
 /
 
 &ELECTRONS
@@ -20,10 +19,12 @@
 /
 
 ATOMIC_SPECIES
-C   12.00  C.4.LDA.gth
+Ni  1.00  Ni.18.PBE.gth
+Pt  1.00  Pt.18.PBE.gth
 
-ATOMIC_POSITIONS crystal
-C   0.0  0.0  0.0
+ATOMIC_POSITIONS bohr
+Ni   0.0  0.0  0.0
+Pt   1.0  0.0  0.0
 
 K_POINTS crystal
 1

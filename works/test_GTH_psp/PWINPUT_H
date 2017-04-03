@@ -13,6 +13,7 @@
   ecutwfc = 50.0
   nbnd    = 1
   occupations = 'from_input'
+  assume_isolated = 'mt'
 /
 
 &ELECTRONS
