@@ -96,9 +96,15 @@ SUBROUTINE test_upf_uspp()
 
   WRITE(*,'(1x,A,I5)') 'Total number of beta functions: nkb = ', nkb
   DO ityp = 1, ntyp
+    WRITE(*,*)
+    WRITE(*,*) 'ityp = ', ityp
+    WRITE(*,*) 'Loop over ibeta = 1 until ', upf(ityp)%nbeta
     DO ibeta = 1, upf(ityp)%nbeta
+      WRITE(*,*)
+      WRITE(*,*) 'ibeta = ', ibeta
+      WRITE(*,*) 'Loop over ih = 1 until ', nh(ityp)
       DO ih = 1, nh(ityp)
-        !WRITE(*,'(1x,4I5)') ityp, ibeta, ih, indv(ih,ityp)
+        WRITE(*,'(1x,4I5)') ityp, ibeta, ih, indv(ih,ityp)
         IF ( ibeta == indv(ih,ityp) ) THEN 
           lm = nhtolm(ih,ityp)
           WRITE(*,'(1x,A,I5,A,I5)') 'same ibeta = ', ibeta, ' lm = ', lm
