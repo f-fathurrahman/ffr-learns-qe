@@ -17,6 +17,7 @@ PROGRAM test
   CALL init_run()
 
   CALL test_gth()
+  CALL test_upf_uspp()
 
   CALL mp_global_end()
 
@@ -28,35 +29,84 @@ END PROGRAM
 SUBROUTINE test_gth()
 
   USE m_gth, ONLY : gth_p, gth_parameters
-  USE uspp_param, ONLY : upf
-  USE pseudo_types, ONLY : pseudo_upf
 
   IMPLICIT NONE 
-  INTEGER :: N_GTH, N_UPF
-  INTEGER :: igth, iupf
+  INTEGER :: NumGTH, igth
   TYPE(gth_parameters) :: cgth
-  TYPE(pseudo_upf) :: cupf
+  INTEGER :: nbeta, npr, i
 
-  N_GTH = size(gth_p)
-  WRITE(*,*) 'N_GTH = ', N_GTH
+  WRITE(*,*)
+  WRITE(*,*) 'Calling test_gth'
+  WRITE(*,*) '----------------'
+  WRITE(*,*)
 
-  DO igth = 1, N_GTH
+  NumGTH = size(gth_p)
+  WRITE(*,*) 'NumGTH = ', NumGTH
+
+  DO igth = 1, NumGTH
 
     WRITE(*,*)
     WRITE(*,*) 'GTH parameters ', igth
     
     cgth = gth_p(igth)  ! current GTH in this iteration
+    nbeta = size(cgth%lll)
+    npr = size(cgth%ipr)
 
-    WRITE(*,*) 'itype, lloc, lmax = ', cgth%itype, cgth%lloc, cgth%lmax
-    WRITE(*,*)
+    WRITE(*,'(1x,A,3I5)') 'itype, lloc, lmax = ', cgth%itype, cgth%lloc, cgth%lmax
+    WRITE(*,'(1x,A,2I5)') 'nbeta, npr = ', nbeta, npr
+    
+    WRITE(*,*) 'List of beta functions:'
+    DO i = 1, nbeta
+      WRITE(*,*) i, cgth%lll(i), cgth%ipr(i)
+    ENDDO 
+
   ENDDO
 
-  N_UPF = size(upf)
-  WRITE(*,*) 'N_UPF = ', N_UPF
-  DO iupf = 1, N_UPF
+END SUBROUTINE 
+
+
+SUBROUTINE test_upf_uspp()
+
+  USE ions_base, ONLY : ntyp => nsp
+  USE uspp_param, ONLY : upf, lmaxkb, nh
+  USE uspp, ONLY : indv, nkb, nhtolm
+  USE pseudo_types, ONLY : pseudo_upf
+  
+  IMPLICIT NONE 
+  TYPE(pseudo_upf) :: cupf
+  INTEGER :: NumUPF, iupf
+  INTEGER :: ityp, ih, ibeta, lm
+
+  WRITE(*,*)
+  WRITE(*,*) 'Calling test_upf_uspp'
+  WRITE(*,*) '---------------------'
+  WRITE(*,*)
+
+  WRITE(*,'(1x,A,I5)') 'lmaxkb = ', lmaxkb
+  WRITE(*,*) 
+
+  NumUPF = size(upf)
+  WRITE(*,'(1x,A,I5)') 'NumUPF = ', NumUPF
+
+  DO iupf = 1, NumUPF
     cupf = upf(iupf)
-    WRITE(*,*) cupf%nbeta
+    WRITE(*,'(1x,A,I5)') 'iupf = ', iupf
+    WRITE(*,'(1x,A,I5)') 'nbeta = ', cupf%nbeta
   ENDDO 
+
+  WRITE(*,'(1x,A,I5)') 'Total number of beta functions: nkb = ', nkb
+  DO ityp = 1, ntyp
+    DO ibeta = 1, upf(ityp)%nbeta
+      DO ih = 1, nh(ityp)
+        !WRITE(*,'(1x,4I5)') ityp, ibeta, ih, indv(ih,ityp)
+        IF ( ibeta == indv(ih,ityp) ) THEN 
+          lm = nhtolm(ih,ityp)
+          WRITE(*,'(1x,A,I5,A,I5)') 'same ibeta = ', ibeta, ' lm = ', lm
+        ENDIF 
+      ENDDO 
+    ENDDO 
+  ENDDO 
+
 
 END SUBROUTINE 
 
