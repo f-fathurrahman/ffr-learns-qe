@@ -24,6 +24,9 @@ OBJ = $(SRC:.f90=.o) $(SRC:.f=.o) $(SRC:.c=.o)
 lib: $(OBJ)
 	ar rcs libmain.a *.o
 
+test_upf_nc:
+	$(F90) $(F90_OPTS) $(INC_ALL) test_upf_nc.f90 $(LIB_ALL) -o test_upf_nc.x
+
 test_gth:
 	$(F90) $(F90_OPTS) $(INC_ALL) test_gth.f90 $(LIB_ALL) -o test_gth.x
 
