@@ -10,3 +10,6 @@ pspxc = 18 ==> BLYP
 
 pspxc = -101130 ==> LibXC's PBE
 
+The coefficients k's (used in spin-coupling calculations for l /= 0)
+must be specified.
+
