@@ -15,7 +15,7 @@
 /
 
 &ELECTRONS
-  electron_maxstep = 150
+  electron_maxstep = 1
   mixing_beta = 0.5
 /
 
