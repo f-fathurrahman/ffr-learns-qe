@@ -17,12 +17,49 @@ PROGRAM test
   CALL init_run()
 
   CALL test_gth()
-  CALL test_upf_uspp()
+  !CALL test_upf_uspp()
+
+  CALL test_deeq()
 
   CALL mp_global_end()
 
 END PROGRAM 
 
+
+SUBROUTINE test_deeq()
+  USE uspp, ONLY : deeq, indv_ijkb0, nkb
+  USE constants, ONLY : e2
+  USE ions_base, ONLY : nat, ntyp => nsp, ityp
+  USE uspp_param, ONLY : nh
+  IMPLICIT NONE 
+  INTEGER :: isp, ia, ii, jj
+
+  WRITE(*,*) 'nkb = ', nkb
+  DO isp = 1,ntyp
+    WRITE(*,*) isp, nh(isp)
+  ENDDO 
+  WRITE(*,*) 'shape(deeq) = ', shape(deeq)
+  
+  !WRITE(*,*) 'deeq = ', deeq*e2  ! convert to Ha unit
+
+  DO isp = 1,ntyp
+    IF( nh(isp) == 0 ) CYCLE 
+    DO ia = 1,nat
+      IF( ityp(ia) == isp ) THEN 
+        WRITE(*,*) indv_ijkb0(ia) + 1
+        DO ii = 1,nh(isp)
+        DO jj = 1,nh(isp)
+          IF( abs(deeq(ii,jj,ia,1)) > 0.d0 ) THEN 
+            WRITE(*,'(4I3,F18.10)') isp, ia, ii, jj, deeq(ii,jj,ia,1)*e2
+          ENDIF 
+        ENDDO 
+        ENDDO 
+      ENDIF 
+    ENDDO 
+  ENDDO 
+
+  WRITE(*,*) 'shape(indv_ijkb0) = ', shape(indv_ijkb0)
+END SUBROUTINE 
 
 
 !---------------------
