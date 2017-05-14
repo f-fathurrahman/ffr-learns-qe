@@ -10,19 +10,20 @@
   ibrav   = 0
   ntyp    = 1
   nat     = 1
-  ecutwfc = 100.0
+  ecutwfc = 200.0
 /
 
 &ELECTRONS
+  startingwfc = 'random'
   electron_maxstep = 150
   mixing_beta = 0.5
 /
 
 ATOMIC_SPECIES
-C   12.00  C.4.LDA.gth
+Be   1.00  Be.2.LDA.gth
 
-ATOMIC_POSITIONS crystal
-C   0.0  0.0  0.0
+ATOMIC_POSITIONS angstrom
+Be   0.0  0.0  0.0
 
 K_POINTS crystal
 1

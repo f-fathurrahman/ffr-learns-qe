@@ -19,10 +19,10 @@
 /
 
 ATOMIC_SPECIES
-C   12.00  C.4.LDA.gth
+Si   14.00  Si.4.LDA.gth
 
 ATOMIC_POSITIONS crystal
-C   0.0  0.0  0.0
+Si   0.0  0.0  0.0
 
 K_POINTS crystal
 1

@@ -19,7 +19,7 @@
 /
 
 ATOMIC_SPECIES
-Ni  1.00  Ni.18.PBE.gth
+Ni  1.00  Ni.10.LDA.gth
 
 ATOMIC_POSITIONS bohr
 Ni   0.0  0.0  0.0

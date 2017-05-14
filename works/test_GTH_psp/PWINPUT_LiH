@@ -10,7 +10,7 @@
   ibrav   = 0
   ntyp    = 2
   nat     = 2
-  ecutwfc = 100.0
+  ecutwfc = 180.0
 /
 
 &ELECTRONS
@@ -34,8 +34,5 @@ CELL_PARAMETERS bohr
 16.0   0.0   0.0
  0.0  16.0   0.0
  0.0   0.0  16.0
-
-OCCUPATIONS
- 2.0  1.0
 
 
