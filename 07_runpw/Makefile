@@ -27,8 +27,11 @@ LIBS = $(LIB_PW) $(LIB_QEMOD) $(LIB_QEFFT) $(LIB_QELA) $(LIB_CLIB) $(LIB_IOTK) $
 # Here are the targets
 #
 
-test_upf_nc:
-	$(F90) $(F90_OPTS) $(INC) test_upf_nc.f90 -o test_upf_nc.x $(LIBS)
+pw01:
+	$(F90) $(F90_OPTS) $(INC) pw01.f90 -o pw01.x $(LIBS)
+
+pw02:
+	$(F90) $(F90_OPTS) $(INC) pw02.f90 -o pw02.x $(LIBS)
 
 clean:
 	rm -f *.o *.mod libmain.a *.x
