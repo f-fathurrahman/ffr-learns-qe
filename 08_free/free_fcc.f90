@@ -88,14 +88,15 @@ END SUBROUTINE
 !------------------------------------------------------------------------------
 SUBROUTINE setup_fft()
 !------------------------------------------------------------------------------
-  USE kinds, ONLY: DP
-  USE io_global, ONLY: stdout, ionode
-  USE cell_base, ONLY: tpiba2, at, bg
-  USE gvecw, ONLY: ecutwfc, gcutw
-  USE gvect, ONLY: ecutrho, gcutm
-  USE gvecs, ONLY: ecuts, gcutms, dual
-  USE fft_base, ONLY: dfftp, dffts
-  USE grid_subroutines, ONLY: realspace_grid_init
+  USE kinds, ONLY : DP
+  USE io_global, ONLY : stdout, ionode
+  USE cell_base, ONLY : tpiba2, at, bg
+  USE gvecw, ONLY : ecutwfc, gcutw
+  USE gvect, ONLY : ecutrho, gcutm
+  USE gvecs, ONLY : ecuts, gcutms, dual
+  USE fft_base, ONLY : dfftp, dffts
+  USE fft_types, ONLY : fft_type_allocate
+  USE mp_bands, ONLY : intra_bgrp_comm
   IMPLICIT NONE
   
   ecutwfc = 10_DP
@@ -110,8 +111,8 @@ SUBROUTINE setup_fft()
     WRITE(stdout,'(1x,A,2F18.5)') 'gcutm, gcutms = ', gcutm, gcutms
   ENDIF
 
-  CALL realspace_grid_init( dfftp, at, bg, gcutm )
-  CALL realspace_grid_init( dffts, at, bg, gcutms )
+  CALL fft_type_allocate( dfftp, at, bg, gcutm, intra_bgrp_comm )
+  CALL fft_type_allocate( dffts, at, bg, gcutms, intra_bgrp_comm )
 
   IF( ionode ) THEN
     WRITE(stdout,'(/,1x,A,3I8)') 'Dense : nr1,nr2,nr3', dfftp%nr1, dfftp%nr2, dfftp%nr3
@@ -132,16 +133,17 @@ SUBROUTINE setup_symmetry()
   USE symm_base, ONLY : nrot, nsym
   IMPLICIT NONE
   ! Local
-  LOGICAL :: magnetic_sym
+  LOGICAL :: magnetic_sym, monopole
   REAL(DP) :: m_loc(3,nat)
 
   ! We ignore the magnetization
   magnetic_sym = .FALSE.
+  !
+  monopole = .FALSE.
   m_loc(:,:)   = 0_DP
 
   CALL set_sym_bl()
-  CALL find_sym( nat, tau, ityp, dfftp%nr1, dfftp%nr2, dfftp%nr3, &
-    magnetic_sym, m_loc )
+  CALL find_sym( nat, tau, ityp, magnetic_sym, m_loc, monopole )
 
   IF(ionode) THEN
     WRITE(stdout,*) 'nat, nsym, nrot = ', nat, nsym, nrot
@@ -268,9 +270,9 @@ SUBROUTINE test_hamiltonian1()
   USE io_global, ONLY : stdout, ionode
   USE cell_base, ONLY : tpiba2
   USE gvecw, ONLY : ecutwfc, gcutw
-  USE wvfct, ONLY : npwx, igk, npw, current_k, g2kin
+  USE wvfct, ONLY : npwx, npw, current_k, g2kin
   USE gvect, ONLY : ngm, g
-  USE klist, ONLY : ngk, nks, xk
+  USE klist, ONLY : ngk, nks, xk, igk_k, init_igk
   IMPLICIT NONE
   ! Local
   INTEGER :: ik, ig, ib
@@ -279,11 +281,14 @@ SUBROUTINE test_hamiltonian1()
   !
   INTEGER :: nbnd_plot = 5
   REAL(8), ALLOCATABLE :: e_k(:), e_bnd(:,:), distk(:)
+  !
+  INTEGER :: n_plane_waves
 
   ALLOCATE( ngk(nks) )
-  CALL n_plane_waves( gcutw, nks, xk, g, ngm, npwx, ngk )
+  npwx = n_plane_waves( gcutw, nks, xk, g, ngm )
+  WRITE(*,*) 'npwx = ', npwx
 
-  ALLOCATE( igk(npwx) )
+  ALLOCATE( igk_k(npwx,nks) )
   ALLOCATE( g2kin(npwx) )
 
   ALLOCATE( H_k(npwx,npwx) )
@@ -292,21 +297,30 @@ SUBROUTINE test_hamiltonian1()
   ALLOCATE( e_bnd(nks,nbnd_plot) )
   ALLOCATE( distk(nks) )
 
+  CALL init_igk( npwx, ngm, g, gcutw )
+
   DO ik=1,nks
     ! generate Gk and sort them
-    CALL gk_sort( xk(1,ik), ngm, g, ecutwfc / tpiba2, npw, igk, g2kin )
+!    WRITE(*,*) 'npw, ngm = ', npw, ngm
+!    CALL gk_sort( xk(1,ik), ngm, g, ecutwfc / tpiba2, npw, igk_k(:,ik), g2kin )
+!    CALL gk_sort( xk(1,ik), ngm, g, ecutwfc / tpiba2, npw, igk_k(:,ik), g2kin )
+    npw = ngk(ik)
     IF(ionode) WRITE(stdout,*) 'ik, npw, ngk(ik) = ', ik, npw, ngk(ik)
     ! Build the Hamiltonian
     H_k(:,:) = cmplx(0_DP, 0_DP)
     DO ig=1,npw
-      H_k(ig,ig) = ( ( xk(1,ik) + g(1,igk(ig)) )**2 + &
-                     ( xk(2,ik) + g(2,igk(ig)) )**2 + &
-                     ( xk(3,ik) + g(3,igk(ig)) )**2 ) * tpiba2
+      H_k(ig,ig) = ( ( xk(1,ik) + g(1,igk_k(ig,ik)) )**2 + &
+                     ( xk(2,ik) + g(2,igk_k(ig,ik)) )**2 + &
+                     ( xk(3,ik) + g(3,igk_k(ig,ik)) )**2 ) * tpiba2
     ENDDO
+    WRITE(*,*) 'sum(H_k) = ', sum(H_k)
+!    STOP 
     CALL cdiagh( npw, H_k, npwx, e_k, psi_k )
     ! For plotting purpose
     e_bnd(ik,:) = e_k(1:nbnd_plot)
   ENDDO
+
+!  STOP 
 
   distk(1) = 0.0_DP
   DO ik=2,nks
