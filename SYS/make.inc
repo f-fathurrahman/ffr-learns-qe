@@ -1,4 +1,4 @@
-QE_DIR = /home/efefer/WORKS/QE/qe-6.1
+QE_DIR = /home/efefer/WORKS/QE/qe-6.3
 
 # import several variables from here
 include $(QE_DIR)/make.inc
@@ -11,8 +11,10 @@ INC_QEMOD = $(QE_DIR)/Modules
 INC_PW    = $(QE_DIR)/PW/src
 INC_QEFFT = $(QE_DIR)/FFTXlib
 INC_PP    = $(QE_DIR)/PP/src
+INC_LA    = $(QE_DIR)/LAXlib/
+INC_UTIL  = $(QE_DIR)/UtilXlib/
 
-INC_ALL   = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_PP)
+INC_ALL   = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_PP) -I$(INC_LA) -I$(INC_UTIL)
 
 
 LIB_LINALG = $(BLAS_LIBS) $(LAPACK_LIBS)

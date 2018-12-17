@@ -2,9 +2,8 @@
 
 include SYS/make.inc
 
-SRC = t_import_gvect.f90 t_import_gvecs.f90 t_import_gvecw.f90
-
-OBJ = $(SRC:.f90=.o) $(SRC:.f=.o) $(SRC:.c=.o)
+#SRC = 
+#OBJ = $(SRC:.f90=.o) $(SRC:.f=.o) $(SRC:.c=.o)
 
 # Suffix rules
 .SUFFIXES: .o .f90
