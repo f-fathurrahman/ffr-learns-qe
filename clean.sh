@@ -1,1 +1,1 @@
-rm -fv *.x *.mod *.o
+rm -fv *.x *.mod *.o input_tmp.in
