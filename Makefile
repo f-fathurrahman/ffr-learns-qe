@@ -14,6 +14,8 @@ include make.inc.ffr
 02_new_vlocal:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 02_new_vlocal.f90 -o 02_new_vlocal.x $(LIBS_ALL)
 
+03_test_dfft:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 03_test_dfft.f90 -o 03_test_dfft.x $(LIBS_ALL)
 
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
