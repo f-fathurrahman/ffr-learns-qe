@@ -1,0 +1,26 @@
+INC_QEMOD = $(TOPDIR)/Modules
+INC_PW    = $(TOPDIR)/PW/src
+INC_QEFFT = $(TOPDIR)/FFTXlib
+INC_QELA  = $(TOPDIR)/LAXlib
+
+LIB_PW    = $(TOPDIR)/PW/src/libpw.a
+LIB_QEMOD = $(TOPDIR)/Modules/libqemod.a
+LIB_QEFFT = $(TOPDIR)/FFTXlib/libqefft.a
+LIB_QELA  = $(TOPDIR)/LAXlib/libqela.a
+LIB_CLIB  = $(TOPDIR)/clib/clib.a
+LIB_IOTK  = $(TOPDIR)/iotk/src/libiotk.a
+LIB_KS    = $(TOPDIR)/KS_Solvers/libks_solvers.a
+LIB_UTIL  = $(TOPDIR)/UtilXlib/libutil.a
+LIB_DFTD3 = $(TOPDIR)/dft-d3/libdftd3qe.a
+LIB_FOX   = -L$(TOPDIR)FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys
+
+LAPACK_LIBS = -lopenblas
+FFT_LIBS    = -lfftw3
+BLAS_LIBS   = -lopenblas
+
+INC_ALL  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_QELA)
+LIBS_ALL = $(LIB_PW) $(LIB_QEMOD) $(LIB_KS) $(LIB_QEFFT) $(LIB_QELA) $(LIB_UTIL)\
+$(LIB_DFTD3) $(LIB_CLIB) $(LIB_IOTK) $(LAPACK_LIBS) $(LIB_FOX) $(FFT_LIBS) $(BLAS_LIBS)
+
+#mpif90 -g -o pw.x \
+#   pwscf.o  libpw.a ../../Modules/libqemod.a ../../KS_Solvers/libks_solvers.a ../../FFTXlib/libqefft.a ../../LAXlib/libqela.a ../../UtilXlib/libutil.a ../../dft-d3/libdftd3qe.a /home/efefer/WORKS/my_github_repos/ffr-learns-qe/qe-6.4//clib/clib.a  /home/efefer/WORKS/my_github_repos/ffr-learns-qe/qe-6.4//iotk/src/libiotk.a   -lopenblas  -L/home/efefer/WORKS/my_github_repos/ffr-learns-qe/qe-6.4//FoX/lib  -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys  -lfftw3  -lopenblas

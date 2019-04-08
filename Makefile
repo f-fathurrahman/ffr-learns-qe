@@ -11,6 +11,9 @@ include make.inc.ffr
 01_new_gvectors:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 01_new_gvectors.f90 -o 01_new_gvectors.x $(LIBS_ALL)
 
+02_new_vlocal:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 02_new_vlocal.f90 -o 02_new_vlocal.x $(LIBS_ALL)
+
 
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
