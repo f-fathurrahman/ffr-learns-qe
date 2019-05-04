@@ -8,6 +8,12 @@ include make.inc.ffr
 # Here are the targets
 #
 
+my_scf:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 my_scf.f90 -o my_scf.x $(LIBS_ALL)
+
+pwt_plot_vltot:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 pwt_plot_vltot.f90 -o pwt_plot_vltot.x $(LIBS_ALL)
+
 01_new_gvectors:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 01_new_gvectors.f90 -o 01_new_gvectors.x $(LIBS_ALL)
 
@@ -16,6 +22,9 @@ include make.inc.ffr
 
 03_test_dfft:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 03_test_dfft.f90 -o 03_test_dfft.x $(LIBS_ALL)
+
+04_test_v_of_0:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 04_test_v_of_0.f90 -o 04_test_v_of_0.x $(LIBS_ALL)
 
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
