@@ -8,6 +8,7 @@ SUBROUTINE prepare_all()
   USE command_line_options, ONLY : ndiag_, input_file_
   USE environment, ONLY : environment_start
   USE read_input, ONLY : read_input_file
+  USE check_stop, ONLY : check_stop_init
 
   IMPLICIT NONE 
   
@@ -23,6 +24,9 @@ SUBROUTINE prepare_all()
   CALL read_input_file( 'PW', input_file_ )
 
   CALL iosys()
+
+  CALL check_stop_init()  ! required in c_bands
+
   CALL setup()
   CALL init_run()
 
