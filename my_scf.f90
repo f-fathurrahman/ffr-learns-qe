@@ -150,7 +150,7 @@ SUBROUTINE my_scf()
         
         CALL v_of_rho( rhoin, rho_core, rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
-        WRITE(*,*) 'ehart = ', ehart
+        WRITE(*,*) 'ehart = ', ehart/2
 
         !
         descf = my_delta_escf()
@@ -179,9 +179,25 @@ SUBROUTINE my_scf()
 
     etot = eband + (etxc - etxcc) + ewld + ehart + deband + demet + descf
 
-    WRITE(*,*) 'Etot in (Ha) = ', etot*0.5d0
+    WRITE(*,*)
+    WRITE(*,*) 'Total energy components in Ha'
+    WRITE(*,*)
+    WRITE(*,'(1x,A,F18.10)') 'eband        = ', eband/2
+    WRITE(*,'(1x,A,F18.10)') 'etxc         = ', etxc/2
+    WRITE(*,'(1x,A,F18.10)') 'etxcc        = ', etxcc/2
+    WRITE(*,'(1x,A,F18.10)') 'ehart        = ', ehart/2
+    WRITE(*,'(1x,A,F18.10)') 'deband       = ', deband/2
+    WRITE(*,'(1x,A,F18.10)') 'demet        = ', demet/2
+    WRITE(*,'(1x,A,F18.10)') 'descf        = ', descf/2
+    WRITE(*,*) '---------------------------------'
+    WRITE(*,'(1x,A,F18.10)') 'Etot in (Ha) = ', etot/2
+    WRITE(*,*) '---------------------------------'
+
+
 
     IF( conv_elec ) THEN 
+      WRITE(*,*)
+      WRITE(*,*) 'Convergence is achieved'
       GOTO 10
     ENDIF 
 
