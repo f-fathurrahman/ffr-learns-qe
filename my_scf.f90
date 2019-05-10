@@ -27,13 +27,16 @@ SUBROUTINE my_scf()
   USE klist, ONLY : nelec
 
   USE ener, ONLY : ewld, deband, hwf_energy, eband, ehart, demet, &
-                   etxc, etxcc, vtxc
+                   etxc, etxcc, vtxc, etot
 
   USE scf, ONLY : scf_type, create_scf_type, destroy_scf_type, &
                   scf_type_COPY, &
-                  rho, v, &
+                  rho, v, vnew, &
+                  vltot, vrs, &
                   rho_core, rhog_core, &
                   open_mix_file, close_mix_file
+
+  USE lsda_mod, ONLY : nspin
 
   USE control_flags, ONLY : gamma_only, niter, mixing_beta, ethr, tr2, &
                             conv_elec, nmix, scf_must_converge
@@ -44,9 +47,11 @@ SUBROUTINE my_scf()
 
   USE extfield, ONLY : etotefield
 
+  USE io_global, ONLY : stdout
+
   IMPLICIT NONE 
 
-  ! Function
+  ! External function
   REAL(DP) :: ewald
 
   TYPE(scf_type) :: rhoin
@@ -58,6 +63,7 @@ SUBROUTINE my_scf()
   REAL(DP) :: deband_hwf
   REAL(DP) :: tr2_min, tr2_final
   REAL(DP) :: charge
+  REAL(DP) :: descf
 
 
   WRITE(*,*)
@@ -144,19 +150,46 @@ SUBROUTINE my_scf()
         
         CALL v_of_rho( rhoin, rho_core, rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
-
+        WRITE(*,*) 'ehart = ', ehart
 
         !
+        descf = my_delta_escf()
+
+        ! rhoin <- rho
+        CALL scf_type_COPY( rhoin, rho )
+
+    
+      ELSE ! convergence is reached
+
+        vnew%of_r(:,:) = v%of_r(:,:)
+        CALL v_of_rho( rho, rho_core, rhog_core, &
+                       ehart, etxc, vtxc, eth, etotefield, charge, v )
+
+        vnew%of_r(:,:) = v%of_r(:,:) - vnew%of_r(:,:)
+
+        descf = 0.d0
 
       ENDIF 
-
 
       EXIT scf_step
     ENDDO scf_step
 
 
+    CALL sum_vrs( dfftp%nnr, nspin, vltot, v%of_r, vrs )
+
+    etot = eband + (etxc - etxcc) + ewld + ehart + deband + demet + descf
+
+    WRITE(*,*) 'Etot in (Ha) = ', etot*0.5d0
+
+    IF( conv_elec ) THEN 
+      GOTO 10
+    ENDIF 
+
+
   ENDDO 
 
+
+10 flush(stdout)
 
   WRITE(*,*)
   WRITE(*,*) 'my_scf is finished'
@@ -180,6 +213,25 @@ FUNCTION my_delta_e()
 
 END FUNCTION 
 
+
+FUNCTION my_delta_escf()
+  IMPLICIT NONE 
+  REAL(DP) :: my_delta_escf
+  ! local
+  !REAL(8) :: rho_dif(2)
+
+  my_delta_escf = 0.d0
+
+  ! must have nspin==1
+
+  my_delta_escf = -sum( (rhoin%of_r(:,:) - rho%of_r(:,:))*v%of_r(:,:) )
+
+  my_delta_escf = my_delta_escf*omega/( dfftp%nr1*dfftp%nr2*dfftp%nr3 )
+
+  !call mp_sum( delta_escf, intra_bgrp_comm )
+
+
+END FUNCTION 
 
 
 
