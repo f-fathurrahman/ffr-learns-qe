@@ -26,6 +26,9 @@ pwt_plot_vltot:
 04_test_v_of_0:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 04_test_v_of_0.f90 -o 04_test_v_of_0.x $(LIBS_ALL)
 
+05_test_symmetry:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 05_test_symmetry.f90 -o 05_test_symmetry.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 

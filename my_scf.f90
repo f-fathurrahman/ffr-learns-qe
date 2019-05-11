@@ -96,7 +96,7 @@ SUBROUTINE my_scf()
   tr2_final = tr2
   WRITE(*,*) 'tr2 = ', tr2
 
-  DO idum = 1, 10
+  DO idum = 1, niter
     
     iter = iter + 1
 
