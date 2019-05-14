@@ -1,0 +1,41 @@
+&CONTROL
+  calculation = 'scf'
+  restart_mode = 'from_scratch'
+  pseudo_dir = '/home/efefer/pseudo'
+  outdir = './tmp'
+  wf_collect = .true.
+/
+
+&SYSTEM
+  ibrav   = 0
+  ntyp    = 1
+  nat     = 8
+  ecutwfc = 35.0
+/
+
+&ELECTRONS
+  electron_maxstep = 150
+  mixing_beta = 0.5
+/
+
+ATOMIC_SPECIES
+Ge   1.00  Ge.pz-bhs.UPF
+
+ATOMIC_POSITIONS bohr
+Ge     0.0000000000       0.0000000000       0.0000000000
+Ge     2.6739624709       2.6739624709       2.6739624709
+Ge     0.0000000000       5.3479249418       5.3479249418
+Ge     2.6739624709       8.0218874127       8.0218874127
+Ge     5.3479249418       0.0000000000       5.3479249418
+Ge     8.0218874127       2.6739624709       8.0218874127
+Ge     5.3479249418       5.3479249418       0.0000000000
+Ge     8.0218874127       8.0218874127       2.6739624709
+
+K_POINTS crystal
+1
+0.0   0.0   0.0   1.0
+
+CELL_PARAMETERS bohr
+ 10.695849883633501   0.0                 0.0
+ 0.0                 10.695849883633501   0.0
+ 0.0                  0.0                10.695849883633501

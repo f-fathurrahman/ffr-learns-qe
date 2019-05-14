@@ -1,7 +1,11 @@
 # Makefile for simple test programs
 
+<<<<<<< HEAD
 include ../qe/make.inc
 include ../make.inc.ffr
+=======
+include ../SYS/make.inc
+>>>>>>> 9aee50a35cb318c120702559e19f7f67952e1595
 
 SRC = \
 setup_structure_Si8.f90 \
@@ -14,6 +18,14 @@ setup_gvect.f90
 
 OBJ = $(SRC:.f90=.o) $(SRC:.f=.o) $(SRC:.c=.o)
 
+<<<<<<< HEAD
+=======
+QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a ../../LAXlib/libqela.a
+INC  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT)
+LIBS = $(LIB_PW) $(LIB_QEMOD) $(LIB_QEFFT) $(LIB_QELA) $(LIB_CLIB) $(LIB_IOTK) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS)
+
+
+>>>>>>> 9aee50a35cb318c120702559e19f7f67952e1595
 # Suffix rules
 .SUFFIXES: .o .f90
 
