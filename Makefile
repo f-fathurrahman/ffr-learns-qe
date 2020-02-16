@@ -28,6 +28,10 @@ pwt_plot_vltot:
 05_test_symmetry:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 05_test_symmetry.f90 -o 05_test_symmetry.x $(LIBS_ALL)
 
+
+06_test_my_symm_base:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 06_test_my_symm_base.f90 -o 06_test_my_symm_base.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 
