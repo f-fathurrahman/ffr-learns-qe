@@ -107,6 +107,7 @@ SUBROUTINE test_symmetry()
   USE symme, ONLY: symvector
   USE gvect, ONLY : ngm, g
   USE my_symme, ONLY: Ngs, my_sym_rho_init_shells
+  USE symme, ONLY: symvector
   USE cell_base, ONLY: at, alat, tpiba
 
   IMPLICIT NONE 
@@ -160,7 +161,7 @@ SUBROUTINE test_symmetry()
   WRITE(*,*) 'No of non_symmorphic = ', count(non_symmorphic)
 
 
-  CALL my_sym_rho_init_shells(ngm, g)
+  !CALL my_sym_rho_init_shells(ngm, g)
   WRITE(*,*) 'Ngs = ', Ngs
 
   DO isym = 1,nsym
@@ -184,10 +185,18 @@ SUBROUTINE test_symmetry()
     WRITE(*,*)
   ENDDO 
 
-  v(:,1) = (/ -0.1d0, 1.d0, 0.d0 /)
-  v(:,2) = (/  0.0d0, 0.1d0, 1.d0 /)
+  v(:,1) = (/ 1.d0, 0.d0, 0.d0 /)
+  v(:,2) = (/ 0.d0, 1.d0, 1.d0 /)
 
-  CALL my_symvector(2, v)
+  WRITE(*,*) "Before symvector"
+  WRITE(*,'(1x,3F18.10)') v(:,1)
+  WRITE(*,'(1x,3F18.10)') v(:,2)
+
+  !CALL my_symvector(2, v)
+  CALL symvector(2, v)
+
+
+  WRITE(*,*) "After symvector"
   WRITE(*,'(1x,3F18.10)') v(:,1)
   WRITE(*,'(1x,3F18.10)') v(:,2)
 

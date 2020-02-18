@@ -1,13 +1,13 @@
-<<<<<<< HEAD
 input_tmp.in
 qe
 qe-*
 
+ORIG_*
+OLD_*
+
 LOG*
 TEMP_*
 
-=======
->>>>>>> 9aee50a35cb318c120702559e19f7f67952e1595
 fort.*
 *~
 *.swp

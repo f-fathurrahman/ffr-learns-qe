@@ -262,10 +262,16 @@ CONTAINS
      ! ... then its inverse (rot is used as work space)
      CALL invmat( 3, rot, overlap )
 
+     !WRITE(*,*) 'Overlap = '
+     !DO jpol = 1,3
+     !  write(*,'(1x,3F18.10)') overlap(jpol,:)
+     !ENDDO
+
+
      nrot = 1
      DO irot = 1, 32
 
-        WRITE(*,*) 'irot = ', irot
+        !WRITE(*,*) 'irot = ', irot
         
         !
         ! ... for each possible symmetry
@@ -299,7 +305,7 @@ CONTAINS
                  ! ... if a noninteger is obtained, this implies that this operation
                  ! is not a symmetry operation for the given lattice
                  !
-                 WRITE(*,*) 'Going to LABEL:10'
+                 !WRITE(*,*) 'Going to LABEL:10'
                  GOTO 10
               ENDIF
               !
@@ -315,7 +321,7 @@ CONTAINS
         !
      ENDDO
 
-     WRITE(*,*) 'nrot after loop = ', nrot
+     !WRITE(*,*) 'nrot after loop = ', nrot
 
      !
      nrot = nrot-1
@@ -338,7 +344,7 @@ CONTAINS
      ENDDO
      !
      nrot = 2*nrot
-     WRITE(*,*) 'nrot = ', nrot
+     !WRITE(*,*) 'nrot = ', nrot
      !
      ! ... reset fractional translations to zero before checking the group
      ft(:,:) = 0.0_dp
@@ -351,7 +357,7 @@ CONTAINS
          nrot = 1
      ENDIF
 
-     WRITE(*,*) 'nrot = ', nrot
+     !WRITE(*,*) 'nrot = ', nrot
      !
      RETURN
      !
@@ -385,6 +391,12 @@ CONTAINS
      !
      INTEGER :: i
      LOGICAL :: sym(48)
+     
+
+     WRITE(*,*)
+     WRITE(*,*) 'Entering find_sym'
+     WRITE(*,*)
+
      ! if true the corresponding operation is a symmetry operation
      !
      IF ( .NOT. ALLOCATED(irt) ) ALLOCATE( irt(48,nat) )
@@ -413,8 +425,8 @@ CONTAINS
        nsym = copy_sym( nrot, sym )
        !
        IF ( .NOT. is_group( nsym ) ) THEN
-          IF (i == 1) CALL infomsg( 'find_sym', &
-                         'Not a group! Trying with lower acceptance parameter...' )
+          !WRITE(*,*) 'Pass here 428'
+          IF (i == 1) CALL infomsg( 'find_sym', 'Not a group! Trying with lower acceptance parameter...' )
           accep = accep * 0.5d0
           IF (i == 3) THEN
             CALL infomsg( 'find_sym', 'Still not a group! symmetry disabled' )
@@ -422,6 +434,7 @@ CONTAINS
           ENDIF
           CYCLE symm
        ELSE
+          !WRITE(*,*) 'Pass here 437'
           IF (i > 1) CALL infomsg( 'find_sym', 'Symmetry operations form a group' )
           EXIT symm
        ENDIF
@@ -435,6 +448,14 @@ CONTAINS
      CALL inverse_s()
      !
      CALL s_axis_to_cart()
+
+     !WRITE(*,*) 'nsym = ', nsym
+
+     WRITE(*,*)
+     WRITE(*,*) 'Leaving find_sym'
+     WRITE(*,*)
+
+
      !
      RETURN
      !
@@ -478,15 +499,28 @@ CONTAINS
      LOGICAL :: fractional_translations
      INTEGER :: nfrac
      REAL(DP) :: ft_(3), ftaux(3)
+     ! ffr
+     !INTEGER :: ia
      !
      ALLOCATE( xau(3,nat) )
      ALLOCATE( rau(3,nat) )
+
+     WRITE(*,*)
+     WRITE(*,*) 'Entering sgam_at'
+     WRITE(*,*)
+
      !
      ! ... Compute the coordinates of each atom in the basis of
      ! the direct lattice vectors
      DO na = 1, nat
         xau(:,na) = bg(1,:)*tau(1,na) + bg(2,:)*tau(2,na) + bg(3,:)*tau(3,na)
      ENDDO
+
+     !WRITE(*,*) 'xau matrix:'
+     !DO ia = 1, nat
+     !   WRITE(*,'(1x,3F18.10)') xau(:,ia)
+     !ENDDO
+
      !
      ! ... check if the identity has fractional translations (this means
      ! that the cell is actually a supercell). When this happens, fractional
@@ -506,8 +540,7 @@ CONTAINS
               sym(irot) = checksym ( irot, nat, ityp, xau, xau, ft_ )
               IF (sym(irot)) THEN
                  fractional_translations = .FALSE.
-                 WRITE( stdout, '(5x,"Found symmetry operation: I + (",&
-                &   3f8.4, ")",/,5x,"This is a supercell,", &
+                 WRITE( stdout, '(5x,"Found symmetry operation: I + (", 3f8.4, ")",/,5x,"This is a supercell,", &
                 &   " fractional translations are disabled")') ft_
                  GOTO 10
               ENDIF
@@ -517,17 +550,24 @@ CONTAINS
      ENDIF
      !
    10 CONTINUE
+      !write(*,*) 'This is GOTO 10'
      ! 
+
+     !stop 
+
      nsym_ns = 0
      fft_fact(:) = 1
      !
      DO irot = 1, nrot
-        !
+
+        !WRITE(*,*)
+        !WRITE(*,*) 'irot = ', irot
+
+        !write(*,*) 'rau matrix:'
         DO na = 1, nat
            ! rau = rotated atom coordinates
-           rau(:,na) = s(1,:,irot) * xau(1,na) + &
-                       s(2,:,irot) * xau(2,na) + &
-                       s(3,:,irot) * xau(3,na)
+           rau(:,na) = s(1,:,irot) * xau(1,na) + s(2,:,irot) * xau(2,na) + s(3,:,irot) * xau(3,na)
+           !write(*,'(1x,3F18.10)') rau(:,na)
         ENDDO
         !
         ! ... first attempt: no fractional translation
@@ -535,6 +575,10 @@ CONTAINS
         ft_(:) = 0.d0
         !
         sym(irot) = checksym( irot, nat, ityp, xau, rau, ft_ )
+        
+        !if( sym(irot) ) then
+        !    write(*,*) 'true at the first attempt'
+        !endif
         !
         IF (.NOT.sym(irot) .AND. fractional_translations) THEN
            nb = 1
@@ -543,6 +587,9 @@ CONTAINS
                  !
                  ! ... second attempt: check all possible fractional translations
                  ft_(:) = rau(:,na) - xau(:,nb) - NINT( rau(:,na) - xau(:,nb) )
+
+                 !WRITE(*,'(1x,A,3F18.10)') 'ft_ = ', ft_(1), ft_(2), ft_(3)
+                 
                  !
                  ! ... ft_ is in crystal axis and is a valid fractional translation
                  ! only if ft_(i)=0 or ft_(i)=1/n, with n=2,3,4,
@@ -559,7 +606,11 @@ CONTAINS
                     ENDIF
                  ENDDO
                  !
-                 IF ( ANY( ftaux(:) > eps2 ) ) CYCLE
+                 IF ( ANY( ftaux(:) > eps2 ) ) THEN
+                    !WRITE(*,*) 'Doing cycle here: irot ', irot
+                    CYCLE
+                 ENDIF
+                 !WRITE(*,*) 'should not after cycle'
                  !
                  sym(irot) = checksym( irot, nat, ityp, xau, rau, ft_ )
                  !
@@ -589,6 +640,17 @@ CONTAINS
    20   CONTINUE
         !
      ENDDO
+
+     !DO irot = 1,48
+     !   IF(sym(irot)) THEN
+     !       WRITE(*,*) irot, sym(irot), sname(irot)
+     !   ENDIF
+     !ENDDO
+     !WRITE(*,*) count(sym)
+     !WRITE(*,*) 'fft_fact = ', fft_fact
+
+     !stop 
+
      !
      ! ... disable all symmetries z -> -z
      IF ( PRESENT(no_z_inv) ) THEN
@@ -598,6 +660,11 @@ CONTAINS
            ENDDO
         ENDIF
      ENDIF
+
+     WRITE(*,*)
+     WRITE(*,*) 'Leaving sgam_at'
+     WRITE(*,*)
+
      !
      ! ... deallocate work space
      DEALLOCATE( rau )
@@ -894,12 +961,21 @@ CONTAINS
         DO nb = 1, nat
            !
            IF( ityp (nb) == ityp (na) ) THEN
+
+              !write(*,'(1x,A,I3,A,I3)') 'na = ', na, ' nb = ', nb
+              !write(*,'(1x,A,3F18.10)') 'rau = ', rau(:,na)
+              !write(*,'(1x,A,3F18.10)') 'xau = ', xau(:,na)
+              !write(*,'(1x,A,3F18.10)') 'ft_ = ', ft_(:)
+
               checksym =  eqvect( rau(1,na), xau(1,nb), ft_ , accep )
+              !write(*,*) 'checksym = ', checksym
+
               IF ( checksym ) THEN
                  !
                  ! ... the rotated atom does coincide with one of the like atoms
                  ! keep track of which atom the rotated atom coincides with
                  irt (irot, na) = nb
+                 !WRITE(*,*) 'Will GOTO 10'
                  GOTO 10
                  !
               ENDIF
@@ -910,6 +986,8 @@ CONTAINS
         ! ... the rotated atom does not coincide with any of the like atoms
         ! s(ir) + ft is not a symmetry operation
         checksym = .FALSE.
+        !write(*,*) 'eqvect immediately returns false'
+        
         RETURN
         !
    10   CONTINUE
