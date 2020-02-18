@@ -179,6 +179,8 @@ PROGRAM main
   WRITE(*,*) 'size(wk) = ', shape(wk)
   WRITE(*,*)
   WRITE(*,*) 'nkstot = ', nkstot
+  WRITE(*,*)
+  WRITE(*,*) 't_rev = ', t_rev
 
   CALL my_kpoint_grid ( nrot, time_reversal, skip_equivalence, s, t_rev, bg, &
                         npk, k1,k2,k3, nk1,nk2,nk3, nkstot, xk, wk)

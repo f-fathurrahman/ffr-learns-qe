@@ -10,7 +10,7 @@ SUBROUTINE test_my_symm_base()
   USE control_flags, ONLY: noinv
   USE extfield, ONLY: gate
 
-  use my_symm_base, ONLY: nsym, nrot, irt, ft, s, sname, fft_fact
+  use my_symm_base, ONLY: nsym, nrot, irt, ft, s, sname, fft_fact, t_rev
 
   IMPLICIT NONE 
   LOGICAL :: magnetic_sym, time_reversal
@@ -31,6 +31,8 @@ SUBROUTINE test_my_symm_base()
     WRITE(*,'(1x,A,3F18.10)') 'ft = ', ft(:,i)
   ENDDO
   WRITE(*,*) 'fft_fact = ', fft_fact
+
+  WRITE(*,*) 't_rev = ', t_rev
 
 END SUBROUTINE 
 
