@@ -32,7 +32,10 @@ SUBROUTINE test_my_symm_base()
   ENDDO
   WRITE(*,*) 'fft_fact = ', fft_fact
 
-  WRITE(*,*) 't_rev = ', t_rev
+  !WRITE(*,*) 't_rev = ', t_rev ! this is only needed for noncollinear magnetism
+
+  WRITE(*,*) 'nsym = ', nsym
+  WRITE(*,*) 'nrot = ', nrot
 
 END SUBROUTINE 
 
