@@ -34,6 +34,9 @@ pwt_plot_vltot:
 07_test_kpoint_grid:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 07_test_kpoint_grid.f90 -o 07_test_kpoint_grid.x $(LIBS_ALL)
 
+08_my_ewald:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 08_my_ewald.f90 -o 08_my_ewald.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 

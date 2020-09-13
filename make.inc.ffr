@@ -2,6 +2,7 @@ INC_QEMOD = $(TOPDIR)/Modules
 INC_PW    = $(TOPDIR)/PW/src
 INC_QEFFT = $(TOPDIR)/FFTXlib
 INC_QELA  = $(TOPDIR)/LAXlib
+INC_UTIL  = $(TOPDIR)/UtilXlib
 
 LIB_PW    = $(TOPDIR)/PW/src/libpw.a
 LIB_QEMOD = $(TOPDIR)/Modules/libqemod.a
@@ -18,7 +19,7 @@ LAPACK_LIBS = -lopenblas
 FFT_LIBS    = -lfftw3
 BLAS_LIBS   = -lopenblas
 
-INC_ALL  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_QELA)
+INC_ALL  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_QELA) -I$(INC_UTIL)
 LIBS_ALL = $(LIB_PW) $(LIB_QEMOD) $(LIB_KS) $(LIB_QEFFT) $(LIB_QELA) $(LIB_UTIL)\
 $(LIB_DFTD3) $(LIB_CLIB) $(LIB_IOTK) $(LAPACK_LIBS) $(LIB_FOX) $(FFT_LIBS) $(BLAS_LIBS)
 
