@@ -86,16 +86,21 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
   DO na = 1, nat
      charge = charge + zv(ityp(na))
   ENDDO
-  !
+
   ! choose alpha in order to have convergence in the sum over G
   ! upperbound is a safe upper bound for the error ON THE ENERGY
-  !
   alpha = 1.1_DP
 10 alpha = alpha - 0.1_DP
   IF (alpha==0.d0) CALL errore( 'force_ew', 'optimal alpha not found', 1 )
   upperbound = e2 * charge**2 * SQRT(2._DP * alpha / tpi) * &
                qe_erfc( SQRT(tpiba2 * gcutm / 4.d0 / alpha) )
   IF ( upperbound > 1.0d-6 ) GOTO 10
+
+  write(*,*) 'upperbound = ', upperbound
+  write(*,*) 'alpha = ', alpha
+  write(*,*) 'tpiba2*gcutm = ', tpiba2*gcutm
+
+
   !
   ! G-space sum here
   !
@@ -107,6 +112,16 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
         aux(ig) = aux(ig) + zv(nt) * CONJG( strf(ig,nt) )
      ENDDO
   ENDDO
+
+  !write(*,*) 'ngm = ', ngm
+  !write(*,*) 'sum(strf) = ', sum(strf)
+  !write(*,*) 'sum(aux)  = ', sum(aux)
+
+  !write(*,*) 'some gg and aux'
+  !do ig = 2,10
+  !  write(*,'(1x,I8,3F18.10)') ig, gg(ig)*tpiba2, aux(ig)
+  !enddo
+
   !
   IF (do_cutoff_2D) THEN 
      CALL cutoff_force_ew( aux, alpha )
@@ -116,7 +131,12 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
                   (gg(ig) * tpiba2)
      ENDDO
   ENDIF
-  !
+
+  !write(*,*) 'some gg and aux after modified'
+  !do ig = 2,10
+  !  write(*,'(1x,I8,3F18.10)') ig, gg(ig)*tpiba2, aux(ig)
+  !enddo
+
   IF (gamma_only) THEN
      fact = 4.0_DP
   ELSE
@@ -125,9 +145,8 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
   !
   DO na = 1, nat
      DO ig = gstart, ngm
-        arg = tpi * (g(1,ig) * tau(1,na) + g(2,ig) * tau(2,na) &
-              + g(3,ig) * tau(3,na))
-        sumnb = COS(arg)*AIMAG(aux(ig)) - SIN(arg)*DBLE(aux(ig) )
+        arg = tpi * (g(1,ig) * tau(1,na) + g(2,ig) * tau(2,na) + g(3,ig) * tau(3,na))
+        sumnb = COS(arg)*AIMAG(aux(ig)) - SIN(arg)*DBLE(aux(ig))
         forceion(1,na) = forceion(1,na) + g(1,ig) * sumnb
         forceion(2,na) = forceion(2,na) + g(2,ig) * sumnb
         forceion(3,na) = forceion(3,na) + g(3,ig) * sumnb
@@ -137,7 +156,29 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
                             omega / alat * forceion(ipol,na)
      ENDDO
   ENDDO
+
+  write(*,*) 'G-space contribution: '
+  DO na = 1,nat
+    write(*,'(1x,A,3F18.10)') 'forceion: ', forceion(:,na)
+  ENDDO
+
+  write(*,*)
+  write(*,*) 'gstart = ', gstart
+  write(*,*) 'e2 = ', e2
+  write(*,*) 'gcutm = ', gcutm
+  write(*,*) 'sqrt(tpiba2) = ', sqrt(tpiba2)
+  write(*,*) 'tpiba2 = ', tpiba2
+  write(*,*) 'alat = ', alat
+  write(*,*) 'omega = ', omega
+  write(*,*) 'fact = ', fact
+  write(*,*) 'G2 max = ', gcutm*tpiba2
+  write(*,*) 'alpha = ', alpha
+  write(*,'(1x,A,ES18.10)') 'factor = ', -1.d0*fact * e2 * tpi**2 / omega / alat
+  write(*,*)
+
   DEALLOCATE( aux )
+
+
   !
   ! R-space sum here (see ewald.f90 for details on parallelization)
   !
@@ -168,6 +209,12 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
      ENDDO
   ENDDO
 100 CONTINUE
+
+  write(*,*) 'Plus R-space contribution: '
+  DO na = 1,nat
+    write(*,'(1x,A,3F18.10)') 'forceion: ', forceion(:,na)
+  ENDDO
+
   !
   CALL mp_sum( forceion, intra_bgrp_comm )
   !
@@ -192,9 +239,9 @@ PROGRAM main
   INTEGER :: ia
   REAL(DP), ALLOCATABLE :: forceion(:,:)
 
-  ALLOCATE( forceion(3,nat) )
-
   CALL prepare_all()
+
+  ALLOCATE(forceion(3,nat))
 
   CALL my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
                      g, gg, ngm, gstart, gamma_only, gcutm, strf, forceion )
