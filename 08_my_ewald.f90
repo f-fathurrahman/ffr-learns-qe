@@ -77,8 +77,10 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
   ! used to determine alpha
   !
   COMPLEX(DP), ALLOCATABLE :: aux(:)
+  real(8), allocatable :: forceion_R(:,:)
   ! auxiliary space
   REAL(DP), EXTERNAL :: qe_erfc
+
   !
   forceion(:,:) = 0.0_DP
   tpiba2 = (tpi / alat)**2
@@ -179,6 +181,9 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
   DEALLOCATE( aux )
 
 
+  allocate(forceion_R(3,nat))
+  forceion_R(:,:) = 0.d0
+
   !
   ! R-space sum here (see ewald.f90 for details on parallelization)
   !
@@ -196,13 +201,15 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
         ! generates nearest-neighbors shells r(i)=R(i)-dtau(i)
         !
         CALL rgen( dtau, rmax, mxr, at, bg, r, r2, nrm )
+        write(*,*) 'dtau = ', dtau
+        write(*,*) 'nrm = ', nrm
         DO n = 1, nrm
            rr = SQRT(r2(n)) * alat
            fact = zv(ityp(na)) * zv(ityp(nb)) * e2 / rr**2 * &
                   (qe_erfc(SQRT(alpha) * rr) / rr +          &
                   SQRT(8.0d0 * alpha / tpi) * EXP(- alpha * rr**2) ) * alat
            DO ipol = 1, 3
-              forceion(ipol,na) = forceion(ipol,na) - fact * r(ipol,n)
+              forceion_R(ipol,na) = forceion_R(ipol,na) - fact * r(ipol,n)
            ENDDO
         ENDDO
 50      CONTINUE
@@ -210,18 +217,28 @@ SUBROUTINE my_force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, &
   ENDDO
 100 CONTINUE
 
+
+  write(*,*) 'R-space contribution: '
+  DO na = 1,nat
+    write(*,'(1x,A,3F18.10)') 'forceion_R: ', forceion_R(:,na)
+  ENDDO
+  
+
+  forceion(:,:) = forceion(:,:) + forceion_R(:,:)
+
   write(*,*) 'Plus R-space contribution: '
   DO na = 1,nat
     write(*,'(1x,A,3F18.10)') 'forceion: ', forceion(:,na)
   ENDDO
-
   !
   CALL mp_sum( forceion, intra_bgrp_comm )
-  !
+
+  deallocate(forceion_R)
+
+
   RETURN
   !
 END SUBROUTINE
-
 
 
 !-----------------------------------------------------
