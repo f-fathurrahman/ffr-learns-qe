@@ -3,7 +3,6 @@ SUBROUTINE prepare_all()
   USE mp_global, ONLY : mp_startup
   USE mp_world, ONLY : world_comm
   USE mp_pools, ONLY : intra_pool_comm
-  USE mp_diag, ONLY : mp_start_diag
   USE mp_bands, ONLY : intra_bgrp_comm, inter_bgrp_comm
   USE command_line_options, ONLY : ndiag_, input_file_
   USE environment, ONLY : environment_start
@@ -11,11 +10,13 @@ SUBROUTINE prepare_all()
   USE check_stop, ONLY : check_stop_init
 
   IMPLICIT NONE 
+
+  include 'laxlib.fh'
   
   CALL mp_startup(start_images=.true.)
 
-  CALL mp_start_diag( ndiag_, world_comm, intra_bgrp_comm, &
-                      do_distr_diag_inside_bgrp_=.true. )
+  CALL laxlib_start( ndiag_, world_comm, intra_pool_comm, &
+                     do_distr_diag_inside_bgrp_ = .FALSE. )
 
   CALL set_mpi_comm_4_solvers( intra_pool_comm, intra_bgrp_comm, inter_bgrp_comm )
 
