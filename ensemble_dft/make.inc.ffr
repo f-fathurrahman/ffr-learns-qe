@@ -1,0 +1,25 @@
+INC_QEMOD = $(TOPDIR)/Modules
+INC_CP    = $(TOPDIR)/CPV/src
+INC_QEFFT = $(TOPDIR)/FFTXlib
+INC_QELA  = $(TOPDIR)/LAXlib
+INC_UTIL  = $(TOPDIR)/UtilXlib
+
+LIB_CP    = $(TOPDIR)/CPV/src/libcp.a
+LIB_QEMOD = $(TOPDIR)/Modules/libqemod.a
+LIB_QEFFT = $(TOPDIR)/FFTXlib/libqefft.a
+LIB_QELA  = $(TOPDIR)/LAXlib/libqela.a
+LIB_CLIB  = $(TOPDIR)/clib/clib.a
+LIB_IOTK  = $(TOPDIR)/iotk/src/libiotk.a
+LIB_KS    = $(TOPDIR)/KS_Solvers/libks_solvers.a
+LIB_UTIL  = $(TOPDIR)/UtilXlib/libutil.a
+LIB_DFTD3 = $(TOPDIR)/dft-d3/libdftd3qe.a
+LIB_FOX   = -L$(TOPDIR)FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys
+
+LAPACK_LIBS = -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
+FFT_LIBS    = 
+BLAS_LIBS   = 
+
+INC_ALL  = -I$(INC_QEMOD) -I$(INC_CP) -I$(INC_QEFFT) -I$(INC_QELA) -I$(INC_UTIL)
+LIBS_ALL = $(LIB_CP) $(LIB_QEMOD) $(LIB_KS) $(LIB_QEFFT) $(LIB_QELA) $(LIB_UTIL)\
+$(LIB_DFTD3) $(LIB_CLIB) $(LIB_IOTK) $(LAPACK_LIBS) $(LIB_FOX) $(FFT_LIBS) $(BLAS_LIBS)
+
