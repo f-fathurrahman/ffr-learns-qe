@@ -40,6 +40,9 @@ pwt_plot_vltot:
 09_my_rgen:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 09_my_rgen.f90 -o 09_my_rgen.x $(LIBS_ALL)
 
+10_md_parameters:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 10_md_parameters.f90 -o 10_md_parameters.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 
