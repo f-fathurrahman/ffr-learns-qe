@@ -3,6 +3,7 @@ INC_PW    = $(TOPDIR)/PW/src
 INC_QEFFT = $(TOPDIR)/FFTXlib
 INC_QELA  = $(TOPDIR)/LAXlib
 INC_UTIL  = $(TOPDIR)/UtilXlib
+INC_UPFLIB = $(TOPDIR)/upflib
 
 LIB_PW    = $(TOPDIR)/PW/src/libpw.a
 LIB_QEMOD = $(TOPDIR)/Modules/libqemod.a
@@ -21,7 +22,7 @@ LAPACK_LIBS = -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential 
 FFT_LIBS    = 
 BLAS_LIBS   = 
 
-INC_ALL  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_QELA) -I$(INC_UTIL)
+INC_ALL  = -I$(INC_QEMOD) -I$(INC_PW) -I$(INC_QEFFT) -I$(INC_QELA) -I$(INC_UTIL) -I$(INC_UPFLIB)
 LIBS_ALL = $(LIB_PW) $(LIB_QEMOD) $(LIB_KS) $(LIB_QEFFT) $(LIB_QELA) $(LIB_UTIL)\
 $(LIB_DFTD3) $(LIB_BEEF) $(LIB_UPF) $(LIB_CLIB) $(LIB_IOTK) $(LAPACK_LIBS) $(LIB_FOX) $(FFT_LIBS) $(BLAS_LIBS)
 

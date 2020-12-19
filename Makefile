@@ -6,6 +6,8 @@ include make.inc.ffr
 #
 # Here are the targets
 #
+test_radial_grid:
+	$(MPIF90) -Wall -g $(INC_ALL) test_radial_grid.f90 -o test_radial_grid.x $(LIBS_ALL)
 
 my_scf:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 my_scf.f90 -o my_scf.x $(LIBS_ALL)
