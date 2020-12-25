@@ -45,6 +45,9 @@ pwt_plot_vltot:
 10_md_parameters:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 10_md_parameters.f90 -o 10_md_parameters.x $(LIBS_ALL)
 
+11_paw_variables:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 11_paw_variables.f90 -o 11_paw_variables.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 
