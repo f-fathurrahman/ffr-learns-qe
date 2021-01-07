@@ -48,6 +48,9 @@ pwt_plot_vltot:
 11_paw_variables:
 	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 11_paw_variables.f90 -o 11_paw_variables.x $(LIBS_ALL)
 
+12_upf_uspp:
+	$(MPIF90) -Wall -g $(INC_ALL) prepare_all.f90 12_upf_uspp.f90 -o 12_upf_uspp.x $(LIBS_ALL)
+
 test_pw_01:
 	$(MPIF90) -Wall -g $(INC_ALL) test_pw_01.f90 -o test_pw_01.x $(LIBS_ALL)
 

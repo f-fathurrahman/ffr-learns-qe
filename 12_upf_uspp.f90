@@ -3,15 +3,15 @@ PROGRAM main
   IMPLICIT NONE 
 
   CALL prepare_all()
-  !CALL test_paw_variables()
-  call test_uspp_paw()
+  call test_uspp()
 
 END PROGRAM 
 
 
 
-SUBROUTINE test_uspp_paw()
-  USE uspp_param, ONLY: upf
+SUBROUTINE test_uspp()
+  use uspp_param, only: upf
+  use ener, only: etxcc
   use us, only: spline_ps, qrad
   ! local variables
   INTEGER :: Nupf, isp, i, Ni, j, Nj
@@ -40,6 +40,7 @@ SUBROUTINE test_uspp_paw()
       enddo
       write(*,*)
     enddo
+    write(*,*) 'nlcc = ', upf(isp)%nlcc
   enddo
 
   write(*,*) 'spline_ps = ', spline_ps
@@ -47,16 +48,7 @@ SUBROUTINE test_uspp_paw()
   write(*,*) 'shape qrad: ', shape(qrad)
   write(*,*) 'qrad: ', qrad(1,1,1,1)
 
-END SUBROUTINE
-
-
-
-SUBROUTINE test_paw_variables()
-  USE paw_variables, ONLY: total_core_energy, okpaw
-  USE uspp, ONLY: okvan
-
-  WRITE(*,*) 'okpaw = ', okpaw
-  WRITE(*,*) 'okvan = ', okvan
-  WRITE(*,*) 'total_core_energy = ', total_core_energy
+  write(*,*) 'etxcc = ', etxcc
 
 END SUBROUTINE
+
