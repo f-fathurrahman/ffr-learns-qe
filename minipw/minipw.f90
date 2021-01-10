@@ -51,9 +51,12 @@ subroutine investigate_qfunc()
   do nt = 1, ntyp
     write(*,*)
     write(*,*) 'nt = ', nt
-    write(*,*) upf(nt)%qfunc(10,1)
-    write(*,*) upf(nt)%q_with_l
-    write(*,*) upf(nt)%qfuncl(10,1,1)
+    write(*,*) 'qfunc = ', upf(nt)%qfunc(5,1)
+    write(*,*) 'q_with_l = ', upf(nt)%q_with_l
+    write(*,*) 'qfuncl = ', upf(nt)%qfuncl(5,1,:)
+    write(*,*) 'shape qfuncl = ', shape(upf(nt)%qfuncl)
+    write(*,*) upf(nt)%qfuncl(1:5,1,0)
+    !write(*,*) upf(nt)%qfuncl(1,1,1)
   enddo
 
 end

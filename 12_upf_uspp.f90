@@ -41,6 +41,8 @@ SUBROUTINE test_uspp()
       write(*,*)
     enddo
     write(*,*) 'nlcc = ', upf(isp)%nlcc
+    write(*,*) 'kkbeta = ', upf(isp)%kkbeta
+    write(*,*) 'kbeta = ', upf(isp)%kbeta
   enddo
 
   write(*,*) 'spline_ps = ', spline_ps
