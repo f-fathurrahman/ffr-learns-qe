@@ -7,7 +7,7 @@ F77 = mpif90
 F77_OPTS = -Wall -O3 -cpp
 
 F90 = mpif90
-F90_OPTS = $(DFLAGS) -Wall -O3 -mtune=native -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+F90_OPTS = $(DFLAGS) -Wall -O3 -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
 
 OBJ_FFTXLIB = \
 scatter_mod.o  \
@@ -76,6 +76,7 @@ constants.o \
 wrappers.o \
 io_files.o \
 version.o \
+fox_init_module.o \
 environment.o \
 parser.o \
 wypos.o \
@@ -145,7 +146,6 @@ mm_dispersion.o \
 tsvdw.o \
 io_base.o \
 fsockets.o \
-sockets.o \
 fcp_variables.o \
 plugin_variables.o \
 ws_base.o \
@@ -316,13 +316,21 @@ potinit.o \
 print_clock_pw.o \
 print_ks_energies.o \
 punch.o \
+qexsd.o \
+qexsd_copy.o    qexsd_init.o  qexsd_input.o \
+qes_bcast_module.o  qes_libs_module.o  qes_reset_module.o  qes_write_module.o \
+qes_init_module.o   qes_read_module.o  qes_types_module.o \
 electrons_base.o \
+pw_restart_new.o \
+add_qexsd_step.o \
+pw_init_qexsd_input.o \
 pwcom.o \
 pw2blip.o \
 pw2casino.o \
 pw2casino_write.o \
 qvan2.o \
 rdiagh.o \
+read_conf_from_file.o \
 read_file_new.o \
 realus.o \
 remove_atomic_rho.o \
@@ -390,50 +398,7 @@ wfcinit.o \
 write_ns.o \
 wsweight.o \
 weights.o \
-ortho_wfc.o \
-wgauss.o w1gauss.o \
-simpsn.o \
-erf.o \
-sph_bes.o sph_dbes.o \
-ylmr2.o dylmr2.o \
-divide.o \
-gradutils.o \
-thread_util.o \
-upf_parallel_include.o \
-upf_error.o \
-dmxc_drivers.o \
-dgcxc_drivers.o \
-radial_gradients.o \
-rgen.o \
-atomic_number.o \
-set_hubbard_l.o  set_hubbard_n.o \
-trimcheck.o \
-atom_weight.o \
-set_vdw_corr.o \
-david_rci.o \
-cegterg.o \
-regterg.o \
-ccgdiagg.o \
-rcgdiagg.o \
-ppcg_gamma.o \
-ppcg_k.o \
-bpcg_gamma.o \
-bpcg_k.o \
-paro_gamma.o \
-pcg_gamma.o \
-paro_k.o \
-pcg_k.o \
-paro_gamma_new.o \
-paro_k_new.o \
-rotate_HSpsi_gamma.o \
-rotate_HSpsi_k.o \
-rotate_wfc_gamma.o \
-rotate_wfc_k.o \
-export_gstart_2_solvers.o \
-deviatoric.o \
-compute_dipole.o \
-remove_tot_torque.o \
-linpack.o
+ortho_wfc.o
 
 OBJ = $(OBJ_FFTXLIB) \
 $(OBJ_LAXLIB) \
@@ -470,10 +435,7 @@ clean:
 
 
 main: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a ../qe-6.6/dft-d3/libdftd3qe.a -lblas -llapack
-
-pw: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a ../qe-6.6/dft-d3/libdftd3qe.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
+	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a -lopenblas
 
 clean_pw.o:
 	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o clean_pw.o clean_pw.f90
@@ -503,13 +465,6 @@ xc_gga_drivers.o:
 xc_mgga_drivers.o:
 	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o xc_mgga_drivers.o xc_mgga_drivers.f90
 
-dmxc_drivers.o:
-	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o dmxc_drivers.o dmxc_drivers.f90
-
-dgcxc_drivers.o:
-	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o dgcxc_drivers.o dgcxc_drivers.f90
-
-
 #qes_write_module.o:
 #	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -c -o qes_write_module.o qes_write_module.f90
 
@@ -519,8 +474,8 @@ dgcxc_drivers.o:
 #qexsd.o:
 #	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -c -o qexsd.o qexsd.f90
 
-#fox_init_module.o:
-#	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o fox_init_module.o fox_init_module.f90
+fox_init_module.o:
+	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o fox_init_module.o fox_init_module.f90
 
 fftw.o:
 	gcc -O3 -c -o fftw.o fftw.c
