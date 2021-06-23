@@ -435,9 +435,18 @@ compute_dipole.o \
 remove_tot_torque.o \
 linpack.o
 
+OBJ_DFTD3 = \
+dftd3_common.o \
+dftd3_sizes.o \
+dftd3_pars.o \
+dftd3_core.o \
+dftd3_api.o \
+dftd3_qe.o 
+
 OBJ = $(OBJ_FFTXLIB) \
 $(OBJ_LAXLIB) \
 $(OBJ_MODULES) \
+$(OBJ_DFTD3) \
 $(OBJ_PW) \
 $(SRC:.f90=.o) $(SRC:.f=.o)
 
@@ -470,25 +479,25 @@ clean:
 
 
 main: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a ../qe-6.6/dft-d3/libdftd3qe.a -lblas -llapack
+	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -lblas -llapack
 
 pw: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a ../qe-6.6/dft-d3/libdftd3qe.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
+	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
 
 clean_pw.o:
-	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o clean_pw.o clean_pw.f90
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o clean_pw.o clean_pw.f90
 
 electrons.o:
-	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o electrons.o electrons.f90
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o electrons.o electrons.f90
 
 input.o:
-	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o input.o input.f90
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o input.o input.f90
 
 forces.o:
-	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o forces.o forces.f90
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o forces.o forces.f90
 
 stress.o:
-	mpif90 -I ../qe-6.6/dft-d3 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o stress.o stress.f90
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o stress.o stress.f90
 
 LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4/
 funct.o:
@@ -508,19 +517,6 @@ dmxc_drivers.o:
 
 dgcxc_drivers.o:
 	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o dgcxc_drivers.o dgcxc_drivers.f90
-
-
-#qes_write_module.o:
-#	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -c -o qes_write_module.o qes_write_module.f90
-
-#qes_read_module.o:
-#	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -c -o qes_read_module.o qes_read_module.f90
-
-#qexsd.o:
-#	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -c -o qexsd.o qexsd.f90
-
-#fox_init_module.o:
-#	mpif90 -I ../qe-6.6/FoX/finclude/ -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o fox_init_module.o fox_init_module.f90
 
 fftw.o:
 	gcc -O3 -c -o fftw.o fftw.c

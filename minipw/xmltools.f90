@@ -936,6 +936,8 @@ CONTAINS
        read(xmlunit,'(a)', end=10) line
        ll = len_trim(line)
        if ( ll == maxline ) then
+          print *, 'line = ', line
+          print *, 'll = ', ll
           print *, 'severe error: line too long'
           if (present(ierr)) ierr = 2
           return

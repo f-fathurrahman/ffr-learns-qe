@@ -145,6 +145,7 @@ SUBROUTINE readpp ( input_dft, printout, ecutwfc_pp, ecutrho_pp )
         !
         IF (isupf ==-81 ) THEN
 
+           write(*,*) 'isupf = ', isupf
            stop 'Should not go here 148 in read_pseudo' ! ffr
 
            !! error -81 may mean that file contains offending characters
