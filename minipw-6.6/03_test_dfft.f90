@@ -1,3 +1,5 @@
+include 'prepare_all.f90'
+
 PROGRAM test_dfft
   IMPLICIT NONE 
 

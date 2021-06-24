@@ -12,6 +12,8 @@ F90 = gfortran # mpif90
 #F90_OPTS = $(DFLAGS) -Wall -O3 -mtune=native -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
 F90_OPTS = $(DFLAGS) -Wall -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
 
+LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4/
+
 OBJ_FFTXLIB = \
 scatter_mod.o  \
 fft_ggen.o  \
@@ -482,11 +484,11 @@ clean:
 	rm -rf *.o *.mod libmain.a *.x
 
 
-main: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -lblas -llapack
+#main: lib
+#	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -lblas -llapack
 
-pw: lib
-	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
+#pw: lib
+#	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
 
 clean_pw.o:
 	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o clean_pw.o clean_pw.f90
@@ -503,7 +505,6 @@ forces.o:
 stress.o:
 	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o stress.o stress.f90
 
-LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4/
 funct.o:
 	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o funct.o funct.f90
 

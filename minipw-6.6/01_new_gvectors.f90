@@ -1,3 +1,5 @@
+include 'prepare_all.f90'
+
 PROGRAM new_gvectors
 
   IMPLICIT NONE 

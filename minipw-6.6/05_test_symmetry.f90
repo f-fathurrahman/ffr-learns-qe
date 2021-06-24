@@ -1,3 +1,4 @@
+include 'prepare_all.f90'
 include "my_symme.f90"
 
 PROGRAM main
@@ -103,7 +104,7 @@ END SUBROUTINE
 
 SUBROUTINE test_symmetry()
   
-  USE symm_base, ONLY : nrot, fft_fact, ft, ftau, s, nsym, irt
+  USE symm_base, ONLY : nrot, fft_fact, ft, s, nsym, irt
   USE symme, ONLY: symvector
   USE gvect, ONLY : ngm, g
   USE my_symme, ONLY: Ngs, my_sym_rho_init_shells
@@ -128,10 +129,6 @@ SUBROUTINE test_symmetry()
 
   DO isym = 1,nsym
     WRITE(*,'(1x,A,I2,A,3F18.10)') 'ft(:,', isym, ') = ', ft(:,isym)
-  ENDDO 
-
-  DO isym = 1,nsym
-    WRITE(*,'(1x,A,I2,A,3I5)') 'ftau(:,', isym, ') = ', ftau(:,isym)
   ENDDO 
 
   DO isym = 1,nsym

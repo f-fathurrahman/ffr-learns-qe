@@ -1,5 +1,6 @@
+include 'prepare_all.f90'
+
 PROGRAM main
-  USE kinds, ONLY: DP
   IMPLICIT NONE 
 
   CALL prepare_all()
