@@ -1,13 +1,16 @@
 MAKE = make
 AR = ar
 
-DFLAGS = -D__FFTW -D__MPI -D__LIBXC
+#DFLAGS = -D__FFTW -D__MPI -D__LIBXC
+DFLAGS = -D__FFTW -D__LIBXC
 
-F77 = mpif90
-F77_OPTS = -Wall -O3 -cpp
+F77 = gfortran # mpif90
+#F77_OPTS = -Wall -O3 -cpp
+F77_OPTS = -Wall -cpp
 
-F90 = mpif90
-F90_OPTS = $(DFLAGS) -Wall -O3 -mtune=native -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+F90 = gfortran # mpif90
+#F90_OPTS = $(DFLAGS) -Wall -O3 -mtune=native -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+F90_OPTS = $(DFLAGS) -Wall -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
 
 OBJ_FFTXLIB = \
 scatter_mod.o  \
@@ -155,7 +158,8 @@ qmmm.o \
 run_info.o \
 bfgs_module.o \
 space_group.o \
-wyckoff.o
+wyckoff.o \
+plot_io.o
 
 OBJ_PW = \
 a2fmod.o \
