@@ -68,9 +68,9 @@ subroutine init_us_1
   real(DP), EXTERNAL :: spinor
   !
 
-  write(*,*)
-  write(*,*) '*** Enter init_us_1'
-  write(*,*)
+  !write(*,*)
+  !write(*,*) '*** Enter init_us_1'
+  !write(*,*)
 
   call start_clock ('init_us_1')
   !
@@ -245,7 +245,7 @@ subroutine init_us_1
   !   Q functions.
   !
   IF ( lmaxq > 0 ) THEN
-    write(*,*) 'computing qrad' ! ffr
+    !write(*,*) 'computing qrad' ! ffr
     CALL compute_qrad( )
   ENDIF
   !
@@ -320,6 +320,8 @@ subroutine init_us_1
   allocate (besr( ndm))
   pref = fpi / sqrt (omega)
   call divide (intra_bgrp_comm, nqx, startq, lastq)
+  !write(*,*) 'startq = ', startq
+  !write(*,*) 'lastq  = ', lastq
   tab (:,:,:) = 0.d0
   do nt = 1, ntyp
      if ( upf(nt)%is_gth ) cycle
@@ -332,10 +334,13 @@ subroutine init_us_1
               aux (ir) = upf(nt)%beta (ir, nb) * besr (ir) * rgrid(nt)%r(ir)
            enddo
            call simpson (upf(nt)%kkbeta, aux, rgrid(nt)%rab, vqint)
-           tab (iq, nb, nt) = vqint * pref
+           tab(iq, nb, nt) = vqint * pref
         enddo
      enddo
+     !write(*,*) 'kkbeta = ', upf(nt)%kkbeta
   enddo
+  !write(*,*) 'nqx    = ', nqx
+  !write(*,*) 'shape tab: ', shape(tab)
   deallocate (besr)
   deallocate (aux)
 
@@ -348,6 +353,7 @@ subroutine init_us_1
         xdata(iq) = (iq - 1) * dq
      enddo
      do nt = 1, ntyp
+        write(*,*) 'Pass here in init_us_1: call spline'
         do nb = 1, upf(nt)%nbeta 
            d1 = (tab(2,nb,nt) - tab(1,nb,nt)) / dq
            call spline(xdata, tab(:,nb,nt), 0.d0, d1, tab_d2y(:,nb,nt))

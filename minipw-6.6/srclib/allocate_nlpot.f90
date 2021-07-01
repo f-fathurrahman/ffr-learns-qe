@@ -83,6 +83,7 @@ SUBROUTINE allocate_nlpot
   ! Calculate dimensions for array tab (including a possible factor
   ! coming from cell contraction during variable cell relaxation/MD)
   !
+  !write(*,*) 'cell_factor = ', cell_factor
   nqx = INT( (SQRT(ecutwfc) / dq + 4) * cell_factor )
   !
   ALLOCATE( tab(nqx,nbetam,nsp) )

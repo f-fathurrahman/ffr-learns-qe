@@ -115,6 +115,9 @@ SUBROUTINE init_us_2( npw_, igk_, q_, vkb_ )
                  IF (spline_ps) THEN
                     vq(ig) = splint(xdata, tab(:,nb,nt), tab_d2y(:,nb,nt), qg(ig))
                  ELSE
+                    ! qg: (G+k)^2
+                    !write(*,*)
+                    !write(*,*) 'Pass here in init_us_2'
                     px = qg(ig) / dq - INT( qg(ig)/dq )
                     ux = 1.d0 - px
                     vx = 2.d0 - px
