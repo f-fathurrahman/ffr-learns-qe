@@ -286,19 +286,19 @@ subroutine init_us_1
           do jh = ih, nh (nt)
              call qvan2 (1, ih, jh, nt, gg, qgm, ylmk0)
              if (lspinorb) then
-                 qq_so (ih, jh, 1, nt) = omega *  DBLE (qgm (1) )
-                 qq_so (jh, ih, 1, nt) = qq_so (ih, jh, 1, nt)
-                 qq_so (ih, jh, 4, nt) = qq_so (ih, jh, 1, nt)
-                 qq_so (jh, ih, 4, nt) = qq_so (ih, jh, 4, nt)
+                 qq_so(ih, jh, 1, nt) = omega *  DBLE (qgm (1) )
+                 qq_so(jh, ih, 1, nt) = qq_so(ih, jh, 1, nt)
+                 qq_so(ih, jh, 4, nt) = qq_so(ih, jh, 1, nt)
+                 qq_so(jh, ih, 4, nt) = qq_so(ih, jh, 4, nt)
              endif
-             qq_nt(ih,jh,nt) = omega * DBLE(qgm (1) )
-             qq_nt(jh,ih,nt) = omega * DBLE(qgm (1) )
+             qq_nt(ih,jh,nt) = omega * DBLE(qgm(1))
+             qq_nt(jh,ih,nt) = omega * DBLE(qgm(1))
           enddo
         enddo
       endif
     endif
   enddo
-  deallocate (ylmk0)
+  deallocate(ylmk0)
 #if defined(__MPI)
 100 continue
   if (lspinorb) then
@@ -319,7 +319,7 @@ subroutine init_us_1
   allocate( aux (ndm) )
   allocate (besr( ndm))
   pref = fpi / sqrt (omega)
-  call divide (intra_bgrp_comm, nqx, startq, lastq)
+  call divide(intra_bgrp_comm, nqx, startq, lastq)
   !write(*,*) 'startq = ', startq
   !write(*,*) 'lastq  = ', lastq
   tab (:,:,:) = 0.d0
@@ -329,11 +329,11 @@ subroutine init_us_1
         l = upf(nt)%lll (nb)
         do iq = startq, lastq
            qi = (iq - 1) * dq
-           call sph_bes (upf(nt)%kkbeta, rgrid(nt)%r, qi, l, besr)
+           call sph_bes(upf(nt)%kkbeta, rgrid(nt)%r, qi, l, besr)
            do ir = 1, upf(nt)%kkbeta
-              aux (ir) = upf(nt)%beta (ir, nb) * besr (ir) * rgrid(nt)%r(ir)
+              aux(ir) = upf(nt)%beta(ir, nb) * besr (ir) * rgrid(nt)%r(ir)
            enddo
-           call simpson (upf(nt)%kkbeta, aux, rgrid(nt)%rab, vqint)
+           call simpson(upf(nt)%kkbeta, aux, rgrid(nt)%rab, vqint)
            tab(iq, nb, nt) = vqint * pref
         enddo
      enddo
@@ -353,7 +353,6 @@ subroutine init_us_1
         xdata(iq) = (iq - 1) * dq
      enddo
      do nt = 1, ntyp
-        write(*,*) 'Pass here in init_us_1: call spline'
         do nb = 1, upf(nt)%nbeta 
            d1 = (tab(2,nb,nt) - tab(1,nb,nt)) / dq
            call spline(xdata, tab(:,nb,nt), 0.d0, d1, tab_d2y(:,nb,nt))
