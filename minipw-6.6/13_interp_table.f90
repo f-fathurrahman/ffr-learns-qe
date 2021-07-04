@@ -20,17 +20,18 @@ PROGRAM main
   REAL(8) :: vqint, qi
   INTEGER :: nt, nb, l, iq, ir
 
-  call prepare_all()
+  CALL prepare_all()
 
   cell_factor = 1.d0
 
-  write(*,*) 'ecutwfc = ', ecutwfc
+  WRITE(*,*) 'ecutwfc = ', ecutwfc
+  WRITE(*,*) 'dq = ', dq
 
   nqx = INT( (SQRT(ecutwfc) / dq + 4) * cell_factor )
-  write(*,*) 'nqx = ', nqx
+  WRITE(*,*) 'nqx = ', nqx
 
-  write(*,*) 'upf(:)%nbeta = ', upf(1:ntyp)%nbeta
-  write(*,*) 'nbetam = ', nbetam
+  WRITE(*,*) 'upf(:)%nbeta = ', upf(1:ntyp)%nbeta
+  WRITE(*,*) 'nbetam = ', nbetam
 
   ALLOCATE( tab(nqx,nbetam,ntyp) )
 
@@ -39,49 +40,63 @@ PROGRAM main
   !
   ndm = MAXVAL( upf(:)%kkbeta )
 
-  write(*,*) 'upf(:)%kkbeta = ', upf(1:ntyp)%kkbeta
-  write(*,*) 'ndm = ', ndm
-  
-  allocate( aux(ndm) )
-  allocate( besr(ndm) )
+  WRITE(*,*) 'upf(:)%kkbeta = ', upf(1:ntyp)%kkbeta
+  WRITE(*,*) 'ndm = ', ndm
+
+  ALLOCATE( aux(ndm) )
+  ALLOCATE( besr(ndm) )
 
   pref = fpi/sqrt(omega)
 
+  WRITE(*,*) 'omega = ', omega
+  WRITE(*,*) 'pref = ', pref
 
   tab(:,:,:) = 0.d0
-  do nt = 1, ntyp
-    if( upf(nt)%is_gth ) cycle
-    write(*,*)
-    write(*,*) 'nt = ', nt
-    write(*,*) 'shape rgrid%r = ', shape(rgrid(nt)%r)
-    do nb = 1, upf(nt)%nbeta
+  DO nt = 1, ntyp
+    IF( upf(nt)%is_gth ) cycle
+    WRITE(*,*)
+    WRITE(*,*) 'nt = ', nt
+    WRITE(*,*) 'shape rgrid%r = ', shape(rgrid(nt)%r)
+    DO nb = 1, upf(nt)%nbeta
       l = upf(nt)%lll(nb)
-      do iq = 1,nqx
+      DO iq = 1,nqx
         qi = (iq - 1) * dq
-        call sph_bes( upf(nt)%kkbeta, rgrid(nt)%r, qi, l, besr ) ! calculate j_l(1:nr)
-        do ir = 1,upf(nt)%kkbeta
-           aux(ir) = upf(nt)%beta (ir, nb) * besr(ir) * rgrid(nt)%r(ir)
-        enddo
-        call simpson(upf(nt)%kkbeta, aux, rgrid(nt)%rab, vqint)
+        call sph_bes( upf(nt)%kkbeta, rgrid(nt)%r, qi, l, besr ) ! calculate j_l(1:kkbeta)
+        DO ir = 1,upf(nt)%kkbeta
+          aux(ir) = upf(nt)%beta(ir, nb) * besr(ir) * rgrid(nt)%r(ir)
+          write(*,'(I8,4F18.10)') ir, qi, rgrid(nt)%r(ir), besr(ir), upf(nt)%beta(ir,nb)
+        ENDDO
+        write(*,*) 'sum(aux(1:kkbeta) = ', sum(aux(1:upf(nt)%kkbeta))
+        stop 'ffr 69'
+        CALL simpson(upf(nt)%kkbeta, aux, rgrid(nt)%rab, vqint)
         tab(iq, nb, nt) = vqint * pref
-      enddo
-    enddo
-    write(*,*) 'kkbeta = ', upf(nt)%kkbeta
-  enddo
+      ENDDO 
+    ENDDO 
+    WRITE(*,*) 'kkbeta = ', upf(nt)%kkbeta
+  ENDDO 
+
+  write(*,*) 'rgrid(1)%r = ', rgrid(1)%r(1:4)
 
   ! Write to file
-  nb = 2
-  nt = 1
-  do iq = 1,nqx
+  nb = 1
+  nt = 2
+  DO iq = 1,nqx
     qi = (iq-1)*dq
-    write(1000,'(1x,2F18.10)') qi, tab(iq,nb,nt) 
-  enddo
+    WRITE(1000,'(1x,2F18.10)') qi, tab(iq,nb,nt) 
+  ENDDO 
+
+  DO iq = 1,5
+    qi = (iq-1)*dq
+    WRITE(*,'(1x,2F18.10)') qi, tab(iq,nb,nt) 
+  ENDDO 
+
   !write(*,*) 'startq = ', startq
   !write(*,*) 'lastq  = ', lastq
   !write(*,*) 'nqx    = ', nqx
   !write(*,*) 'shape tab: ', shape(tab)
-  !deallocate (besr)
-  !deallocate (aux)
+  
+  DEALLOCATE(besr)
+  DEALLOCATE(aux)
 
 
 END PROGRAM 
