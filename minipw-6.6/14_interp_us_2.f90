@@ -20,7 +20,7 @@ PROGRAM main
   REAL(8) :: vqint, qi
   INTEGER :: nt, nb, l, iq, ir
   INTEGER :: i0, i1, i2, i3
-  REAL(8) :: Gk2, ux, vx, wx, Vq, px
+  REAL(8) :: Gm, ux, vx, wx, Vq, px
 
 
   CALL prepare_all()
@@ -77,9 +77,11 @@ PROGRAM main
 
   write(*,*) 'rgrid(1)%r = ', rgrid(1)%r(1:4)
 
-  ! Write to file
+  ! For testing
   nb = 1
   nt = 2
+
+  ! Write to file
   DO iq = 1,nqx
     qi = (iq-1)*dq
     WRITE(1000,'(1x,2F18.10)') qi, tab(iq,nb,nt) 
@@ -93,15 +95,15 @@ PROGRAM main
   DEALLOCATE(besr)
   DEALLOCATE(aux)
 
-  nt = 1
-  nb = 1
-  Gk2 = 1.5d0 ! already multiplied by tpiba in QE
+  Gm = 2.0d0 ! already multiplied by tpiba in QE
   ! Interpolation procedure
-  px = Gk2/dq - INT(Gk2/dq)
+  px = Gm/dq - INT(Gm/dq)
+  write(*,*) 'px = ', px
   ux = 1.d0 - px
   vx = 2.d0 - px
   wx = 3.d0 - px
-  i0 = int(Gk2/dq) + 1
+  i0 = int(Gm/dq) + 1
+  write(*,*) 'i0 = ', i0
   i1 = i0 + 1
   i2 = i0 + 2
   i3 = i0 + 3
@@ -110,6 +112,6 @@ PROGRAM main
        tab(i2,nb,nt) * px * ux * wx / 2.d0 + &
        tab(i3,nb,nt) * px * ux * vx / 6.d0
 
-  WRITE(*,*) "Vq = ", Vq
+  WRITE(*,'(1x,A,F18.10)') 'Vq = ', Vq
 
 END PROGRAM 
