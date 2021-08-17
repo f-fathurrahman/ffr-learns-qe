@@ -118,9 +118,9 @@ program simple
   !
   CALL set_vrs(vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
   !
-  IF ( okvan) CALL generate_qpointlist()
+  IF( okvan ) CALL generate_qpointlist()
   !
-  CALL allocate_simple
+  CALL allocate_simple()
   !
   CALL wfc_basis()
   !
@@ -128,9 +128,9 @@ program simple
       WRITE(stdout,*) '***********************************************************'
       WRITE(stdout,*) 'Preparing for subsequent BSE calculation (for simple_bse.x)'
       WRITE(stdout,*) '***********************************************************'
-      CALL product_basis
-      CALL v_product
-      CALL epe
+      CALL product_basis()
+      CALL v_product()
+      CALL epe()
   ELSEIF(calc_mode==1) then ! IP calculation
       WRITE(stdout,*) '*********************************************************'
       WRITE(stdout,*) 'Preparing for subsequent IP calculation (for simple_ip.x)'
@@ -143,7 +143,7 @@ program simple
   CALL print_clock('optimal_basis')
   CALL print_clock('simple')
   !
-  CALL stop_pp
+  CALL stop_pp()
   STOP
   !
 END PROGRAM simple
