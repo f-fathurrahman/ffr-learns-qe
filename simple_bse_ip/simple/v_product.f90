@@ -134,12 +134,16 @@ SUBROUTINE v_product()
         qk(1:3) = bg(1:3,1)*real(ii)/real(nkpoints(1)) + &
                   bg(1:3,2)*real(jj)/real(nkpoints(2)) + &
                   bg(1:3,3)*real(kk)/real(nkpoints(3))
-
+        
         qk = -qk !(-) dovrebbe esser giusto da analisi G,k
+        
+        write(*,*) 'qk = ', qk
+        
         DO ig=1,npw_max
           gk(1:3) = qk(1:3) + g(1:3,ig)
           qq = gk(1)**2.d0 + gk(2)**2.d0 + gk(3)**2.d0
           IF(qq > 1.d-8) THEN 
+            !WRITE(*,*) 'qq not small'
             !fac(ig)=e2*fpi/(tpiba2*qq)
             fac(ig)=0.d0
             DO ix=-n_int+1,n_int
@@ -162,27 +166,32 @@ SUBROUTINE v_product()
             !
           ELSE
             fac(ig)=0.d0
-            !WRITE(stdout,*) ' TROVATO',qk(1:3),g(1:3,ig)
+            !WRITE(*,'(1x,A,6F10.5)') 'TROVATO', qk(1:3),g(1:3,ig)
+            WRITE(*,*) 'Handling small qq'
             n_trovato=mpime+1
             DO ix=-n_int_loc+1,n_int_loc
             DO iy=-n_int_loc+1,n_int_loc
             DO iz=-n_int_loc+1,n_int_loc
-              qx(:)=0.5d0*(1.d0/dble(n_int_loc*nkpoints(1))*(dble(ix-1))+0.5d0/dble(n_int_loc*nkpoints(1)))*bg(:,1)
-              qy(:)=0.5d0*(1.d0/dble(n_int_loc*nkpoints(2))*(dble(iy-1))+0.5d0/dble(n_int_loc*nkpoints(2)))*bg(:,2)
-              qz(:)=0.5d0*(1.d0/dble(n_int_loc*nkpoints(3))*(dble(iz-1))+0.5d0/dble(n_int_loc*nkpoints(3)))*bg(:,3)
-              qt(1:3)=qx(1:3)+qy(1:3)+qz(1:3)+qk(1:3)+g(1:3,ig)
-              qq_fact=qt(1)**2+qt(2)**2+qt(3)**2
-              fac(ig)=fac(ig)+1.d0/qq_fact 
+              qx(:) = 0.5d0*(1.d0/dble(n_int_loc*nkpoints(1))*(dble(ix-1)) + &
+                      0.5d0/dble(n_int_loc*nkpoints(1)))*bg(:,1)
+              qy(:) = 0.5d0*(1.d0/dble(n_int_loc*nkpoints(2))*(dble(iy-1)) + &
+                      0.5d0/dble(n_int_loc*nkpoints(2)))*bg(:,2)
+              qz(:) = 0.5d0*(1.d0/dble(n_int_loc*nkpoints(3))*(dble(iz-1)) + &
+                      0.5d0/dble(n_int_loc*nkpoints(3)))*bg(:,3)
+              qt(1:3) = qx(1:3) + qy(1:3) + qz(1:3) + qk(1:3) + g(1:3,ig)
+              qq_fact = qt(1)**2 + qt(2)**2 + qt(3)**2
+              fac(ig) = fac(ig) + 1.d0/qq_fact 
             ENDDO 
             ENDDO 
             ENDDO 
+            WRITE(*,*) 'End of handling small qq'
             fac(ig)=fac(ig)*e2*fpi/(8.d0*(dble(n_int_loc))**3.d0)/tpiba2
           ENDIF 
         ENDDO 
         
-        fac=fac/omega/nks
+        fac = fac/omega/nks
           
-        IF(npol>1) fac(npw_max+1:npw_max*npol)=fac(1:npw_max)
+        IF( npol > 1) fac(npw_max+1:npw_max*npol)=fac(1:npw_max)
 
         prod_g(1:npw_max*npol,1:nprod_e)=prod_e(1:npw_max*npol,1:nprod_e)
         DO ll=1,nprod_e
@@ -224,7 +233,7 @@ SUBROUTINE v_product()
         model = (1.d0/epsm-1.d0)*exp(-3.1415926d0*qq/2.d0/lambdam**2.d0)
         !
         IF( qq > 1.d-8 ) THEN 
-          fac(ig)=0.d0
+          fac(ig) = 0.d0
           DO ix = -n_int+1,n_int
           DO iy = -n_int+1,n_int
           DO iz = -n_int+1,n_int
@@ -309,7 +318,7 @@ SUBROUTINE v_product()
       CALL davcio(p_basis_r,dfftp%nnr,iunp,ii,-1)
       !DO fft
       psic(1:dfftp%nnr)=p_basis_r(1:dfftp%nnr)
-      CALL fwfft ('Rho', psic, dfftp)
+      CALL fwfft('Rho', psic, dfftp)
       DO ig=1,npw_max
         p_basis(ig,ii)=psic(dfftp%nl(ig))
       ENDDO 
