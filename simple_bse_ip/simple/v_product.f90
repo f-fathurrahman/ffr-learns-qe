@@ -46,11 +46,13 @@ SUBROUTINE v_product()
   COMPLEX(kind=DP), ALLOCATABLE :: amat(:,:),tmp_mat(:,:),p_mat(:,:)
   REAL(kind=DP), ALLOCATABLE :: facg(:)
   INTEGER, parameter :: n_int_loc = 20*50
+  !INTEGER, parameter :: n_int_loc = 500 ! new parameter?
   REAL(kind=DP) :: model
   INTEGER :: n_trovato
 
   WRITE(*,*)
-  WRITE(stdout,*) 'Routine v_product'
+  WRITE(*,*) 'Enter Routine v_product'
+  WRITE(*,*)
 
   ALLOCATE(fac(npw_max*npol))
    
