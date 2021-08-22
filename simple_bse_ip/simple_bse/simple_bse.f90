@@ -1,25 +1,24 @@
-program simple_bse
+PROGRAM simple_bse
 
-  USE  start_end
+  USE start_end
   USE input_simple_exc
   
-  implicit none
+  IMPLICIT NONE 
 
-  TYPE(input_options) :: sin
+  TYPE(input_options) :: sinp
 
+  !setup MPI environment
+  CALL startup()
 
-!setup MPI environment
-  call startup
+  CALL read_input_simple_exc( sinp )  
+  SELECT CASE(sinp%task)
+  CASE(0) !solve eigen-problem
+    CALL simple_eigen(sinp)
+  CASE(1) !find spectrum lanczos
+    CALL lanczos(sinp)
+  END SELECT
 
-  call read_input_simple_exc( sin )  
-  select case(sin%task)
-     case(0)!solve eigen-problem
-         call simple_eigen(sin)
-     case(1)!find spectrum lanczos
-        call lanczos(sin)
-  end select
+  CALL stop_run()
+  STOP
 
-  call stop_run
-  stop
-
-end program simple_bse
+END PROGRAM simple_bse
