@@ -276,7 +276,12 @@ SUBROUTINE solve_linter(config_global, num_iter, dvbarein, freq, drhoscf)
 ! The outside loop is over the iterations.
 ! num_iter := maximum number of iterations
   
+  write(*,*) 'num_iter = ', num_iter
+
   DO iter = 1, num_iter
+
+    write(*,*) 'in solve_linter: iter = ', iter
+
     !
     first_iteration = (iter == 1)
     !
@@ -286,6 +291,9 @@ SUBROUTINE solve_linter(config_global, num_iter, dvbarein, freq, drhoscf)
     IF (noncolin) dbecsum_nc = zero 
     !
     DO ik = 1, nksq
+
+      write(*,*) 'ik = ', ik, ' from nksq = ', nksq
+
       !
       ikk  = ikks(ik)
       ikq  = ikqs(ik)
@@ -318,11 +326,14 @@ SUBROUTINE solve_linter(config_global, num_iter, dvbarein, freq, drhoscf)
       ! compute preconditioning matrix h_diag used by cgsolve_all
       ! deactivated because we don't use a preconditioned solver
       !
-!      CALL h_prec(ik, evq, h_diag)
+      ! CALL h_prec(ik, evq, h_diag)
       !
       ! in the first iteration we initialize the linear system
       ! and may use the multishift solver
       IF (first_iteration) THEN
+        
+        write(*,*) 'solve_linter: We enter the first_iteration'
+
         !
         !  At the first iteration dvbare_q*psi_kpoint is calculated
         !  and written to file
@@ -363,10 +374,13 @@ SUBROUTINE solve_linter(config_global, num_iter, dvbarein, freq, drhoscf)
         ! dvpsi=-P_c^+ (dvbare+dvscf)*psi , dvscf fixed.
         !
         config%threshold = thresh
+        write(*,*) 'thresh = ', thresh
         !
         DO ibnd = 1, nbnd_occ(ikk)
+          write(*,*) 'Entering select_solver: '
           CALL select_solver(config, coulomb_operator, dvpsi(:npwq, ibnd), &
                              -(et(ibnd, ikk) + omega), dpsi(:npwq, ibnd, :), ierr)
+          write(*,*) 'ibnd = ', ibnd, ' is solved'
           CALL errore(__FILE__, "solver did not converge", ierr)
           ! rescale so that the density is recovered when multiplying with the
           ! k-point weight

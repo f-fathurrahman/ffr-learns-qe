@@ -25,10 +25,8 @@
 !! to a charge dvbare(nl(ig)) = 1.00 + i*0.00 at a single fourier component (G).
 !! The dielectric matrix is given by:
 !! eps_{q}^{-1}(G,G',iw) = (\delta_{GG'} + drhoscfs^{scf}_{G,G',iw})
-!!
-!! @note: this is solver for the special case q + G = 0
 !-----------------------------------------------------------------------
-SUBROUTINE coulomb_q0G0(config, eps_m) 
+SUBROUTINE coulomb(config, igstart, num_g_corr, num_task, scrcoul) 
 !-----------------------------------------------------------------------
   USE constants,        ONLY : eps8
   USE control_gw,       ONLY : solve_direct, niter_gw
@@ -38,6 +36,7 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
   USE fft_interfaces,   ONLY : invfft, fwfft
   USE freq_gw,          ONLY : fiu, nfs
   USE gvect,            ONLY : g
+  USE gwsymm,           ONLY : ig_unique
   USE io_global,        ONLY : stdout, ionode
   USE noncollin_module, ONLY : nspin_mag
   USE kinds,            ONLY : dp
@@ -51,8 +50,20 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
   !> stores the configuration of the linear solver for the screened Coulomb interaction
   TYPE(select_solver_type), INTENT(IN) :: config
 
+  !> first index of the G vector evaluated on this process
+  INTEGER, INTENT(IN) :: igstart
+
+  !> number of G vectors on all processes
+  INTEGER, INTENT(IN) :: num_g_corr
+
+  !> number of G vector evaluated by this process
+  INTEGER, INTENT(IN) :: num_task
+
   !> the screened coulomb interaction
-  COMPLEX(dp), INTENT(OUT) :: eps_m(nfs)
+  COMPLEX(dp), INTENT(OUT) :: scrcoul(num_g_corr, nfs, num_task)
+
+  !> actual index inside the array
+  INTEGER indx
 
   !> complex constant of zero
   COMPLEX(dp), PARAMETER :: zero = CMPLX(0.0_dp, 0.0_dp, KIND = dp)
@@ -63,11 +74,8 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
   !> square of the length |q + G|
   REAL(dp) qg2
 
-  !> index of G (fixed to the G = 0)
-  INTEGER, PARAMETER :: ig = 1
-
-  !> index of G'
-  INTEGER igp
+  !> index of G and G'
+  INTEGER ig, igp
 
   !> index of the frequency
   INTEGER iw
@@ -89,31 +97,42 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
   ! we use the frequency as equivalent of the perturbation in phonon
   ALLOCATE (drhoscfs(dfftp%nnr, nspin_mag, nfs))
   IF (nspin_mag /= 1) CALL errore(__FILE__, "magnetic calculation not implemented", 1)
+  scrcoul = zero
 
   ! determine number of iterations and set format string
   IF (solve_direct) THEN
     num_iter = 1
-    format_str = '(8x,"eps_{GG}(q,w) = ", 2f12.5, f9.2, a)'
+    format_str = '(8x,"solve_direct: eps_{GG}(q,w) = ", 2f12.5, f9.2, a)'
   ELSE IF (niter_gw > 1) THEN
     num_iter = niter_gw
+    write(*,*) 'num_iter = ', num_iter
     format_str = '(5x,"inveps_{GG}(q,w) = ", 2f12.5, f9.2, a)'
   ELSE
     CALL errore(__FILE__, "for iterative solver, we need to use more iterations", 1)
     format_str = '(*)'
   END IF
+
   !
-  ! square of length |q + G|
-  qg2 = SUM((g(:, ig) + xq)**2)
+  ! loop over tasks = G vectors done in this image
   !
-  ! sanity check - qg2 must not vanish
-  IF (qg2 < eps8) THEN
-    CALL errore(__FILE__, "the solver cannot converge for q + G = 0", 1)
-  ELSE
+  DO indx = 1, num_task
+
+    write(*,*) 'coulomb: indx = ', indx, ' out of num_task = ', num_task
+
+    !
+    ! determine index of G vector
+    ig = igstart + indx - 1
+    !
+    ! square of length |q + G|
+    qg2 = SUM((g(:, ig_unique(ig)) + xq)**2)
+    !
+    ! the case q + G = 0 is treated by separate routine
+    IF (qg2 < eps8) CYCLE
     !
     ! initialize the potential for a single G to 1
     drhoscfs = zero
     dvbare   = zero
-    dvbare(dffts%nl(ig)) = one
+    dvbare(dffts%nl(ig_unique(ig))) = one
     !
     ! potential in real space
     CALL invfft('Rho', dvbare, dffts)
@@ -126,21 +145,26 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
     !
     ! loop over frequencies
     DO iw = 1, nfs
+      write(*,*) 'coulomb: frequency iw = ', iw
       !
       ! evaluate response in reciprocal space
-      CALL fwfft ('Rho', drhoscfs(:, 1, iw), dffts)
+      CALL fwfft('Rho', drhoscfs(:, 1, iw), dffts)
       !
       ! copy to output array
-      eps_m(iw) = drhoscfs(dffts%nl(ig), 1, iw)
+      DO igp = 1, num_g_corr
+        scrcoul(igp, iw, indx) = drhoscfs(dffts%nl(igp), 1, iw)
+      END DO ! igp
       !
       ! for the direct solver at bare potential in diagonal
       IF (solve_direct) THEN
-        eps_m(iw) = eps_m(iw) + dvbare(dffts%nl(ig))
+        igp = ig_unique(ig)
+        scrcoul(igp, iw, indx) = scrcoul(igp, iw, indx) + dvbare(dffts%nl(igp))
       END IF
       !
-      ! print the diagonal element
+      ! print the diagonal element + timing at the last frequency
       IF (ionode) THEN
-        igp = dffts%nl(ig)
+        igp = dffts%nl(ig_unique(ig))
+        write(*,*) 'coulomb: iw = ', iw, ' nfs = ', nfs
         IF (iw == nfs) THEN
           WRITE(stdout, format_str) drhoscfs(igp, 1, iw) + dvbare(igp), &
             get_clock(time_coulomb) - start_time, "s"
@@ -151,8 +175,8 @@ SUBROUTINE coulomb_q0G0(config, eps_m)
       !
     END DO ! iw
     !
-  END IF
+  END DO ! indx
 
   DEALLOCATE(drhoscfs)
 
-END SUBROUTINE coulomb_q0G0
+END SUBROUTINE coulomb

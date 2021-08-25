@@ -148,6 +148,7 @@ CONTAINS
       CASE (sgw_linear_solver)
         !
         ! converge using the SternheimerGW linear solver
+        write(*,*) 'select_solver: using SGW linear solver'
         sgw_solver_config = solver_config(config)
         CALL linear_solver(sgw_solver_config, AA, bb, sigma, xx, ierr)
 

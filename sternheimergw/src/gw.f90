@@ -90,29 +90,52 @@ program gw
   call gwq_readin(config_coul, config_green, freq, vcut, debug)
   call check_stop_init()
   call check_initial_status()
+
 ! Initialize frequency grids, FFT grids for correlation
 ! and exchange operators, open relevant GW-files.
+  WRITE(*,*) 'Calling freqbins'
   call freqbins(do_imag, wsigmamin, wsigmamax, nwsigma, wcoulmax, nwcoul, &
                 wsig_wind_min, wsig_wind_max, nwsigwin, freq)
+  WRITE(*,*) 'End of calling freqbins'
+
+  WRITE(*,*) 'Calling sigma_grid'
   call sigma_grid(freq, ecutsex, ecutsco, grid)
+  WRITE(*,*) 'End of sigma_grid'
+
   call opengwfil(grid)
+
+  write(*,*) 'Pass 109'
+
   call stop_clock(time_setup)
 ! Calculation W
   if(do_coulomb) call do_stern(config_coul, grid, freq)
+
+  write(*,*) 'Pass here 108'
+
   ik = 1
   do_band  = .TRUE.
   do_matel = .TRUE.
+
+  write(*,*) 'do_q0_only = ', do_q0_only
+
 ! Calculation of CORRELATION energy \Sigma^{c}_{k}=\sum_{q}G_{k-q}{W_{q}-v_{q}}:
   if (.not.do_q0_only) then
+      WRITE(*,*) 'enter 120 in gw.f90'
+      write(*,*) 'w_of_k_start = ', w_of_k_start
+      write(*,*) 'w_of_k_stop  = ', w_of_k_stop
       do ik = w_of_k_start, w_of_k_stop
+         write(*,*) 'gw ik = ', ik
          call start_clock(time_setup)
          call run_nscf(do_band, do_matel, ik, config)
          call initialize_gw(.FALSE.)
          call stop_clock(time_setup)
+         write(*,*) 'do_sigma_c = ', do_sigma_c
          if (do_sigma_c) call sigma_wrapper(ik, grid, config_green, freq, vcut, config, debug)
 ! Calculation of EXCHANGE energy \Sigma^{x}_{k}= \sum_{q}G_{k}{v_{k-S^{-1}q}}:
+         write(*,*) 'do_sigma_exx = ', do_sigma_exx
          if (do_sigma_exx) call exchange_wrapper(ik, grid, vcut)
 ! Calculation of Matrix Elements <n\k| V^{xc}, \Sigma^{x}, \Sigma^{c}(iw) |n\k>:
+         write(*,*) 'do_sigma_matel = ', do_sigma_matel
          if (do_sigma_matel) then
            if (meta_ionode .AND. ik == w_of_k_start) then         
              call pp_output_open_all(num_k_pts, nbnd_sig, nwsigwin, nwsigma, output)

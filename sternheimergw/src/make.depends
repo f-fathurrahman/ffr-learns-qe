@@ -1,0 +1,77 @@
+aaa.o : aaa.f90 vendor_lapack.o assert.o array.o constant.o 
+allocate_gwq.o : allocate_gwq.f90 gwcom.o 
+analytic.o : analytic.f90 array.o timing.o sigma_grid.o fft6.o gwcom.o pade_robust.o godby_needs.o freqbins.o aaa.o 
+array.o : array.f90 assert.o constant.o 
+assert.o : assert.f90 
+bicgstab.o : bicgstab.f90 norm.o debug.o 
+check_initial_status.o : check_initial_status.f90 gwcom.o 
+clean_pw_gw.o : clean_pw_gw.f90 
+close_gwq.o : close_gwq.f90 gwcom.o gwcom.o 
+constant.o : constant.f90 
+coulomb.o : coulomb.f90 timing.o solve_linter.o select_solver.o gwcom.o gwcom.o gwcom.o gwcom.o 
+coulomb_q0G0.o : coulomb_q0G0.f90 timing.o solve_linter.o select_solver.o gwcom.o gwcom.o gwcom.o 
+coulomb_vcut.o : coulomb_vcut.f90 
+coulpade.o : coulpade.f90 truncation.o gwcom.o 
+data_lapack.o : data_lapack.f90 
+deallocate_gwq.o : deallocate_gwq.f90 gwcom.o 
+debug.o : debug.f90 
+do_stern.o : do_stern.f90 gwcom.o timing.o sigma_grid.o select_solver.o run_nscf.o plot_coulomb.o parallel.o gwcom.o freqbins.o gwcom.o gwcom.o gwcom.o 
+dvqpsi_us.o : dvqpsi_us.f90 gwcom.o 
+exchange.o : exchange.f90 timing.o gwcom.o sigma_io.o parallel.o gwcom.o gwcom.o truncation.o sigma_grid.o 
+fft6.o : fft6.f90 timing.o 
+freqbins.o : freqbins.f90 
+gauleg_grid.o : gauleg_grid.f90 
+gmap_sym.o : gmap_sym.f90 
+godby_needs.o : godby_needs.f90 
+gram_schmidt.o : gram_schmidt.f90 norm.o 
+green.o : green.f90 sleep.o norm.o linear_op.o timing.o sigma_grid.o select_solver.o fft6.o debug.o reorder.o 
+gwcom.o : gwcom.f90 gw_type.o 
+gw.o : gw.f90 truncation.o timing.o sigma.o sigma_io.o sigma_grid.o setup_nscf_green.o select_solver.o run_nscf.o pp_output.o gwcom.o gw_opening.o freqbins.o gwcom.o exchange.o gwcom.o debug.o gwcom.o 
+gw_input.o : gw_input.f90 debug.o 
+gw_opening.o : gw_opening.f90 version.o 
+gwq_init.o : gwq_init.f90 
+gwq_readin.o : gwq_readin.f90 truncation.o select_solver.o save_gw_input.o gwcom.o gwcom.o gwcom.o gw_input.o freqbins.o gwcom.o gwcom.o debug.o gwcom.o analytic.o 
+gwq_setup.o : gwq_setup.f90 gwcom.o gwcom.o 
+gw_type.o : gw_type.f90 
+initialize_gw.o : initialize_gw.f90 
+invert_epsilon.o : invert_epsilon.f90 gwcom.o 
+kind_gw.o : kind_gw.f90 
+linear_op.o : linear_op.f90 timing.o 
+linear_solver.o : linear_solver.f90 gram_schmidt.o norm.o debug.o 
+mix_pot_c.o : mix_pot_c.f90 
+norm.o : norm.f90 
+openfilq.o : openfilq.f90 gwcom.o save_gw_input.o gwcom.o 
+opengwfil.o : opengwfil.f90 gwcom.o sigma_io.o sigma_grid.o gwcom.o gwcom.o gwcom.o gwcom.o 
+pade.o : pade.f90 
+pade_robust.o : pade_robust.f90 norm.o data_lapack.o 
+parallel.o : parallel.f90 
+plot_coulomb.o : plot_coulomb.f90 sigma_grid.o freqbins.o analytic.o 
+pp_output.o : pp_output.f90 gw_type.o 
+prepare_q0.o : prepare_q0.f90 gwcom.o gwcom.o 
+prepare_q.o : prepare_q.f90 gwcom.o gwcom.o 
+print_matel.o : print_matel.f90 pp_output.o gwcom.o gwcom.o 
+print_matel_im.o : print_matel_im.f90 pp_output.o gwcom.o gwcom.o 
+q_points.o : q_points.f90 gwcom.o 
+reorder.o : reorder.f90 
+run_nscf.o : run_nscf.f90 setup_nscf_green.o gwcom.o gwcom.o gwcom.o 
+save_gw_input.o : save_gw_input.f90 
+select_solver.o : select_solver.f90 linear_solver.o bicgstab.o 
+setup_nscf.o : setup_nscf.f90 gwcom.o 
+setup_nscf_green.o : setup_nscf_green.f90 gwcom.o 
+sigma_expect.o : sigma_expect.f90 reorder.o 
+sigma.o : sigma.f90 green.o gwcom.o truncation.o timing.o sigma_io.o sigma_grid.o setup_nscf_green.o select_solver.o parallel.o gwcom.o freqbins.o fft6.o gwcom.o debug.o coulpade.o gwcom.o analytic.o 
+sigma_grid.o : sigma_grid.f90 freqbins.o fft6.o 
+sigma_io.o : sigma_io.f90 
+sigma_matel.o : sigma_matel.f90 gwcom.o timing.o sigma_grid.o sigma_expect.o gwcom.o kind_gw.o gwcom.o freqbins.o gwcom.o gwcom.o gwcom.o 
+sigma_pade.o : sigma_pade.f90 gwcom.o gwcom.o gwcom.o 
+sleep.o : sleep.f90 
+solve_linter.o : solve_linter.f90 linear_op.o gwcom.o timing.o select_solver.o gwcom.o 
+sort.o : sort.f90 constant.o 
+star_q.o : star_q.f90 
+stern_symm.o : stern_symm.f90 gwcom.o 
+stop_gw.o : stop_gw.f90 timing.o 
+timing.o : timing.f90 
+truncation.o : truncation.f90 gwcom.o coulomb_vcut.o 
+unfold_w.o : unfold_w.f90 gwcom.o gwcom.o 
+vendor_lapack.o : vendor_lapack.f90 array.o constant.o 
+version.o : version.f90 

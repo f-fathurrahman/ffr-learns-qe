@@ -100,6 +100,8 @@ IMPLICIT NONE
 
   CALL start_clock(time_coulomb)
 
+  write(*,*) 'Enter do_stern: 103'
+
   ! set helper variable
   num_g_corr = grid%corr_fft%ngm
 
@@ -135,6 +137,9 @@ IMPLICIT NONE
   ENDIF
     
   DO iq = iq1, iq2
+
+    write(*,*) 'iq = ', iq
+
     ! Perform head of dielectric matrix calculation.
     CALL start_clock ('epsilq')
     do_matel = .FALSE.
@@ -148,22 +153,37 @@ IMPLICIT NONE
     ELSE
       lgamma = ALL(ABS(xk_kpoints(:,iq)) < eps6)
     END IF
+    
+    write(*,*) 'lgamma = ', lgamma
+
+    write(*,*) 'is_root = ', is_root
+
     IF (lgamma .AND. is_root) THEN
 
       ! create and initialize array for dielectric constant at q + G = 0
       eps_m = zero
 
       CALL prepare_q0(do_band, do_iq, setup_pw, iq)
+      write(*,*) 'After prepare_q0'
 
       ! nscf calculation to obtain the wave functions
       CALL start_clock(time_coul_nscf)
       CALL run_nscf(do_band, do_matel, iq)
+      write(*,*) 'end of run_nscf: 170'
       CALL stop_clock(time_coul_nscf)
 
       CALL initialize_gw(.TRUE.)
+      write(*,*) 'After initialize_gw: Pass 175'
+
       CALL coulomb_q0G0(config, eps_m)
-      WRITE(stdout,'(5x, "epsM(0) = ", f12.7)') eps_m(1)
-      WRITE(stdout,'(5x, "epsM(iwp) = ", f12.7)') eps_m(2)
+      write(*,*) 'After coulomb_q0G0: Pass 177'      
+
+      WRITE(stdout,'(5x, "epsM(0)   = ", ES12.7)') eps_m(1)
+      WRITE(stdout,'(5x, "epsM(iwp) = ", ES12.7)') eps_m(2)
+
+      WRITE(*,*) "epsM(0)   = ", eps_m(1)
+      WRITE(*,*) "epsM(iwp) = ", eps_m(2)
+
       CALL clean_pw_gw(.FALSE.)
 
     END IF ! gamma & root
@@ -206,7 +226,11 @@ IMPLICIT NONE
     ALLOCATE(scrcoul_loc(num_g_corr, nfs, num_task_loc))
 
     ! evaluate screened Coulomb interaction and collect on root
+    
+    WRITE(*,*) 'Calling coulomb'
     CALL coulomb(config, igstart, num_g_corr, num_task_loc, scrcoul_loc)
+    WRITE(*,*) 'End of coulomb'
+    !
     CALL start_clock(time_coul_comm)
     CALL mp_gatherv(inter_image_comm, root_id, num_task, scrcoul_loc, scrcoul_root)
     CALL stop_clock(time_coul_comm)
@@ -230,6 +254,8 @@ IMPLICIT NONE
         CALL invert_epsilon(num_g_corr, scrcoul_g, lgamma)
         CALL stop_clock(time_coul_invert)
       END IF
+
+      WRITE(*,*) 'do_stern: Pass here 239'
 
       ! write to file
       CALL start_clock(time_coul_io)
