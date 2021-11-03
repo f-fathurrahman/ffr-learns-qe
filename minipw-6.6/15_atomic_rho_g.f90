@@ -4,18 +4,16 @@ PROGRAM main
   !
   USE kinds, ONLY: DP
   USE gvect, ONLY: ngm
+  USE lsda_mod, ONLY: nspin
   !
   IMPLICIT NONE 
 
   COMPLEX(DP), ALLOCATABLE :: rhocg(:,:)
-  INTEGER :: nspina
 
   CALL prepare_all()
 
-  nspina = 1
-  ALLOCATE( rhocg(ngm,nspina) )
-
-  CALL my_atomic_rho_g(rhocg, nspina)
+  ALLOCATE( rhocg(ngm,nspin) )
+  CALL my_atomic_rho_g(rhocg, nspin)
 
   DEALLOCATE( rhocg )
 
@@ -78,7 +76,7 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
     !
     IF( gstart == 2 ) THEN 
       DO ir = 1, msh (nt)
-        aux (ir) = upf(nt)%rho_at (ir)
+        aux(ir) = upf(nt)%rho_at (ir)
       ENDDO
       CALL simpson( msh(nt), aux, rgrid(nt)%rab, rhocgnt(1) )
     ENDIF
@@ -86,8 +84,8 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
     ! Here we compute the G<>0 term
     !
     DO igl = gstart, ngl
-      gx = sqrt (gl (igl) ) * tpiba
-      DO ir = 1, msh (nt)
+      gx = sqrt( gl(igl) ) * tpiba
+      DO ir = 1, msh(nt)
         IF( rgrid(nt)%r(ir) < eps8 ) THEN 
           aux(ir) = upf(nt)%rho_at(ir)
         ELSE 
@@ -117,6 +115,9 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
     IF( nspina >= 2 ) THEN
       !
       angular(1) = 1._dp
+      !
+      ! For non-collinear spin calculation
+      !
       IF( nspina == 4 ) THEN
         angular(1) = sin(angle1(nt))*cos(angle2(nt))
         angular(2) = sin(angle1(nt))*sin(angle2(nt))

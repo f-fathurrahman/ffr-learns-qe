@@ -4,18 +4,16 @@ PROGRAM main
   !
   USE kinds, ONLY: DP
   USE fft_base, ONLY : dfftp
+  USE lsda_mod, ONLY : nspin
   !
   IMPLICIT NONE 
 
   REAL(DP), ALLOCATABLE :: rhoa(:,:)
-  INTEGER :: nspina
 
   CALL prepare_all()
 
-  nspina = 1
-  ALLOCATE( rhoa(dfftp%nnr,nspina) )
-
-  CALL my_atomic_rho(rhoa, nspina)
+  ALLOCATE( rhoa(dfftp%nnr,nspin) )
+  CALL my_atomic_rho(rhoa, nspin)
 
   DEALLOCATE( rhoa )
 
@@ -51,7 +49,7 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
   !
   REAL(DP) :: rhoneg
   COMPLEX(DP), allocatable :: rhocg(:,:)
-  INTEGER :: ir, is
+  INTEGER :: ir, is, ispin
   !
   ! allocate work space 
   !
@@ -66,7 +64,9 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
 
 
   write(*,*)
-  write(*,*) 'my_atomic_rhoa: integ rhoa = ', sum(rhoa)*omega/dfftp%nnr
+  do ispin = 1,nspina
+    write(*,*) 'my_atomic_rhoa: integ rhoa = ', sum(rhoa(:,ispin))*omega/dfftp%nnr
+  enddo
   write(*,*)
 
   DEALLOCATE(rhocg)
@@ -88,7 +88,7 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
     !
     IF( (is == 1) .OR. lsda ) THEN
       !
-      IF( (rhoneg < -1.0d-4) ) THEN
+      IF( rhoneg < -1.0d-4 ) THEN
         IF( lsda ) THEN 
           WRITE( stdout,'(5x,"Check: negative starting charge=", &
                 &"(component",i1,"):",f12.6)') is, rhoneg
