@@ -7,7 +7,7 @@
 !
 !
 !-----------------------------------------------------------------------
-SUBROUTINE set_rhoc
+SUBROUTINE set_rhoc()
   !-----------------------------------------------------------------------
   !
   !    This routine computes the core charge on the real space 3D mesh
@@ -53,7 +53,7 @@ SUBROUTINE set_rhoc
            !
            ! drhoc computes the radial fourier transform for each shell of g vec
            !
-           CALL drhoc (ngl, gl, omega, tpiba2, msh (nt), rgrid(nt)%r, &
+           CALL drhoc(ngl, gl, omega, tpiba2, msh(nt), rgrid(nt)%r, &
              rgrid(nt)%rab, upf(nt)%rho_atc, rhocg)
            !
            !     multiply by the structure factor and sum
@@ -71,7 +71,7 @@ SUBROUTINE set_rhoc
      !
      rhoneg = 0.d0
      DO ir = 1, dfftp%nnr
-        rhoneg = rhoneg + min (0.d0, rho_core (ir) )
+        rhoneg = rhoneg + min(0.d0, rho_core(ir) )
         !
         ! NOTE: Core charge is computed in reciprocal space and brought to real
         ! space by FFT. For non smooth core charges (or insufficient cut-off)

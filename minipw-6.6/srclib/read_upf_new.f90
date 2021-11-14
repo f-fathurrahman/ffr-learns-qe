@@ -102,9 +102,9 @@ CONTAINS
     !
     CALL read_pp_nonlocal ( upf )
     !
-    CALL read_pp_pswfc ( upf )
+    CALL read_pp_pswfc( upf )
     !
-    CALL read_pp_full_wfc ( upf )
+    CALL read_pp_full_wfc( upf )
     !
     allocate( upf%rho_at(1:upf%mesh) )
     CALL xmlr_readtag( capitalize_if_v2('pp_rhoatom'), &

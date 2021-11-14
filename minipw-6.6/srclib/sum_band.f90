@@ -515,6 +515,9 @@ SUBROUTINE sum_band()
        ! chunking parameters
        INTEGER, PARAMETER :: blocksize = 256
        INTEGER :: numblock
+
+       write(*,*) 'sum_band_k is caled'
+
        !
        ! ... here we sum for each k point the contribution
        ! ... of the wavefunctions to the charge
@@ -919,6 +922,11 @@ SUBROUTINE sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
   REAL(DP), ALLOCATABLE :: auxg(:,:), aux_gk(:,:), aux_egk(:,:)
   INTEGER :: ibnd, ibnd_loc, nbnd_loc, kbnd  ! counters on bands
   INTEGER :: npw, ikb, jkb, ih, jh, ijh, na, np, is, js
+
+
+  write(*,*) 'Calling sum_bec in sum_band.f90'
+
+
   ! counters on beta functions, atoms, atom types, spin
   !
   CALL start_clock( 'sum_band:calbec' )

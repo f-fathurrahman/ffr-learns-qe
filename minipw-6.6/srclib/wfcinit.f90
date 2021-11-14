@@ -163,8 +163,8 @@ SUBROUTINE wfcinit()
      ! ... Hpsi initialization: k-point index, spin, kinetic energy
      !
      current_k = ik
-     IF ( lsda ) current_spin = isk(ik)
-     call g2_kin (ik)
+     IF( lsda ) current_spin = isk(ik)
+     call g2_kin(ik)  ! calculate (G+k)^2
      !
      ! ... More Hpsi initialization: nonlocal pseudopotential projectors |beta>
      !
@@ -181,7 +181,7 @@ SUBROUTINE wfcinit()
      !
      ! ... calculate starting wavefunctions (calls Hpsi)
      !
-     CALL init_wfc ( ik )
+     CALL init_wfc( ik )
      !
      ! ... write  starting wavefunctions to file
      !
@@ -194,9 +194,11 @@ SUBROUTINE wfcinit()
   RETURN
   !
 END SUBROUTINE wfcinit
+
+
 !
 !----------------------------------------------------------------------------
-SUBROUTINE init_wfc ( ik )
+SUBROUTINE init_wfc( ik )
   !----------------------------------------------------------------------------
   !
   ! ... This routine computes starting wavefunctions for k-point ik
@@ -324,7 +326,7 @@ SUBROUTINE init_wfc ( ik )
   !
   ! ... Allocate space for <beta|psi>
   !
-  CALL allocate_bec_type ( nkb, n_starting_wfc, becp, intra_bgrp_comm )
+  CALL allocate_bec_type( nkb, n_starting_wfc, becp, intra_bgrp_comm )
   !
   ! ... the following trick is for electric fields with Berry's phase:
   ! ... by setting lelfield = .false. one prevents the calculation of
@@ -338,7 +340,7 @@ SUBROUTINE init_wfc ( ik )
   !
   IF ( dft_is_hybrid()  ) CALL stop_exx() 
   CALL start_clock( 'wfcinit:wfcrot' ); !write(*,*) 'start wfcinit:wfcrot' ; FLUSH(6)
-  CALL rotate_wfc ( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
+  CALL rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
   CALL stop_clock( 'wfcinit:wfcrot' ); !write(*,*) 'stop wfcinit:wfcrot' ; FLUSH(6)
   !
   lelfield = lelfield_save

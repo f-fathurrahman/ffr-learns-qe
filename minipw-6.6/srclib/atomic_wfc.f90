@@ -56,7 +56,7 @@ SUBROUTINE atomic_wfc( ik, wfcatom )
   nwfcm = MAXVAL( upf(1:ntyp)%nwfc )
   npw = ngk(ik)
   !
-  ALLOCATE( ylm (npw,(lmax_wfc+1)**2), chiq(npw,nwfcm,ntyp), &
+  ALLOCATE( ylm(npw,(lmax_wfc+1)**2), chiq(npw,nwfcm,ntyp), &
              sk(npw), gk(3,npw), qg(npw) )
   !
   DO ig = 1, npw
@@ -88,7 +88,7 @@ SUBROUTINE atomic_wfc( ik, wfcatom )
      DO nb = 1, upf(nt)%nwfc
         IF ( upf(nt)%oc (nb) >= 0.d0 ) THEN
            DO ig = ig_start, ig_end
-              px = qg (ig) / dq - INT(qg (ig) / dq)
+              px = qg(ig) / dq - INT(qg(ig) / dq)
               ux = 1.d0 - px
               vx = 2.d0 - px
               wx = 3.d0 - px
@@ -97,10 +97,10 @@ SUBROUTINE atomic_wfc( ik, wfcatom )
               i2 = i0 + 2
               i3 = i0 + 3
               chiq (ig, nb, nt) = &
-                     tab_at (i0, nb, nt) * ux * vx * wx / 6.d0 + &
-                     tab_at (i1, nb, nt) * px * vx * wx / 2.d0 - &
-                     tab_at (i2, nb, nt) * px * ux * wx / 2.d0 + &
-                     tab_at (i3, nb, nt) * px * ux * vx / 6.d0
+                     tab_at(i0, nb, nt) * ux * vx * wx / 6.d0 + &
+                     tab_at(i1, nb, nt) * px * vx * wx / 2.d0 - &
+                     tab_at(i2, nb, nt) * px * ux * wx / 2.d0 + &
+                     tab_at(i3, nb, nt) * px * ux * vx / 6.d0
            END DO
         END IF
      END DO
@@ -119,10 +119,10 @@ SUBROUTINE atomic_wfc( ik, wfcatom )
      !
      DO ig = ig_start, ig_end
         iig = igk_k (ig,ik)
-        sk (ig) = kphase * eigts1 (mill (1,iig), na) * &
-                           eigts2 (mill (2,iig), na) * &
-                           eigts3 (mill (3,iig), na)
-     END DO
+        sk (ig) = kphase * eigts1(mill(1,iig), na) * &
+                           eigts2(mill(2,iig), na) * &
+                           eigts3(mill(3,iig), na)
+     ENDDO
      !
      nt = ityp (na)
      DO nb = 1, upf(nt)%nwfc

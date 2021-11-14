@@ -136,6 +136,7 @@ SUBROUTINE readpp ( input_dft, printout, ecutwfc_pp, ecutrho_pp )
         CALL read_upf_new( file_pseudo, upf(nt), isupf )
 
         write(*,*) '*** Pass here 137 in read_pseudo'
+        write(*,*) 'After read_upf_new: upf(nt)%oc = ', upf(nt)%oc
 
         !stop 'ffr'
 
@@ -323,7 +324,9 @@ SUBROUTINE readpp ( input_dft, printout, ecutwfc_pp, ecutrho_pp )
      ! check for zero atomic wfc, 
      ! check that (occupied) atomic wfc are properly normalized
      !
+     write(*,*) 'before upf_check_atwfc_norm: upf(nt)%oc = ', upf(nt)%oc
      CALL upf_check_atwfc_norm(upf(nt),psfile(nt))
+     write(*,*) 'after upf_check_atwfc_norm: upf(nt)%oc = ', upf(nt)%oc
      !
   END DO
   !
