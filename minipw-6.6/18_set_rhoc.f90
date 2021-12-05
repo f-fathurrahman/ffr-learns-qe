@@ -88,7 +88,21 @@ SUBROUTINE my_set_rhoc()
     ! The term was present in previous versions of the code but it shouldn't
   ENDIF
   
-  write(*,*) 'integ rho_core: ', sum(rho_core)*omega/dfftp%nnr
+  write(*,*) 'integ rho_core = ', sum(rho_core)*omega/dfftp%nnr
+  write(*,*) 'sum rhoe_core = ', sum(rho_core)
+
+  do ir = 1,6
+    write(*,'(1x,I8,F18.10)') ir, rho_core(ir)
+  enddo
+
+  !do ir = 1,dfftp%nnr
+  !  write(*,'(1x,I8,F18.10)') ir, rho_core(ir)
+  !enddo
+
+  !do ir = dfftp%nnr-5,dfftp%nnr
+  !  write(*,'(1x,I8,F18.10)') ir, rho_core(ir)
+  !enddo
+
 
   RETURN
 

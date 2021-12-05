@@ -270,7 +270,7 @@ SUBROUTINE setup()
      IF ( ALL ( .NOT. upf(:)%has_so ) ) &
           CALL infomsg ('setup','At least one non s.o. pseudo')
   ELSE
-     CALL average_pp ( ntyp )
+     CALL average_pp( ntyp )
   END IF
   !
   ! ... If the occupations are from input, check the consistency with the

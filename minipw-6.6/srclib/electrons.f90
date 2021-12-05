@@ -616,7 +616,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         !
         hwf_energy = eband + deband_hwf + (etxc - etxcc) + ewld + ehart + demet
         
-        !write(*,*) 'etxcc = ', etxcc ! ffr
+        write(*,*) 'etxcc = ', etxcc ! ffr
 
         If ( okpaw ) hwf_energy = hwf_energy + epaw
         IF ( lda_plus_u ) hwf_energy = hwf_energy + eth
