@@ -34,28 +34,32 @@ subroutine fft_interpolate_real (dfft_in, v_in, dfft_out, v_out )
   ELSE
      
      write(*,*) 'fft_interpolate: two different grids'
+     write(*,*) 'dfft_in%nnr = ', dfft_in%nnr
+     write(*,*) 'dfft_out%nnr = ', dfft_out%nnr
 
      if (dfft_in%lgamma .neqv. dfft_out%lgamma) &
         call fftx_error__ ('fft_interpolate_real','two grids with inconsistent lgamma values', 1)
 
-     ALLOCATE (aux_in( dfft_in%nnr), aux_out(dfft_out%nnr))
+     ALLOCATE(aux_in( dfft_in%nnr), aux_out(dfft_out%nnr))
 
-     aux_in (1:dfft_in%nnr) = v_in(1:dfft_in%nnr)
+     aux_in(1:dfft_in%nnr) = v_in(1:dfft_in%nnr)
 
-     CALL fwfft ('Rho', aux_in, dfft_in)
+     CALL fwfft('Rho', aux_in, dfft_in)
 
      aux_out(1:dfft_out%nnr) = (0.d0, 0.d0)
 
      ngm = min(dfft_in%ngm, dfft_out%ngm)
+     write(*,*) 'fft_interpolate ngm = ', ngm
 
-     aux_out (dfft_out%nl (1:ngm) ) = aux_in (dfft_in%nl (1:ngm) )
-     IF (dfft_in%lgamma) aux_out (dfft_out%nlm (1:ngm) ) = aux_in (dfft_in%nlm (1:ngm) )
+     aux_out(dfft_out%nl (1:ngm) ) = aux_in(dfft_in%nl (1:ngm) )
+     ! additional work for gamma-trick
+     IF(dfft_in%lgamma) aux_out (dfft_out%nlm (1:ngm) ) = aux_in (dfft_in%nlm (1:ngm) )
 
-     CALL invfft ('Rho', aux_out, dfft_out)
+     CALL invfft('Rho', aux_out, dfft_out)
 
-     v_out (1:dfft_out%nnr) = aux_out (1:dfft_out%nnr)
+     v_out(1:dfft_out%nnr) = aux_out(1:dfft_out%nnr)
 
-     DEALLOCATE (aux_in, aux_out)
+     DEALLOCATE(aux_in, aux_out)
 
   END IF
 
