@@ -11,14 +11,15 @@ END PROGRAM
 
 
 SUBROUTINE test_uspp()
-  use uspp_param, only: upf
-  use ener, only: etxcc
+  use uspp_param
   use us, only: spline_ps, qrad
+  use uspp
+  implicit none
   ! local variables
   INTEGER :: Nupf, isp, i, Ni, j, Nj
 
   Nupf = size(upf,1)
-  WRITE(*,*) 'Nupf = ', Nupf
+  WRITE(*,*) 'Nupf = ', Nupf ! should be the same as ntyp
 
   do isp = 1,Nupf
     write(*,*)
@@ -51,7 +52,27 @@ SUBROUTINE test_uspp()
   write(*,*) 'shape qrad: ', shape(qrad)
   write(*,*) 'qrad: ', qrad(1,1,1,1)
 
-  write(*,*) 'etxcc = ', etxcc
+
+  write(*,*)
+  write(*,*) 'nh = ', nh(1:Nupf)   ! number of beta functions per atomic type
+  write(*,*) 'nh = ', nhm     ! max number of different beta functions per atom
+  write(*,*) 'nbetam = ', nbetam  ! max number of beta functions
+
+
+  write(*,*) 'lmaxkb = ', lmaxkb ! max angular momentum
+  write(*,*) 'lmaxq  = ', lmaxq  ! max angular momentum + 1 for Q functions
+  write(*,*) 'nvb    = ', nvb    ! number of species with Vanderbilt PPs (CPV)
+  write(*,*) 'ish    = ', ish(1:Nupf)
+  ! for each specie the index of the first beta 
+  ! function: ish(1)=1, ish(i)=1+SUM(nh(1:i-1))
+
+
+  write(*,*)
+  write(*,*) 'shape(dvan) = ', shape(dvan)
+  write(*,*) 'shape(deeq) = ', shape(deeq)
+  write(*,*) 'shape(qq_nt) = ', shape(qq_nt)
+  write(*,*) 'shape(qq_at) = ', shape(qq_at)
+
 
 END SUBROUTINE
 
