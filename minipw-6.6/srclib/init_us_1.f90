@@ -239,7 +239,7 @@ subroutine init_us_1
   !
   !  compute Clebsch-Gordan coefficients
   !
-  if (okvan .or. okpaw) call aainit (lmaxkb + 1)
+  if (okvan .or. okpaw) call aainit(lmaxkb + 1)
   !
   !   here for the US types we compute the Fourier transform of the
   !   Q functions.

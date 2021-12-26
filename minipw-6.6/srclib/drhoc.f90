@@ -48,8 +48,8 @@ SUBROUTINE drhoc( ngl, gl, omega, tpiba2, mesh, r, rab, rhoc, rhocg )
   ! lower limit for loop on ngl
   !
 
-  write(*,*)
-  write(*,*) '*** Calling drhoc'
+  !write(*,*)
+  !write(*,*) '*** Calling drhoc'
 
   !
 !$omp parallel private(aux, gx, rhocg1)
@@ -89,8 +89,8 @@ SUBROUTINE drhoc( ngl, gl, omega, tpiba2, mesh, r, rab, rhoc, rhocg )
 !$omp end parallel
   !
 
-  write(*,*) '*** Exit drhoc'
-  write(*,*)
+  !write(*,*) '*** Exit drhoc'
+  !write(*,*)
 
   RETURN
   !

@@ -63,13 +63,15 @@ SUBROUTINE v_of_rho( rho, rho_core, rhog_core, &
   ! ... calculate exchange-correlation potential
   !
   IF (dft_is_meta()) then
-     CALL v_xc_meta( rho, rho_core, rhog_core, etxc, vtxc, v%of_r, v%kin_r )
+     CALL v_xc_meta( rho, rho_core, rhog_core, etxc, vtxc, v%of_r, v%kin_r )   
      !v%kin_r(:,:) = 0.d0 ! ffr
   ELSE
      CALL v_xc( rho, rho_core, rhog_core, etxc, vtxc, v%of_r )
-     write(*,*) 'sum rho_core = ', sum(rho_core)
-     write(*,*) 'integ rho_core = ', sum(rho_core)*omega/dfftp%nnr
-     write(*,*) 'etxc = ', etxc
+     
+     ! ffr
+     !write(*,*) 'sum rho_core = ', sum(rho_core)
+     !write(*,*) 'integ rho_core = ', sum(rho_core)*omega/dfftp%nnr
+     !write(*,*) 'etxc = ', etxc
   ENDIF
   !
   ! ... add a magnetic field  (if any)
@@ -410,10 +412,11 @@ SUBROUTINE v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   !
   !
   rho%of_r(:,1) = rho%of_r(:,1) + rho_core(:)
-  write(*,*) 'some rho_core: '
-  write(*,*) rho_core(1:3)
-  write(*,*) rho_core(4:6)
-  write(*,*) 'integ rho%of_r(:,1) = ', sum(rho%of_r(:,1))*omega/dfftp%nnr
+  
+  !write(*,*) 'some rho_core: '
+  !write(*,*) rho_core(1:3)
+  !write(*,*) rho_core(4:6)
+  !write(*,*) 'integ rho%of_r(:,1) = ', sum(rho%of_r(:,1))*omega/dfftp%nnr
   !
   IF ( nspin == 1 .OR. ( nspin == 4 .AND. .NOT. domag ) ) THEN
      ! ... spin-unpolarized case
