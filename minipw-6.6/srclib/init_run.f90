@@ -156,7 +156,7 @@ SUBROUTINE pre_init()
   !
   !     calculate the number of beta functions for each atomic type
   !
-  lmaxkb = - 1
+  lmaxkb = -1
   DO nt = 1, nsp
      !
      nh (nt) = 0

@@ -33,17 +33,25 @@ SUBROUTINE my_compute_qrad()
   ! the prefactor of the Q functions
   REAL(DP) :: q
   REAL(DP), ALLOCATABLE :: qrad(:,:,:,:) ! this local to this function
-  REAL(DP), ALLOCATABLE :: aux(:), besr(:)
+  !
   ! various work space
+  REAL(DP), ALLOCATABLE :: aux(:), besr(:)
   !
   prefr = fpi / omega
   ndm = MAXVAL( upf(:)%kkbeta )
+
+  write(*,*)
+  write(*,*) 'nqxq (size of interpolation table) = ', nqxq
+  write(*,*) 'nbetam = ', nbetam
+  write(*,*) 'ndm = ', ndm
+  write(*,*) 'lmaxq = ', lmaxq
 
   IF( lmaxq > 0 ) THEN
     ALLOCATE( qrad(nqxq, nbetam*(nbetam+1)/2, lmaxq, ntyp) )
   ELSE
     STOP 'ERROR: lmaxq <= 0'
   ENDIF
+  
   ALLOCATE( aux(ndm) )
   ALLOCATE( besr(ndm) )
 
@@ -76,7 +84,7 @@ SUBROUTINE my_compute_qrad()
                 ENDDO
                 !
                 ! and then we integrate with all the Q functions
-                CALL simpson( upf(nt)%kkbeta, aux, rgrid(nt)%rab, qrad(iq,ijv,l+1, nt) )
+                CALL simpson( upf(nt)%kkbeta, aux, rgrid(nt)%rab, qrad(iq,ijv,l+1,nt) )
               ENDIF
             ENDDO
           ENDDO
@@ -84,8 +92,8 @@ SUBROUTINE my_compute_qrad()
         ENDDO
         ! l
       ENDDO
-      qrad(:, :, :, nt) = qrad(:, :, :, nt)*prefr
-      CALL mp_sum( qrad(:, :, :, nt), intra_bgrp_comm )
+      qrad(:,:,:,nt) = qrad(:,:,:,nt)*prefr
+      CALL mp_sum( qrad(:,:,:,nt), intra_bgrp_comm )
     ENDIF 
   ENDDO ! ntyp
 

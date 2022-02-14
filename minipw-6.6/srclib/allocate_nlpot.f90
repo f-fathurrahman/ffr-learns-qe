@@ -75,6 +75,9 @@ SUBROUTINE allocate_nlpot
   !
   nqxq = INT( ( (SQRT(ecutrho) + qnorm) / dq + 4) * cell_factor )
   lmaxq = 2*lmaxkb+1
+  write(*,*) 'in allocate_nlpot: qnorm = ', qnorm
+  write(*,*) 'in allocate_nlpot: nqxq  = ', nqxq
+
   !
   IF (lmaxq > 0) ALLOCATE (qrad( nqxq, nbetam*(nbetam+1)/2, lmaxq, nsp))
   ALLOCATE (becsum( nhm * (nhm + 1)/2, nat, nspin))

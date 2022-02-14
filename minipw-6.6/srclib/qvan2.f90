@@ -8,7 +8,7 @@
 !
 !-----------------------------------------------------------------------
 SUBROUTINE qvan2( ngy, ih, jh, np, qmod, qg, ylmk0 )
-  !-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
   !! This routine computes the Fourier transform of the Q functions.
   !
   !! The interpolation table for the radial Fourier transform is stored 
@@ -48,6 +48,7 @@ SUBROUTINE qvan2( ngy, ih, jh, np, qmod, qg, ylmk0 )
   REAL(DP), PARAMETER :: sixth = 1.0_DP / 6.0_DP
   !
   INTEGER :: nb, mb, ijv, ivl, jvl, ig, lp, l, lm, i0, i1, i2, i3, ind
+  !
   ! nb,mb  : atomic index corresponding to ih,jh
   ! ijv    : combined index (nb,mb)
   ! ivl,jvl: combined LM index corresponding to ih,jh
@@ -59,6 +60,7 @@ SUBROUTINE qvan2( ngy, ih, jh, np, qmod, qg, ylmk0 )
   ! ind    : ind=1 if the results is real (l even), ind=2 if complex (l odd)
   !
   REAL(DP) :: dqi, qm, px, ux, vx, wx, uvx, pwx, work, qm1
+  !
   ! 1 divided dq
   ! qmod/dq
   ! measures for interpolation table
