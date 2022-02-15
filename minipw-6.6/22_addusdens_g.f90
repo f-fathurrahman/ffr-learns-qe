@@ -11,10 +11,9 @@ SUBROUTINE my_addusdens_g( rho )
   USE fft_interfaces,       ONLY : invfft
   USE gvect,                ONLY : ngm, gg, g, &
                                    eigts1, eigts2, eigts3, mill
-  USE noncollin_module,     ONLY : noncolin, nspin_mag
+  USE noncollin_module,     ONLY : nspin_mag
   USE uspp,                 ONLY : becsum, okvan
   USE uspp_param,           ONLY : upf, lmaxq, nh
-  USE control_flags,        ONLY : gamma_only
   USE mp_pools,             ONLY : inter_pool_comm
   USE mp_bands,             ONLY : inter_bgrp_comm
   USE mp,                   ONLY : mp_sum
@@ -39,8 +38,6 @@ SUBROUTINE my_addusdens_g( rho )
   ! work space for rho(G,nspin), Fourier transform of q
   !
   IF (.NOT. okvan) RETURN
-  !
-  CALL start_clock( 'addusdens' )
   !
   ALLOCATE( aux(ngm,nspin_mag) )
   aux(:,:) = (0.d0, 0.d0)
@@ -139,3 +136,4 @@ SUBROUTINE my_addusdens_g( rho )
   RETURN
 
 END SUBROUTINE
+

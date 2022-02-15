@@ -46,6 +46,9 @@ SUBROUTINE my_qvan2( ngy, ih, jh, np, qmod, qg, ylmk0 )
   !
   REAL(DP) :: dqi, qm, px, ux, vx, wx, uvx, pwx, work, qm1
   !
+  ! ffr: fix for warning
+  work = 0.d0
+  !
   ! 1 divided dq
   ! qmod/dq
   ! measures for interpolation table
