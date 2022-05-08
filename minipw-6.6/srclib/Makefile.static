@@ -1,15 +1,18 @@
 MAKE = make
 AR = ar
 
-LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4dyn
-
+#DFLAGS = -D__FFTW -D__MPI -D__LIBXC
 DFLAGS = -D__FFTW -D__LIBXC
 
-F77 = gfortran
-F77_OPTS = -Wall -cpp -fPIC
+F77 = gfortran # mpif90
+#F77_OPTS = -Wall -O3 -cpp
+F77_OPTS = -Wall -cpp
 
-F90 = gfortran -cpp -fPIC
-F90_OPTS = -I$(LIBXC_HOME)/include $(DFLAGS) -Wall -cpp -fPIC
+F90 = gfortran # mpif90
+#F90_OPTS = $(DFLAGS) -Wall -O3 -mtune=native -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+F90_OPTS = $(DFLAGS) -Wall -cpp # -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+
+LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4/
 
 OBJ_FFTXLIB = \
 scatter_mod.o  \
@@ -473,63 +476,64 @@ $(SRC:.f90=.o) $(SRC:.f=.o)
 	$(F77) $(F77_OPTS) -c $<
 
 
-%.o : %.c
-	gcc -Wall -fPIC -c -o $(*F).o $<
-
-#
 # Targets
-#
-libdyn:	$(OBJ)
-	gfortran -shared -o libqemain.so $(OBJ) #-L$(LIBXC_HOME)/lib -lxcf90 -lxc
+lib: $(OBJ)
+	ar rcs libmain.a *.o
 
 clean:
-	rm -rf *.o *.mod libqemain.so *.x
+	rm -rf *.o *.mod libmain.a *.x
 
 
-#clean_pw.o:
-#	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o clean_pw.o clean_pw.f90
+#main: lib
+#	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  minipw.f90 -o minipw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -lblas -llapack
 
-#electrons.o:
-#	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o electrons.o electrons.f90
-#
-#input.o:
-#	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o input.o input.f90
-#
-#forces.o:
-#	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC  -c -o forces.o forces.f90
-#
-#stress.o:
-#	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o stress.o stress.f90
-#
-#funct.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -fPIC -c -o funct.o funct.f90
-#
-#xc_lda_lsda_drivers.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC  -c -o xc_lda_lsda_drivers.o xc_lda_lsda_drivers.f90
+#pw: lib
+#	mpif90 -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  pwscf.f90 -o pw.x libmain.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxcf03.a /home/efefer/mysoftwares/libxc-4.3.4/lib/libxc.a -L/home/efefer/mysoftwares/LIBMKL -lmkl_gf_lp64  -lmkl_sequential -lmkl_core
 
-#xc_gga_drivers.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o xc_gga_drivers.o xc_gga_drivers.f90
+clean_pw.o:
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o clean_pw.o clean_pw.f90
 
-#xc_mgga_drivers.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC -c -o xc_mgga_drivers.o xc_mgga_drivers.f90
+electrons.o:
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o electrons.o electrons.f90
 
-#dmxc_drivers.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC  -c -o dmxc_drivers.o dmxc_drivers.f90
+input.o:
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o input.o input.f90
 
-#dgcxc_drivers.o:
-#	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp -fPIC  -c -o dgcxc_drivers.o dgcxc_drivers.f90
+forces.o:
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o forces.o forces.f90
 
-#fftw.o:
-#	gcc -O3 -c -fPIC -o fftw.o fftw.c
-#
-#fftw_sp.o:
-#	gcc -O3 -c -fPIC -o fftw_sp.o fftw_sp.c
-#
-#fftw_dp.o:
-#	gcc -O3 -c -fPIC -o fftw_dp.o fftw_dp.c
-#
-#fft_stick.o:
-#	gcc -O3 -c -fPIC -o fft_stick.o fft_stick.c
+stress.o:
+	mpif90 -I -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o stress.o stress.f90
+
+funct.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o funct.o funct.f90
+
+xc_lda_lsda_drivers.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o xc_lda_lsda_drivers.o xc_lda_lsda_drivers.f90
+
+xc_gga_drivers.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o xc_gga_drivers.o xc_gga_drivers.f90
+
+xc_mgga_drivers.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o xc_mgga_drivers.o xc_mgga_drivers.f90
+
+dmxc_drivers.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o dmxc_drivers.o dmxc_drivers.f90
+
+dgcxc_drivers.o:
+	mpif90 -I $(LIBXC_HOME)/include -D__FFTW -D__MPI -D__LIBXC -Wall -O3 -cpp  -c -o dgcxc_drivers.o dgcxc_drivers.f90
+
+fftw.o:
+	gcc -O3 -c -o fftw.o fftw.c
+
+fftw_sp.o:
+	gcc -O3 -c -o fftw_sp.o fftw_sp.c
+
+fftw_dp.o:
+	gcc -O3 -c -o fftw_dp.o fftw_dp.c
+
+fftw_stick.o:
+	gcc -O3 -c -o fftw_stick.o fftw_stick.c
 
 
 include DEPENDS
