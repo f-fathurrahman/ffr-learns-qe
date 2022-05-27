@@ -252,7 +252,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       ! the new density is computed here. For PAW:
       ! sum_band computes new becsum (stored in uspp modules)
       ! and a subtly different copy in rho%bec (scf module)
-      CALL sum_band()
+      CALL my_sum_band()
 
       ! the Harris-Weinert-Foulkes energy is computed here using only
       ! quantities obtained from the input density

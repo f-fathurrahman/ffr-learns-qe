@@ -48,6 +48,12 @@ SUBROUTINE my_addusdens_g( rho )
   ! Early return if not using Vanderbilt USPP
   IF (.NOT. okvan) RETURN
 
+
+
+  write(*,*)
+  write(*,*) 'Entering my_addusdens_g'
+  write(*,*)
+
   !
   ALLOCATE( aux(ngm,nspin_mag) )
   aux(:,:) = (0.d0, 0.d0)
@@ -65,10 +71,15 @@ SUBROUTINE my_addusdens_g( rho )
 
   ! for the extraordinary unlikely case of more processors than G-vectors
   IF ( ngm_l <= 0 ) GOTO 10
-  !
+  
+
+  ! Allocate memory
   ALLOCATE( qmod(ngm_l), qgm(ngm_l)   )
   ALLOCATE( ylmk0(ngm_l, lmaxq*lmaxq) )
-  !
+  write(*,*) 'ngm_l = ', ngm_l
+  write(*,*) 'lmaxq = ', lmaxq
+
+
   CALL ylmr2( lmaxq*lmaxq, ngm_l, g(1,ngm_s), gg(ngm_s), ylmk0 )
   DO ig = 1, ngm_l
     qmod(ig) = SQRT(gg(ngm_s+ig-1))*tpiba
@@ -86,6 +97,9 @@ SUBROUTINE my_addusdens_g( rho )
       DO na = 1, nat
         IF( ityp(na) == nt ) nab = nab + 1
       ENDDO
+      
+      write(*,*) 'nab = ', nab
+      write(*,*) 'nij = ', nij
       
       ALLOCATE( skk(ngm_l,nab), tbecsum(nij,nab,nspin_mag), aux2(ngm_l,nij) )
 
@@ -112,7 +126,11 @@ SUBROUTINE my_addusdens_g( rho )
         DO ih = 1, nh(nt)
           DO jh = ih, nh(nt)
             ijh = ijh + 1
-            CALL qvan2( ngm_l, ih, jh, nt, qmod, qgm, ylmk0 )
+            ! qgm is complex here
+            CALL my_qvan2( ngm_l, ih, jh, nt, qmod, qgm, ylmk0 )
+            !
+            write(*,*) 'ih = ', ih, ' jh = ', jh, ' ijh = ', ijh
+            !
             DO ig = 1, ngm_l
               aux(ngm_s+ig-1,is) = aux(ngm_s+ig-1,is) + aux2(ig,ijh)*qgm(ig)
             ENDDO
