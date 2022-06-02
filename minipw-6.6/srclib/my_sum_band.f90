@@ -294,7 +294,7 @@ SUBROUTINE my_sum_band()
           IF ( nks > 1 ) CALL get_buffer ( evc, nwordwfc, iunwfc, ik )
           !
 
-          IF ( nkb > 0 ) CALL init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
+          IF ( nkb > 0 ) CALL my_init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
           !
           ! ... here we compute the band energy: the sum of the eigenvalues
           !
@@ -547,7 +547,7 @@ SUBROUTINE my_sum_band()
           !
           IF ( nks > 1 ) CALL get_buffer ( evc, nwordwfc, iunwfc, ik )
 
-          IF ( nkb > 0 ) CALL init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
+          IF ( nkb > 0 ) CALL my_init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
 
           !
           ! ... here we compute the band energy: the sum of the eigenvalues
