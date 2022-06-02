@@ -12,6 +12,7 @@ SUBROUTINE my_compute_magnetization()
   use klist, only : two_fermi_energies, lgauss
   use cell_base, only: omega
   use ener, only: ef_up, ef_dw
+  use mp, only: mp_sum
   IMPLICIT NONE
   ! local
   INTEGER :: ir, i
