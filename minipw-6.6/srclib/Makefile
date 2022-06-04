@@ -15,11 +15,14 @@ include OBJECTS_QE.make
 
 include OBJECTS_FFR.make
 
+include OBJECTS_LD1X.make
+
 OBJ = $(OBJ_FFTXLIB) \
 $(OBJ_LAXLIB) \
 $(OBJ_MODULES) \
 $(OBJ_DFTD3) \
 $(OBJ_PW) \
+$(OBJ_LD1X) \
 $(OBJ_FFR) \
 $(SRC:.f90=.o) $(SRC:.f=.o)
 

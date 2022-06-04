@@ -42,7 +42,7 @@ cdiaghg.o : cdiaghg.f90 laxlib_low.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds
 cegterg.o : cegterg.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 
 cell_base.o : cell_base.f90 control_flags.o invmat.o io_global.o constants.o kind.o 
 check_stop.o : check_stop.f90 mp_images.o mp.o io_files.o io_global.o clocks_handler.o kind.o 
-clean_pw.o : clean_pw.f90 tsvdw.o control_flags.o Coul_cut_2D.o exx.o bp_mod.o pseudo_types.o realus.o constraints_module.o xdm_dispersion.o mm_dispersion.o radial_grids.o atom.o paw_init.o dynamics_module.o noncol.o pwcom.o fft_types.o fft_base.o extfield.o ldaU.o gth.o uspp.o uspp.o pwcom.o wavefunctions.o symme.o symm_base.o scf_mod.o pwcom.o pwcom.o pwcom.o recvec.o pwcom.o tetra.o pwcom.o ions_base.o pwcom.o atomic_wfc_mod.o 
+clean_pw.o : clean_pw.f90 dftd3_qe.o tsvdw.o control_flags.o Coul_cut_2D.o exx.o bp_mod.o pseudo_types.o realus.o constraints_module.o xdm_dispersion.o mm_dispersion.o radial_grids.o atom.o paw_init.o dynamics_module.o noncol.o pwcom.o fft_types.o fft_base.o extfield.o ldaU.o gth.o uspp.o uspp.o pwcom.o wavefunctions.o symme.o symm_base.o scf_mod.o pwcom.o pwcom.o pwcom.o recvec.o pwcom.o tetra.o pwcom.o ions_base.o pwcom.o atomic_wfc_mod.o 
 clocks_handler.o : clocks_handler.f90 parallel_include.o util_param.o 
 close_files.o : close_files.f90 bp_mod.o mp.o mp_images.o buffers.o io_files.o pwcom.o control_flags.o ldaU.o 
 command_line_options.o : command_line_options.f90 io_global.o mp_world.o mp.o 
@@ -70,6 +70,13 @@ date_and_tim.o : date_and_tim.f90
 david_rci.o : david_rci.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 
 deriv_drhoc.o : deriv_drhoc.f90 constants.o kind.o 
 deviatoric.o : deviatoric.f90 io_global.o kind.o 
+dftd3_api.o : dftd3_api.f90 dftd3_core.o dftd3_common.o dftd3_sizes.o 
+dftd3_common.o : dftd3_common.f90 
+dftd3_core.o : dftd3_core.f90 dftd3_pars.o dftd3_common.o dftd3_sizes.o 
+dftd3_pars.o : dftd3_pars.f90 dftd3_common.o dftd3_sizes.o 
+dftd3_qe.o : dftd3_qe.f90 cell_base.o ions_base.o io_global.o dftd3_api.o dftd3_core.o dftd3_common.o dftd3_sizes.o 
+dftd3_sizes.o : dftd3_sizes.f90 
+dftd3_test_code.o : dftd3_test_code.f90 cell_base.o dftd3_api.o 
 dgcxc_drivers.o : dgcxc_drivers.f90 xc_gga_drivers.o funct.o kind.o constants.o 
 distools.o : distools.f90 
 divide_class.o : divide_class.f90 constants.o kind.o 
@@ -87,7 +94,7 @@ dynamics_module.o : dynamics_module.f90 extfield.o pwcom.o symm_base.o random_nu
 efermig.o : efermig.f90 mp_pools.o mp.o constants.o kind.o io_global.o 
 efermit.o : efermit.f90 constants.o kind.o io_global.o 
 electrons_base.o : electrons_base.f90 io_global.o constants.o kind.o 
-electrons.o : electrons.f90 wavefunctions.o buffers.o constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o newd.o xdm_dispersion.o mm_dispersion.o mp.o mp_pools.o mp_bands.o io_rho_xml.o pwcom.o noncol.o gvecw.o pwcom.o pwcom.o bp_mod.o atomic_wfc_mod.o cell_base.o loc_scdm_k.o loc_scdm.o ions_base.o paw_symmetry.o paw_onecenter.o paw_variables.o funct.o exx.o uspp.o pwcom.o pwcom.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o tsvdw.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o io_global.o check_stop.o kind.o 
+electrons.o : electrons.f90 wavefunctions.o buffers.o constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o newd.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o mp.o mp_pools.o mp_bands.o io_rho_xml.o pwcom.o noncol.o gvecw.o pwcom.o pwcom.o bp_mod.o atomic_wfc_mod.o cell_base.o loc_scdm_k.o loc_scdm.o ions_base.o paw_symmetry.o paw_onecenter.o paw_variables.o funct.o exx.o uspp.o pwcom.o pwcom.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o tsvdw.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o io_global.o check_stop.o kind.o 
 environment.o : environment.f90 command_line_options.o version.o mp_bands.o mp_pools.o mp_images.o mp_world.o io_global.o io_files.o kind.o 
 eqvect.o : eqvect.f90 kind.o 
 erf.o : erf.f90 kind.o 
@@ -134,7 +141,7 @@ force_ew.o : force_ew.f90 Coul_cut_2D.o mp.o mp_bands.o constants.o kind.o
 force_hub.o : force_hub.f90 io_global.o recvec.o pwcom.o noncol.o mp_bands.o buffers.o pwcom.o wavefunctions.o uspp.o uspp.o becmod.o mp.o mp_pools.o scf_mod.o pwcom.o control_flags.o pwcom.o io_files.o symme.o atomic_wfc_mod.o ldaU.o cell_base.o ions_base.o kind.o 
 force_lc.o : force_lc.f90 Coul_cut_2D.o esm.o fft_interfaces.o fft_base.o mp.o mp_bands.o constants.o kind.o 
 forces_bp_efield.o : forces_bp_efield.f90 parallel_include.o clocks_handler.o pwcom.o noncol.o becmod.o mp_bands.o mp_world.o mp.o pwcom.o bp_mod.o wavefunctions.o pwcom.o pwcom.o pwcom.o uspp.o uspp.o fft_base.o recvec.o constants.o buffers.o io_files.o io_global.o ions_base.o cell_base.o kind.o 
-forces.o : forces.f90 qmmm.o esm.o tsvdw.o xdm_dispersion.o mm_dispersion.o martyna_tuckerman.o uspp.o bp_mod.o plugin_flags.o control_flags.o extfield.o ldaU.o scf_mod.o pwcom.o pwcom.o symme.o pwcom.o recvec.o fft_base.o ions_base.o cell_base.o io_global.o kind.o 
+forces.o : forces.f90 qmmm.o esm.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o martyna_tuckerman.o uspp.o bp_mod.o plugin_flags.o control_flags.o extfield.o ldaU.o scf_mod.o pwcom.o pwcom.o symme.o pwcom.o recvec.o fft_base.o ions_base.o cell_base.o io_global.o kind.o 
 force_us.o : force_us.f90 mp.o mp_bands.o mp_pools.o becmod.o buffers.o io_files.o pwcom.o noncol.o wavefunctions.o symme.o pwcom.o pwcom.o uspp.o uspp.o recvec.o pwcom.o ions_base.o cell_base.o control_flags.o kind.o 
 fsockets.o : fsockets.f90 
 funct.o : funct.f90 xc_rVV10.o xc_vdW_DF.o kind.o io_global.o 
@@ -171,7 +178,7 @@ init_us_1.o : init_us_1.f90 mp.o mp_bands.o paw_variables.o pwcom.o uspp.o uspp.
 init_us_2.o : init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
 init_us_b0.o : init_us_b0.f90 mp.o mp_bands.o uspp.o pwcom.o ions_base.o atom.o constants.o io_global.o gvecw.o kind.o 
 init_vloc.o : init_vloc.f90 Coul_cut_2D.o recvec.o pwcom.o cell_base.o ions_base.o uspp.o kind.o gth.o atom.o 
-input.o : input.f90 wyckoff.o recvec.o recvec.o pwcom.o tsvdw.o xdm_dispersion.o mm_dispersion.o read_namelists.o constraints_module.o input_parameters.o pwcom.o qmmm.o read_pseudo.o realus.o Coul_cut_2D.o bfgs_module.o symm_base.o pwcom.o noncol.o pwcom.o gvecw.o pwcom.o check_stop.o update_pot.o pwcom.o pwcom.o loc_scdm.o exx.o exx_base.o a2fmod.o esm.o martyna_tuckerman.o ldaU.o start_k.o tetra.o pwcom.o fft_base.o pwcom.o io_files.o extfield.o fcp_variables.o dynamics_module.o pwcom.o run_info.o atomic_wfc_mod.o ions_base.o cell_base.o bp_mod.o io_global.o mp_pools.o constants.o control_flags.o funct.o kind.o 
+input.o : input.f90 wyckoff.o recvec.o recvec.o pwcom.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o read_namelists.o constraints_module.o input_parameters.o pwcom.o qmmm.o read_pseudo.o realus.o Coul_cut_2D.o bfgs_module.o symm_base.o pwcom.o noncol.o pwcom.o gvecw.o pwcom.o check_stop.o update_pot.o pwcom.o pwcom.o loc_scdm.o exx.o exx_base.o a2fmod.o esm.o martyna_tuckerman.o ldaU.o start_k.o tetra.o pwcom.o fft_base.o pwcom.o io_files.o extfield.o fcp_variables.o dynamics_module.o pwcom.o run_info.o atomic_wfc_mod.o ions_base.o cell_base.o bp_mod.o io_global.o mp_pools.o constants.o control_flags.o funct.o kind.o 
 input_parameters.o : input_parameters.f90 parameters.o kind.o 
 intersite_V.o : intersite_V.f90 mp.o mp_images.o io_files.o pwcom.o fft_base.o ldaU.o control_flags.o parameters.o constants.o kind.o cell_base.o ions_base.o io_global.o symm_base.o 
 int_to_char.o : int_to_char.f90 
@@ -191,7 +198,105 @@ la_param.o : la_param.f90
 latgen.o : latgen.f90 io_global.o constants.o kind.o 
 la_types.o : la_types.f90 laxlib_param.fh 
 lchk_tauxk.o : lchk_tauxk.f90 kind.o 
+ld1x_add_exchange.o : ld1x_add_exchange.f90 radial_grids.o ld1x_ld1inc.o ld1x_parameters.o constants.o kind.o io_global.o 
+ld1x_all_electron.o : ld1x_all_electron.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_ascheq.o : ld1x_ascheq.f90 radial_grids.o kind.o 
+ld1x_ascheqps_drv.o : ld1x_ascheqps_drv.f90 ld1x_ld1inc.o radial_grids.o ld1x_parameters.o kind.o 
+ld1x_ascheqps.o : ld1x_ascheqps.f90 radial_grids.o kind.o io_global.o 
+ld1x_atomic_paw.o : ld1x_atomic_paw.f90 mp_world.o mp.o io_global.o ld1x_ld1inc.o funct.o ld1x_paw_type.o radial_grids.o constants.o upf_params.o ld1x_parameters.o kind.o 
+ld1x_c6_dft.o : ld1x_c6_dft.f90 radial_grids.o ld1x_ld1inc.o constants.o kind.o 
+ld1x_c6_tfvw.o : ld1x_c6_tfvw.f90 funct.o radial_grids.o ld1x_ld1inc.o constants.o kind.o 
+ld1x_calculate_gipaw_orbitals.o : ld1x_calculate_gipaw_orbitals.f90 radial_grids.o kind.o io_global.o ld1x_ld1inc.o ld1x_parameters.o 
+ld1x_cfdsol.o : ld1x_cfdsol.f90 kind.o 
+ld1x_chargeps.o : ld1x_chargeps.f90 ld1x_ld1inc.o radial_grids.o ld1x_parameters.o kind.o 
+ld1x_compute_chi.o : ld1x_compute_chi.f90 ld1x_ld1inc.o radial_grids.o kind.o io_global.o 
+ld1x_compute_chi_tm.o : ld1x_compute_chi_tm.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_compute_phi.o : ld1x_compute_phi.f90 ld1x_ld1inc.o radial_grids.o constants.o kind.o io_global.o 
+ld1x_compute_phi_tm.o : ld1x_compute_phi_tm.f90 ld1x_ld1inc.o radial_grids.o constants.o kind.o io_global.o 
+ld1x_compute_phius.o : ld1x_compute_phius.f90 ld1x_ld1inc.o radial_grids.o io_global.o kind.o 
+ld1x_compute_potps.o : ld1x_compute_potps.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_compute_potps_new.o : ld1x_compute_potps_new.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_compute_q_3bess.o : ld1x_compute_q_3bess.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_compute_relpert.o : ld1x_compute_relpert.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_compute_solution.o : ld1x_compute_solution.f90 radial_grids.o kind.o io_global.o 
+ld1x_default_conf.o : ld1x_default_conf.f90 kind.o 
+ld1x_descreening.o : ld1x_descreening.f90 ld1x_ld1inc.o ld1x_parameters.o radial_grids.o mp_world.o mp.o io_global.o kind.o 
+ld1x_dfx_new.o : ld1x_dfx_new.f90 radial_grids.o ld1x_ld1inc.o ld1x_parameters.o kind.o constants.o 
+ld1x_dir_outward.o : ld1x_dir_outward.f90 ld1x_ld1inc.o kind.o 
+ld1x_dirsol.o : ld1x_dirsol.f90 ld1x_ld1inc.o radial_grids.o kind.o io_global.o 
+ld1x_dmixp.o : ld1x_dmixp.f90 kind.o io_global.o 
+ld1x_drho0ofvx.o : ld1x_drho0ofvx.f90 radial_grids.o ld1x_ld1inc.o ld1x_parameters.o kind.o constants.o 
+ld1x_drhoofv.o : ld1x_drhoofv.f90 radial_grids.o ld1x_ld1inc.o kind.o constants.o 
+ld1x_dvex.o : ld1x_dvex.f90 radial_grids.o ld1x_ld1inc.o constants.o kind.o 
+ld1x_el_config.o : ld1x_el_config.f90 io_global.o ld1x_parameters.o kind.o 
+ld1x_elsd.o : ld1x_elsd.f90 ld1x_ld1inc.o funct.o radial_grids.o constants.o kind.o 
+ld1x_elsd_highv.o : ld1x_elsd_highv.f90 ld1x_ld1inc.o radial_grids.o constants.o kind.o 
+ld1x_elsdps.o : ld1x_elsdps.f90 funct.o ld1x_ld1inc.o ld1x_parameters.o radial_grids.o constants.o kind.o 
+ld1x_elsdps_paw.o : ld1x_elsdps_paw.f90 funct.o ld1x_ld1inc.o ld1x_parameters.o radial_grids.o constants.o kind.o 
+ld1x_esic.o : ld1x_esic.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_export_upf.o : ld1x_export_upf.f90 pseudo_types.o version.o funct.o ld1x_ld1inc.o kind.o constants.o 
+ld1x_find_qi.o : ld1x_find_qi.f90 ld1x_ld1inc.o kind.o 
+ld1x_gener_pseudo.o : ld1x_gener_pseudo.f90 invmat.o ld1x_atomic_paw.o ld1x_ld1inc.o mp.o io_global.o ld1x_parameters.o radial_grids.o kind.o 
+ld1x_grad_log.o : ld1x_grad_log.f90 kind.o 
+ld1x_green.o : ld1x_green.f90 radial_grids.o ld1x_ld1inc.o kind.o 
+ld1x_import_upf.o : ld1x_import_upf.f90 ld1x_atomic_paw.o ld1x_parameters.o ld1x_paw_type.o pseudo_types.o funct.o ld1x_ld1inc.o radial_grids.o kind.o constants.o 
+ld1x_int_0_inf_dr.o : ld1x_int_0_inf_dr.f90 radial_grids.o kind.o 
+ld1x_integrate_inward.o : ld1x_integrate_inward.f90 radial_grids.o kind.o 
+ld1x_integrate_outward.o : ld1x_integrate_outward.f90 radial_grids.o kind.o 
+ld1x_intref.o : ld1x_intref.f90 radial_grids.o kind.o 
+ld1x_inward.o : ld1x_inward.f90 radial_grids.o kind.o 
+ld1x_kin_e_density.o : ld1x_kin_e_density.f90 
+ld1x_kli.o : ld1x_kli.f90 radial_grids.o ld1x_ld1inc.o ld1x_parameters.o kind.o 
+ld1x_ld1inc.o : ld1x_ld1inc.f90 ld1x_paw_type.o radial_grids.o ld1x_parameters.o kind.o 
+ld1x_ld1_readin.o : ld1x_ld1_readin.f90 ld1x_atomic_paw.o funct.o ld1x_ld1inc.o open_close_input_file.o mp_world.o mp.o io_global.o constants.o upf_params.o ld1x_parameters.o radial_grids.o kind.o 
+ld1x_ld1_setup.o : ld1x_ld1_setup.f90 funct.o ld1x_ld1inc.o kind.o 
+ld1x_ld1_writeout.o : ld1x_ld1_writeout.f90 open_close_input_file.o ld1x_paw_type.o funct.o ld1x_ld1inc.o mp_world.o mp.o io_global.o radial_grids.o 
+ld1x_lderiv.o : ld1x_lderiv.f90 ld1x_ld1inc.o ld1x_parameters.o mp.o io_global.o radial_grids.o kind.o 
+ld1x_lderivps.o : ld1x_lderivps.f90 ld1x_ld1inc.o ld1x_parameters.o mp.o io_global.o radial_grids.o kind.o 
+ld1x_lschps.o : ld1x_lschps.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_newd_at.o : ld1x_newd_at.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_new_potential.o : ld1x_new_potential.f90 ld1x_kli.o ld1x_ld1inc.o funct.o kind.o radial_grids.o constants.o 
+ld1x_nodenum.o : ld1x_nodenum.f90 kind.o 
+ld1x_normalize.o : ld1x_normalize.f90 ld1x_ld1inc.o io_global.o radial_grids.o ld1x_parameters.o kind.o 
+ld1x_occ_spin.o : ld1x_occ_spin.f90 radial_grids.o kind.o 
+ld1x_outward.o : ld1x_outward.f90 radial_grids.o kind.o 
+ld1x_parameters.o : ld1x_parameters.f90 
+ld1x_partial_wave_expansion.o : ld1x_partial_wave_expansion.f90 ld1x_ld1inc.o ld1x_parameters.o mp.o io_global.o radial_grids.o kind.o 
+ld1x_paw_type.o : ld1x_paw_type.f90 radial_grids.o kind.o 
+ld1x_pseudo_q.o : ld1x_pseudo_q.f90 ld1x_ld1inc.o ld1x_parameters.o io_global.o kind.o 
+ld1x_pseudovloc.o : ld1x_pseudovloc.f90 ld1x_ld1inc.o io_global.o radial_grids.o kind.o 
+ld1x_read_pseudo_ncpp.o : ld1x_read_pseudo_ncpp.f90 radial_grids.o constants.o kind.o 
+ld1x_read_pseudo_rrkj3.o : ld1x_read_pseudo_rrkj3.f90 ld1x_ld1inc.o radial_grids.o funct.o kind.o 
+ld1x_run_lda_half.o : ld1x_run_lda_half.f90 ld1x_ld1inc.o ld1x_parameters.o radial_grids.o mp.o io_global.o kind.o 
+ld1x_run_pseudo.o : ld1x_run_pseudo.f90 ld1x_atomic_paw.o ld1x_ld1inc.o ld1x_parameters.o radial_grids.o kind.o 
+ld1x_run_test.o : ld1x_run_test.f90 ld1x_ld1inc.o ld1x_parameters.o radial_grids.o mp_world.o mp.o io_global.o kind.o 
+ld1x_scf.o : ld1x_scf.f90 ld1x_ld1inc.o constants.o radial_grids.o funct.o kind.o 
+ld1x_seriebes.o : ld1x_seriebes.f90 kind.o 
+ld1x_set_psi_in.o : ld1x_set_psi_in.f90 ld1x_ld1inc.o radial_grids.o kind.o 
+ld1x_set_rc_rv.o : ld1x_set_rc_rv.f90 ld1x_ld1inc.o ld1x_parameters.o kind.o 
+ld1x_set_rho_core.o : ld1x_set_rho_core.f90 ld1x_ld1inc.o mp_world.o mp.o io_global.o constants.o kind.o 
+ld1x_set_sl3.o : ld1x_set_sl3.f90 kind.o 
+ld1x_sic_correction.o : ld1x_sic_correction.f90 funct.o ld1x_ld1inc.o constants.o radial_grids.o kind.o 
+ld1x_starting_potential.o : ld1x_starting_potential.f90 ld1x_ld1inc.o kind.o 
+ld1x_start_potps.o : ld1x_start_potps.f90 ld1x_ld1inc.o io_global.o radial_grids.o kind.o 
+ld1x_start_scheq.o : ld1x_start_scheq.f90 radial_grids.o kind.o 
+ld1x_test_bessel.o : ld1x_test_bessel.f90 ld1x_ld1inc.o constants.o kind.o io_global.o 
+ld1x_trou.o : ld1x_trou.f90 random_numbers.o kind.o 
+ld1x_utils.o : ld1x_utils.f90 
+ld1x_vdpack.o : ld1x_vdpack.f90 kind.o 
+ld1x_vext.o : ld1x_vext.f90 kind.o 
+ld1x_v_of_rho_at.o : ld1x_v_of_rho_at.f90 ld1x_ld1inc.o funct.o radial_grids.o constants.o kind.o 
+ld1x_vpack.o : ld1x_vpack.f90 kind.o 
+ld1x_vxcgc.o : ld1x_vxcgc.f90 metagga.o xc_gga_drivers.o funct.o constants.o xc_lda_lsda_drivers.o kind.o 
+ld1x_write_ae_pseudo.o : ld1x_write_ae_pseudo.f90 ld1x_ld1inc.o mp.o io_global.o kind.o 
+ld1x_write_cpmd.o : ld1x_write_cpmd.f90 constants.o kind.o funct.o 
+ld1x_write_files.o : ld1x_write_files.f90 mp_world.o mp.o radial_grids.o ld1x_ld1inc.o io_global.o kind.o 
+ld1x_write_paw_recon.o : ld1x_write_paw_recon.f90 ld1x_ld1inc.o mp_world.o mp.o io_global.o kind.o 
+ld1x_write_pseudo.o : ld1x_write_pseudo.f90 funct.o constants.o kind.o 
+ld1x_write_results.o : ld1x_write_results.f90 funct.o ld1x_ld1inc.o constants.o mp_world.o mp.o io_global.o kind.o radial_grids.o 
+ld1x_write_resultsps.o : ld1x_write_resultsps.f90 funct.o ld1x_ld1inc.o constants.o mp.o io_global.o radial_grids.o kind.o 
 ldaU.o : ldaU.f90 control_flags.o ions_base.o atomic_wfc_mod.o parameters.o upf_params.o kind.o 
+linpack.o : linpack.f90 kind.o 
 loc_scdm.o : loc_scdm.f90 scf_mod.o fft_base.o mp_bands.o mp.o fft_interfaces.o constants.o cell_base.o funct.o control_flags.o buffers.o io_files.o pwcom.o pwcom.o wavefunctions.o pwcom.o noncol.o exx_base.o exx.o io_global.o kind.o 
 loc_scdm_k.o : loc_scdm_k.f90 mp.o loc_scdm.o exx_band.o fft_interfaces.o constants.o cell_base.o control_flags.o mp_bands.o pwcom.o pwcom.o noncol.o exx_base.o exx.o io_global.o kind.o 
 make_pointlists.o : make_pointlists.f90 noncol.o fft_types.o fft_base.o mp_bands.o ions_base.o io_global.o cell_base.o kind.o 
@@ -202,7 +307,6 @@ matches.o : matches.f90
 mdiis.o : mdiis.f90 mp.o kind.o 
 memory_report.o : memory_report.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp_images.o mp_pools.o mp_bands.o ions_base.o pwcom.o control_flags.o noncol.o pwcom.o uspp.o pwcom.o pwcom.o ldaU.o funct.o atom.o uspp.o pwcom.o pwcom.o gvecw.o recvec.o recvec.o fft_base.o exx_base.o exx.o cell_base.o atomic_wfc_mod.o pwcom.o constants.o kind.o io_global.o 
 metagga.o : metagga.f90 constants.o kind.o correlation_gga.o correlation_lda_lsda.o exchange_lda_lsda.o 
-minipw.o : minipw.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh check_stop.o read_input.o environment.o command_line_options.o mp_bands.o mp_pools.o mp_world.o mp_global.o 
 mix_rho.o : mix_rho.f90 fft_interfaces.o fft_base.o mp_bands.o mp.o wavefunctions.o pwcom.o cell_base.o constants.o io_files.o ldaU.o io_global.o uspp.o control_flags.o pwcom.o recvec.o recvec.o ions_base.o kind.o scf_mod.o 
 mm_dispersion.o : mm_dispersion.f90 mp_images.o mp.o io_global.o constants.o cell_base.o ions_base.o parameters.o kind.o 
 move_ions.o : move_ions.f90 pwcom.o fcp_variables.o fcp.o dynamics_module.o basic_algebra_routines.o bfgs_module.o mp.o mp_images.o pwcom.o pwcom.o control_flags.o pwcom.o pwcom.o symm_base.o ions_base.o pwcom.o cell_base.o kind.o io_files.o io_global.o constants.o 
@@ -219,6 +323,17 @@ mp_pools.o : mp_pools.f90 parallel_include.o mp.o
 mp_wave.o : mp_wave.f90 parallel_include.o kind.o 
 mp_world.o : mp_world.f90 parallel_include.o io_global.o mp.o 
 multable.o : multable.f90 
+my_addusdens.o : my_addusdens.f90 kind.o fft_base.o noncol.o control_flags.o 
+my_addusdens_g.o : my_addusdens_g.f90 mp.o mp_bands.o mp_pools.o uspp.o uspp.o noncol.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
+my_calc_pol.o : my_calc_pol.f90 bp_mod.o constants.o cell_base.o io_global.o kind.o 
+my_compute_magnetization.o : my_compute_magnetization.f90 mp.o pwcom.o cell_base.o pwcom.o mp_bands.o noncol.o pwcom.o fft_base.o scf_mod.o kind.o 
+my_delta_e.o : my_delta_e.f90 mp.o paw_variables.o mp_bands.o cell_base.o pwcom.o fft_base.o scf_mod.o funct.o kind.o 
+my_delta_escf.o : my_delta_escf.f90 mp.o paw_variables.o mp_bands.o cell_base.o pwcom.o fft_base.o scf_mod.o kind.o funct.o 
+my_electrons.o : my_electrons.f90 control_flags.o funct.o io_global.o kind.o 
+my_electrons_scf.o : my_electrons_scf.f90 constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o newd.o paw_symmetry.o paw_onecenter.o paw_variables.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o mp.o mp_pools.o io_rho_xml.o pwcom.o noncol.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o pwcom.o gvecw.o pwcom.o pwcom.o pwcom.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o bp_mod.o ions_base.o cell_base.o io_global.o check_stop.o kind.o 
+my_init_us_2.o : my_init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
+my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
+my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
 newd.o : newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 new_nsb.o : new_nsb.f90 becmod.o mp.o mp_pools.o buffers.o io_files.o wavefunctions.o control_flags.o pwcom.o pwcom.o symm_base.o ldaU.o pwcom.o ions_base.o kind.o io_global.o 
 new_ns.o : new_ns.f90 mp_bands.o recvec.o noncol.o uspp.o uspp.o becmod.o mp.o mp_pools.o buffers.o io_files.o wavefunctions.o control_flags.o pwcom.o pwcom.o symm_base.o ldaU.o pwcom.o ions_base.o kind.o io_global.o 
@@ -251,6 +366,7 @@ paw_symmetry.o : paw_symmetry.f90 constants.o io_global.o uspp.o symm_base.o ion
 paw_variables.o : paw_variables.f90 kind.o 
 pcg_gamma.o : pcg_gamma.f90 mp.o mp_bands_util.o util_param.o 
 pcg_k.o : pcg_k.f90 mp.o mp_bands_util.o util_param.o 
+plot_io.o : plot_io.f90 kind.o io_global.o 
 plugin_check.o : plugin_check.f90 plugin_flags.o 
 plugin_clean.o : plugin_clean.f90 plugin_flags.o 
 plugin_clock.o : plugin_clock.f90 io_global.o plugin_flags.o 
@@ -272,6 +388,7 @@ plus_u_full.o : plus_u_full.f90 pwcom.o noncol.o uspp.o pwcom.o pwcom.o pwcom.o 
 potinit.o : potinit.f90 paw_onecenter.o paw_init.o paw_variables.o uspp.o fft_rho.o io_base.o io_rho_xml.o mp_bands.o mp.o pwcom.o io_files.o noncol.o ldaU.o pwcom.o funct.o scf_mod.o control_flags.o recvec.o recvec.o fft_base.o pwcom.o pwcom.o atomic_wfc_mod.o ions_base.o cell_base.o io_global.o constants.o kind.o 
 ppcg_gamma.o : ppcg_gamma.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp_bands_util.o mp.o util_param.o 
 ppcg_k.o : ppcg_k.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp_bands_util.o mp.o util_param.o 
+prepare_all.o : prepare_all.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh check_stop.o read_input.o environment.o command_line_options.o mp_bands.o mp_pools.o mp_world.o mp_global.o 
 print_clock_pw.o : print_clock_pw.f90 bp_mod.o funct.o ldaU.o noncol.o realus.o uspp.o paw_variables.o control_flags.o io_global.o 
 print_ks_energies.o : print_ks_energies.f90 pwcom.o mp_pools.o mp.o mp_bands.o pwcom.o pwcom.o pwcom.o pwcom.o pwcom.o io_global.o constants.o control_flags.o kind.o 
 pseudo_types.o : pseudo_types.f90 upf_kinds.o 
@@ -281,7 +398,6 @@ pw2blip.o : pw2blip.f90 fft_scalar.o fft_support.o cell_base.o constants.o contr
 pw2casino.o : pw2casino.f90 plugin_flags.o io_files.o pwcom.o noncol.o mp_pools.o mp_bands.o mp_images.o kind.o 
 pw2casino_write.o : pw2casino_write.f90 exx.o becmod.o pw2blip.o buffers.o mp.o mp_bands.o mp_pools.o funct.o wavefunctions.o io_files.o io_global.o uspp.o uspp.o control_flags.o gvecw.o pwcom.o pwcom.o ldaU.o scf_mod.o pwcom.o pwcom.o recvec.o fft_interfaces.o fft_base.o pwcom.o constants.o run_info.o cell_base.o ions_base.o kind.o 
 pwcom.o : pwcom.f90 upf_params.o parameters.o kind.o 
-pwscf.o : pwscf.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh command_line_options.o read_input.o mp_exx.o mp_bands.o mp_pools.o mp_world.o mp_global.o environment.o 
 qmmm.o : qmmm.f90 constraints_module.o fft_types.o constants.o ions_base.o cell_base.o input_parameters.o parallel_include.o kind.o mp.o mp_pools.o mp_world.o io_global.o 
 qvan2.o : qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
 radial_gradients.o : radial_gradients.f90 kind.o 
@@ -294,6 +410,7 @@ read_cards.o : read_cards.f90 cell_base.o bz_form.o wrappers.o input_parameters.
 read_file_new.o : read_file_new.f90 constants.o realus.o symm_base.o cell_base.o pwcom.o pwcom.o pwcom.o io_rho_xml.o scf_mod.o fft_base.o fft_rho.o recvec.o recvec_subs.o ions_base.o Coul_cut_2D.o esm.o ldaU.o funct.o newd.o paw_onecenter.o paw_init.o paw_variables.o uspp.o read_pseudo.o uspp.o kind.o pwcom.o gvecw.o recvec.o wavefunctions.o pwcom.o noncol.o pwcom.o io_files.o buffers.o control_flags.o io_global.o 
 read_input.o : read_input.f90 open_close_input_file.o mp_images.o mp.o io_global.o read_cards.o read_namelists.o input_parameters.o kind.o 
 read_namelists.o : read_namelists.f90 constants.o mp_images.o mp.o io_global.o input_parameters.o kind.o 
+read_ncpp.o : read_ncpp.f90 upf_const.o pseudo_types.o upf_params.o upf_kinds.o 
 read_pseudo.o : read_pseudo.f90 gth.o read_uspp.o upf_to_internal.o upf_auxtools.o read_upf_new.o read_upf_v1.o wrappers.o radial_grids.o funct.o pseudo_types.o io_global.o mp_images.o mp.o kind.o uspp.o uspp.o atom.o ions_base.o io_files.o 
 read_upf_new.o : read_upf_new.f90 upf_utils.o pseudo_types.o upf_kinds.o xmltools.o 
 read_upf_v1.o : read_upf_v1.f90 upf_utils.o pseudo_types.o upf_kinds.o 
@@ -357,7 +474,7 @@ stres_knl.o : stres_knl.f90 mp.o mp_bands.o mp_pools.o wavefunctions.o noncol.o 
 stres_loc.o : stres_loc.f90 Coul_cut_2D.o mp.o mp_bands.o uspp.o wavefunctions.o control_flags.o pwcom.o scf_mod.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o gth.o atom.o kind.o 
 stres_mgga.o : stres_mgga.f90 mp_bands.o mp_pools.o mp.o fft_base.o fft_interfaces.o pwcom.o pwcom.o io_files.o buffers.o pwcom.o funct.o wavefunctions.o scf_mod.o recvec.o cell_base.o noncol.o control_flags.o kind.o 
 stres_nonloc_dft.o : stres_nonloc_dft.f90 io_global.o xc_rVV10.o xc_vdW_DF.o fft_base.o mp.o funct.o kind.o 
-stress.o : stress.f90 esm.o tsvdw.o exx.o xdm_dispersion.o mm_dispersion.o uspp.o bp_mod.o symme.o funct.o control_flags.o scf_mod.o pwcom.o ldaU.o fft_base.o recvec.o pwcom.o constants.o ions_base.o cell_base.o kind.o io_global.o 
+stress.o : stress.f90 esm.o tsvdw.o exx.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o uspp.o bp_mod.o symme.o funct.o control_flags.o scf_mod.o pwcom.o ldaU.o fft_base.o recvec.o pwcom.o constants.o ions_base.o cell_base.o kind.o io_global.o 
 stres_us.o : stres_us.f90 mp.o becmod.o mp_bands.o mp_pools.o noncol.o pwcom.o wavefunctions.o uspp.o uspp.o control_flags.o pwcom.o pwcom.o pwcom.o constants.o ions_base.o kind.o 
 struct_fact.o : struct_fact.f90 recvec.o constants.o kind.o 
 sum_band.o : sum_band.f90 us_exx.o realus.o fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
@@ -371,6 +488,7 @@ tabd.o : tabd.f90 kind.o
 test0.o : test0.f90 fft_param.o fft_support.o fft_scalar.o fft_parallel.o fft_interfaces.o fft_types.o 
 test.o : test.f90 laxlib_low.fh laxlib_hi.fh laxlib_param.fh laxlib_kinds.fh dspev_drv.o la_param.o la_types.o 
 test_input_file.o : test_input_file.f90 
+test_loop_addusdens_g.o : test_loop_addusdens_g.f90 mp.o mp_bands.o mp_pools.o uspp.o uspp.o noncol.o recvec.o fft_interfaces.o ions_base.o kind.o 
 tetra.o : tetra.f90 constants.o pwcom.o pwcom.o pwcom.o pwcom.o io_global.o kind.o 
 tg_gather.o : tg_gather.f90 fft_types.o fft_param.o 
 thread_util.o : thread_util.f90 util_param.o 
@@ -384,8 +502,8 @@ tsvdw.o : tsvdw.f90 uspp.o parallel_include.o mp.o mp_images.o mp_bands.o kind.o
 update_pot.o : update_pot.f90 constants.o becmod.o wavefunctions.o uspp.o buffers.o pwcom.o fft_rho.o io_base.o mp_bands.o mp_pools.o paw_onecenter.o paw_variables.o pwcom.o noncol.o pwcom.o extfield.o pwcom.o ldaU.o scf_mod.o pwcom.o control_flags.o fft_interfaces.o fft_base.o cell_base.o pwcom.o recvec.o mp_images.o mp.o ions_base.o io_files.o io_global.o kind.o 
 upf_auxtools.o : upf_auxtools.f90 upf_io.o upf_const.o pseudo_types.o upf_kinds.o 
 upf_const.o : upf_const.f90 upf_kinds.o 
+upf_erf.o : upf_erf.f90 upf_kinds.o 
 upf_error.o : upf_error.f90 upf_parallel_include.o 
-upf.o : upf.f90 pseudo_types.o upf_kinds.o 
 upf_invmat.o : upf_invmat.f90 upf_kinds.o 
 upf_io.o : upf_io.f90 
 upf_kinds.o : upf_kinds.f90 

@@ -145,7 +145,9 @@ run_info.o \
 bfgs_module.o \
 space_group.o \
 wyckoff.o \
-plot_io.o
+plot_io.o \
+read_ncpp.o \
+upf_erf.o
 
 OBJ_PW = \
 a2fmod.o \
