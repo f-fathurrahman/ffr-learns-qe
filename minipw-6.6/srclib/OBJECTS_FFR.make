@@ -9,4 +9,8 @@ my_compute_magnetization.o \
 my_delta_e.o my_delta_escf.o my_calc_pol.o \
 my_qvan2.o \
 my_sum_band.o \
-my_init_us_2.o
+my_init_us_2.o \
+my_becmod.o \
+my_cegterg.o \
+my_h_psi.o \
+my_c_bands.o

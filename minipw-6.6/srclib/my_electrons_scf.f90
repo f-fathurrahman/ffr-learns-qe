@@ -230,7 +230,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       IF ( lelfield ) THEN
         CALL c_bands_efield( iter )
       ELSE
-        CALL c_bands( iter )
+        CALL my_c_bands( iter )
       ENDIF
 
 

@@ -38,4 +38,6 @@ program minipw
   call init_run()
   write(*,*) '================================= After init_run'
 
+  call my_electrons()
+
 end program
