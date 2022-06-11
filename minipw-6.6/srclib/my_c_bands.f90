@@ -40,9 +40,6 @@ SUBROUTINE my_c_bands( iter )
   write(*,*) 'Calling my_c_bands'
 
   !
-  !
-  CALL start_clock( 'c_bands' ); !write (*,*) 'start c_bands' ; FLUSH(6)
-  !
   ik_ = 0
   avg_iter = 0.D0
   IF ( restart ) CALL restart_in_cbands( ik_, ethr, avg_iter, et )
@@ -98,14 +95,14 @@ SUBROUTINE my_c_bands( iter )
      !
      ! ... diagonalization of bands for k-point ik
      !
-     call my_diag_bands ( iter, ik, avg_iter )
+     call my_diag_bands( iter, ik, avg_iter )
      !
      ! ... save wave-functions to be used as input for the
      ! ... iterative diagonalization of the next scf iteration
      ! ... and for rho calculation
      !
      IF ( nks > 1 .OR. lelfield ) &
-          CALL save_buffer ( evc, nwordwfc, iunwfc, ik )
+          CALL save_buffer( evc, nwordwfc, iunwfc, ik )
      !
      ! ... beware: with pools, if the number of k-points on different
      ! ... pools differs, make sure that all processors are still in
@@ -128,8 +125,7 @@ SUBROUTINE my_c_bands( iter )
   WRITE( stdout, &
        '( 5X,"ethr = ",1PE9.2,",  avg # of iterations =",0PF5.1 )' ) &
        ethr, avg_iter
-  !
-  CALL stop_clock( 'c_bands' ); !write (*,*) 'stop c_bands' ; FLUSH(6)
+
   !
   RETURN
   !
@@ -167,9 +163,9 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
   USE wavefunctions,        ONLY : evc
   USE g_psi_mod,            ONLY : h_diag, s_diag
   USE scf,                  ONLY : v_of_0
-  USE bp,                   ONLY : lelfield, evcel, evcelp, evcelm, bec_evcel, &
+  USE bp,                ONLY : lelfield, evcel, evcelp, evcelm, bec_evcel, &
                                    gdir, l3dstring, efield, efield_cry
-  USE becmod,               ONLY : bec_type, becp, calbec, &
+  USE becmod,            ONLY : bec_type, becp, calbec, &
                                    allocate_bec_type, deallocate_bec_type
   USE klist,                ONLY : nks, ngk
   USE mp_bands,             ONLY : nproc_bgrp, intra_bgrp_comm, inter_bgrp_comm, &
@@ -397,7 +393,10 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
     RETURN
     !
   END SUBROUTINE diag_bands_gamma
-  !
+
+
+
+  ! Inner subroutine
   !-----------------------------------------------------------------------
   SUBROUTINE diag_bands_k()
     !-----------------------------------------------------------------------
@@ -689,11 +688,7 @@ SUBROUTINE my_c_bands_nscf( )
   ! ik_: k-point already done in a previous run
   ! ik : counter on k points
   LOGICAL :: exst
-  !
-  REAL(DP), EXTERNAL :: get_clock
-  !
-  !
-  CALL start_clock( 'c_bands' )
+
   !
   ik_ = 0
   avg_iter = 0.D0
@@ -787,7 +782,6 @@ SUBROUTINE my_c_bands_nscf( )
      ! report about timing
      !
      IF ( iverbosity > 0 ) THEN
-        WRITE( stdout, 9000 ) get_clock( 'PWSCF' )
         FLUSH( stdout )
      ENDIF
      !
@@ -796,10 +790,7 @@ SUBROUTINE my_c_bands_nscf( )
   CALL mp_sum( avg_iter, inter_pool_comm )
   avg_iter = avg_iter / nkstot
   !
-  WRITE( stdout, '(/,5X,"ethr = ",1PE9.2,",  avg # of iterations =",0PF5.1)' ) &
-       ethr, avg_iter
-  !
-  CALL stop_clock( 'c_bands' )
+  WRITE( stdout, '(/,5X,"ethr = ",1PE9.2,",  avg # of iterations =",0PF5.1)' ) ethr, avg_iter
   !
   RETURN
   !

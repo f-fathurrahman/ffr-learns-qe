@@ -33,14 +33,12 @@ SUBROUTINE my_h_psi( lda, n, m, psi, hpsi )
   INTEGER :: m_start, m_end
   INTEGER :: column_type
   INTEGER, ALLOCATABLE :: recv_counts(:), displs(:)
-  !
-  !
+
   ! band parallelization with non-distributed bands is performed if
   ! 1. enabled (variable use_bgrp_in_hpsi must be set to .T.)
   ! 2. exact exchange is not active (if it is, band parallelization is already
   !    used in exx routines called by Hpsi)
   ! 3. there is more than one band, otherwise there is nothing to parallelize
-  !
   IF (use_bgrp_in_hpsi .AND. .NOT. exx_is_active() .AND. m > 1) THEN
     stop 'Not supported: my_h_psi 45'
     !
@@ -64,7 +62,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   !
   USE kinds,                   ONLY: DP
   USE bp,                      ONLY: lelfield, l3dstring, gdir, efield, efield_cry
-  USE becmod,                  ONLY: bec_type, becp, calbec
+  USE becmod,               ONLY: bec_type, becp, calbec
   USE lsda_mod,                ONLY: current_spin
   USE scf,                     ONLY: vrs  
   USE wvfct,                   ONLY: g2kin
@@ -100,147 +98,114 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   !
   INTEGER :: ipol, ibnd
   REAL(DP) :: ee
-  !
+
   !
   ! ... Here we set the kinetic energy (k+G)^2 psi and clean up garbage
   !
   DO ibnd = 1, m
-     hpsi(1:n,ibnd) = g2kin(1:n) * psi(1:n,ibnd)
-     IF (n<lda) hpsi(n+1:lda, ibnd) = (0.0_dp, 0.0_dp)
-     IF ( noncolin ) THEN
-        hpsi(lda+1:lda+n, ibnd) = g2kin(1:n) * psi(lda+1:lda+n, ibnd)
-        IF (n<lda) hpsi(lda+n+1:lda+lda, ibnd) = (0.0_dp, 0.0_dp)
-     ENDIF
+    hpsi(1:n,ibnd) = g2kin(1:n) * psi(1:n,ibnd)
+    IF (n<lda) hpsi(n+1:lda, ibnd) = (0.0_dp, 0.0_dp)
+    IF ( noncolin ) THEN
+      hpsi(lda+1:lda+n, ibnd) = g2kin(1:n) * psi(lda+1:lda+n, ibnd)
+      IF (n<lda) hpsi(lda+n+1:lda+lda, ibnd) = (0.0_dp, 0.0_dp)
+    ENDIF
   ENDDO
 
   !
   ! ... Here the product with the local potential V_loc psi
   !
-  IF ( gamma_only ) THEN
-     ! 
-     IF ( real_space .AND. nkb > 0  ) THEN
-        !
-        ! ... real-space algorithm
-        ! ... fixme: real_space without beta functions does not make sense
-        !
-        IF ( dffts%has_task_groups ) &
-             CALL errore( 'h_psi', 'task_groups not implemented with real_space', 1 )
-
-        DO ibnd = 1, m, 2
-           ! ... transform psi to real space -> psic 
-           CALL invfft_orbital_gamma( psi, ibnd, m )
-           ! ... compute becp%r = < beta|psi> from psic in real space
-
-           CALL calbec_rs_gamma( ibnd, m, becp%r )
-           ! ... psic -> vrs * psic (psic overwritten will become hpsi)
-           CALL v_loc_psir_inplace( ibnd, m ) 
-           ! ... psic (hpsi) -> psic + vusp
-           CALL  add_vuspsir_gamma( ibnd, m )
-           ! ... transform psic back in reciprocal space and add it to hpsi
-           CALL fwfft_orbital_gamma( hpsi, ibnd, m, add_to_orbital=.TRUE. )
-        ENDDO
-        !
-     ELSE
-        ! ... usual reciprocal-space algorithm
-        CALL vloc_psi_gamma( lda, n, m, psi, vrs(1,current_spin), hpsi ) 
-        !
-     ENDIF 
-     !
-  ELSEIF ( noncolin ) THEN 
-     !
-     CALL vloc_psi_nc( lda, n, m, psi, vrs, hpsi )
-     !
+  IF( gamma_only ) THEN
+    ! 
+    IF( real_space .AND. nkb > 0  ) THEN
+      !
+      stop 'Not supported my_h_psi 120'
+      !
+    ELSE
+      ! usual reciprocal-space algorithm
+      CALL vloc_psi_gamma( lda, n, m, psi, vrs(1,current_spin), hpsi ) 
+      !
+    ENDIF 
+    !
+  ELSEIF( noncolin ) THEN 
+    !
+    CALL vloc_psi_nc( lda, n, m, psi, vrs, hpsi )
+    !
   ELSE  
-     ! 
-     IF ( real_space .AND. nkb > 0  ) THEN
-        !
-        ! ... real-space algorithm
-        ! ... fixme: real_space without beta functions does not make sense
-        !
-        IF ( dffts%has_task_groups ) &
-             CALL errore( 'h_psi', 'task_groups not implemented with real_space', 1 )
-        !
-        DO ibnd = 1, m
-           ! ... transform psi to real space -> psic 
-           CALL invfft_orbital_k( psi, ibnd, m )
-           ! ... compute becp%r = < beta|psi> from psic in real space
-
-           CALL calbec_rs_k( ibnd, m )
-           ! ... psic -> vrs * psic (psic overwritten will become hpsi)
-           CALL v_loc_psir_inplace( ibnd, m )
-           ! ... psic (hpsi) -> psic + vusp
-           CALL  add_vuspsir_k( ibnd, m )
-           ! ... transform psic back in reciprocal space and add it to hpsi
-           CALL fwfft_orbital_k( hpsi, ibnd, m, add_to_orbital=.TRUE. )
-           !
-        ENDDO
-        !
-     ELSE
-        !
-        CALL vloc_psi_k( lda, n, m, psi, vrs(1,current_spin), hpsi )
-        !
-     ENDIF
-     !
+    ! 
+    IF( real_space .AND. nkb > 0  ) THEN
+      !
+      stop 'Not supported my_h_psi 135'
+      !
+    ELSE
+      ! The usual case
+      CALL vloc_psi_k( lda, n, m, psi, vrs(1,current_spin), hpsi )
+      !
+    ENDIF
+    !
   ENDIF  
+
   !
-  ! ... Here the product with the non local potential V_NL psi
-  ! ... (not in the real-space case: it is done together with V_loc)
+  ! Here the product with the non local potential V_NL psi
+  ! (not in the real-space case: it is done together with V_loc)
   !
-  IF ( nkb > 0 .AND. .NOT. real_space) THEN
-     CALL calbec( n, vkb, psi, becp, m )
-     CALL add_vuspsi( lda, n, m, hpsi )
-     !
+  IF( nkb > 0 .AND. .NOT. real_space) THEN
+    CALL calbec( n, vkb, psi, becp, m )
+    CALL add_vuspsi( lda, n, m, hpsi )
   ENDIF
 
   !  
   IF (dft_is_meta()) CALL h_psi_meta( lda, n, m, psi, hpsi )
+
+
   !
-  ! ... Here we add the Hubbard potential times psi
+  ! Here we add the Hubbard potential times psi
   !
-  IF ( lda_plus_u .AND. U_projection.NE."pseudo" ) THEN
-     !
-     IF ( noncolin ) THEN
-        CALL vhpsi_nc( lda, n, m, psi, hpsi )
-     ELSE
-        CALL vhpsi( lda, n, m, psi, hpsi )
-     ENDIF
-     !
+  IF( lda_plus_u .AND. U_projection.NE."pseudo" ) THEN
+    !
+    IF( noncolin ) THEN
+      CALL vhpsi_nc( lda, n, m, psi, hpsi )
+    ELSE
+      CALL vhpsi( lda, n, m, psi, hpsi )
+    ENDIF
+    !
   ENDIF
+
   !
-  ! ... Here the exact-exchange term Vxx psi
+  ! Here the exact-exchange term Vxx psi
   !
-  IF ( exx_is_active() ) THEN
-     IF ( use_ace ) THEN
-        IF ( gamma_only ) THEN
-           CALL vexxace_gamma( lda, m, psi, ee, hpsi )
-        ELSE
-           CALL vexxace_k( lda, m, psi, ee, hpsi )
-        ENDIF
-     ELSE
-        CALL vexx( lda, n, m, psi, hpsi, becp )
-     ENDIF
+  IF( exx_is_active() ) THEN
+    IF( use_ace ) THEN
+      IF( gamma_only ) THEN
+        CALL vexxace_gamma( lda, m, psi, ee, hpsi )
+      ELSE
+        CALL vexxace_k( lda, m, psi, ee, hpsi )
+      ENDIF
+    ELSE
+      CALL vexx( lda, n, m, psi, hpsi, becp )
+    ENDIF
   ENDIF
+
   !
-  ! ... electric enthalpy if required
+  ! electric enthalpy if required
   !
   IF ( lelfield ) THEN
-     !
-     IF ( .NOT.l3dstring ) THEN
-        CALL h_epsi_her_apply( lda, n, m, psi, hpsi,gdir, efield )
-     ELSE
-        DO ipol = 1, 3
-           CALL h_epsi_her_apply( lda, n, m, psi, hpsi,ipol,efield_cry(ipol) )
-        ENDDO
-     ENDIF
-     !
+    !
+    IF ( .NOT.l3dstring ) THEN
+      CALL h_epsi_her_apply( lda, n, m, psi, hpsi,gdir, efield )
+    ELSE
+      DO ipol = 1, 3
+        CALL h_epsi_her_apply( lda, n, m, psi, hpsi,ipol,efield_cry(ipol) )
+      ENDDO
+    ENDIF
+    !
   ENDIF
+  
   !
-  ! ... With Gamma-only trick, Im(H*psi)(G=0) = 0 by definition,
-  ! ... but it is convenient to explicitly set it to 0 to prevent trouble
+  ! With Gamma-only trick, Im(H*psi)(G=0) = 0 by definition,
+  ! but it is convenient to explicitly set it to 0 to prevent trouble
   !
-  IF ( gamma_only .AND. gstart == 2 ) &
-      hpsi(1,1:m) = CMPLX( DBLE( hpsi(1,1:m) ), 0.D0, KIND=DP)
-  !
+  IF ( gamma_only .AND. gstart == 2 ) hpsi(1,1:m) = CMPLX( DBLE( hpsi(1,1:m) ), 0.D0, KIND=DP)
+
   !
   RETURN
   !

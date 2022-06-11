@@ -1,12 +1,3 @@
-!
-! Copyright (C) 2001-2007 PWSCF group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
-!----------------------------------------------------------------------------
-!
 MODULE becmod
   !
   ! ... *bec* contain <beta|psi> - used in h_psi, s_psi, many other places
@@ -14,48 +5,54 @@ MODULE becmod
   ! ...    betapsi(i,j)  = <beta(i)|psi(j)>   (the sum is over npw components)
   ! ... or betapsi(i,s,j)= <beta(i)|psi(s,j)> (s=polarization index)
   !
+  
   USE kinds,            ONLY : DP
   USE control_flags,    ONLY : gamma_only, smallmem
   USE gvect,            ONLY : gstart
   USE noncollin_module, ONLY : noncolin, npol
-  !
+
   SAVE
-  !
+
   TYPE bec_type
-     REAL(DP),   ALLOCATABLE :: r(:,:)    ! appropriate for gammaonly
-     COMPLEX(DP),ALLOCATABLE :: k(:,:)    ! appropriate for generic k
-     COMPLEX(DP),ALLOCATABLE :: nc(:,:,:)   ! appropriate for noncolin
-     INTEGER :: comm
-     INTEGER :: nbnd
-     INTEGER :: nproc
-     INTEGER :: mype
-     INTEGER :: nbnd_loc
-     INTEGER :: ibnd_begin
+    REAL(DP),   ALLOCATABLE :: r(:,:)    ! appropriate for gammaonly
+    COMPLEX(DP),ALLOCATABLE :: k(:,:)    ! appropriate for generic k
+    COMPLEX(DP),ALLOCATABLE :: nc(:,:,:)   ! appropriate for noncolin
+    INTEGER :: comm
+    INTEGER :: nbnd
+    INTEGER :: nproc
+    INTEGER :: mype
+    INTEGER :: nbnd_loc
+    INTEGER :: ibnd_begin
   END TYPE bec_type
-  !
-  TYPE (bec_type) :: becp  ! <beta|psi>
+
+
+  ! Global variable
+  TYPE(bec_type) :: becp  ! <beta|psi>
 
   PRIVATE
-  !
+  
+  !---------------
   INTERFACE calbec
-     !
      MODULE PROCEDURE calbec_k, calbec_gamma, calbec_gamma_nocomm, calbec_nc, calbec_bec_type
-     !
   END INTERFACE
+  !---------------
 
+  !---------------
   INTERFACE becscal
-     !
      MODULE PROCEDURE becscal_nck, becscal_gamma
-     !
   END INTERFACE
-  !
+  !----------------
+
+
   PUBLIC :: bec_type, becp, allocate_bec_type, deallocate_bec_type, calbec, &
             beccopy, becscal, is_allocated_bec_type
-  !
+
 CONTAINS
+
+
   !-----------------------------------------------------------------------
   SUBROUTINE calbec_bec_type ( npw, beta, psi, betapsi, nbnd )
-    !-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
     !_
     USE mp_bands, ONLY: intra_bgrp_comm
     USE mp,       ONLY: mp_get_comm_null
@@ -117,28 +114,34 @@ CONTAINS
     RETURN
     !
   END SUBROUTINE calbec_bec_type
-  !-----------------------------------------------------------------------
-  SUBROUTINE calbec_gamma_nocomm ( npw, beta, psi, betapsi, nbnd )
-    !-----------------------------------------------------------------------
-    USE mp_bands, ONLY: intra_bgrp_comm
-    IMPLICIT NONE
-    COMPLEX (DP), INTENT (in) :: beta(:,:), psi(:,:)
-    REAL (DP), INTENT (out) :: betapsi(:,:)
-    INTEGER, INTENT (in) :: npw
-    INTEGER, OPTIONAL :: nbnd
-    INTEGER :: m
-    IF ( present (nbnd) ) THEN
-        m = nbnd
-    ELSE
-        m = size ( psi, 2)
-    ENDIF
-    CALL calbec_gamma ( npw, beta, psi, betapsi, m, intra_bgrp_comm )
-    RETURN
-    !
-  END SUBROUTINE calbec_gamma_nocomm
-  !-----------------------------------------------------------------------
-  SUBROUTINE calbec_gamma ( npw, beta, psi, betapsi, nbnd, comm )
-    !-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+SUBROUTINE calbec_gamma_nocomm ( npw, beta, psi, betapsi, nbnd )
+!-----------------------------------------------------------------------
+  USE mp_bands, ONLY: intra_bgrp_comm
+  IMPLICIT NONE
+  COMPLEX (DP), INTENT (in) :: beta(:,:), psi(:,:)
+  REAL (DP), INTENT (out) :: betapsi(:,:)
+  INTEGER, INTENT (in) :: npw
+  INTEGER, OPTIONAL :: nbnd
+  INTEGER :: m
+  IF ( present (nbnd) ) THEN
+      m = nbnd
+  ELSE
+      m = size ( psi, 2)
+  ENDIF
+  CALL calbec_gamma ( npw, beta, psi, betapsi, m, intra_bgrp_comm )
+  RETURN
+  !
+END SUBROUTINE calbec_gamma_nocomm
+
+
+
+
+!-----------------------------------------------------------------------
+SUBROUTINE calbec_gamma ( npw, beta, psi, betapsi, nbnd, comm )
+!-----------------------------------------------------------------------
     !
     ! ... matrix times matrix with summation index (k=1,npw) running on
     ! ... half of the G-vectors or PWs - assuming k=0 is the G=0 component:
@@ -194,64 +197,68 @@ CONTAINS
     RETURN
     !
   END SUBROUTINE calbec_gamma
-  !
-  !-----------------------------------------------------------------------
-  SUBROUTINE calbec_k ( npw, beta, psi, betapsi, nbnd )
-    !-----------------------------------------------------------------------
-    !
-    ! ... matrix times matrix with summation index (k=1,npw) running on
-    ! ... G-vectors or PWs : betapsi(i,j) = \sum_k beta^*(i,k) psi(k,j)
-    !
-    USE mp_bands, ONLY : intra_bgrp_comm
-    USE mp,       ONLY : mp_sum
 
-    IMPLICIT NONE
-    COMPLEX (DP), INTENT (in) :: beta(:,:), psi(:,:)
-    COMPLEX (DP), INTENT (out) :: betapsi(:,:)
-    INTEGER, INTENT (in) :: npw
-    INTEGER, OPTIONAL :: nbnd
-    !
-    INTEGER :: nkb, npwx, m
-    !
-    nkb = size (beta, 2)
-    IF ( nkb == 0 ) RETURN
-    !
-    CALL start_clock( 'calbec' )
-    IF ( npw == 0 ) betapsi(:,:)=(0.0_DP,0.0_DP)
-    npwx= size (beta, 1)
-    IF ( npwx /= size (psi, 1) ) CALL errore ('calbec', 'size mismatch', 1)
-    IF ( npwx < npw ) CALL errore ('calbec', 'size mismatch', 2)
-    IF ( present (nbnd) ) THEN
-        m = nbnd
-    ELSE
-        m = size ( psi, 2)
-    ENDIF
+
+
+!-----------------------------------------------------------------------
+SUBROUTINE calbec_k ( npw, beta, psi, betapsi, nbnd )
+!-----------------------------------------------------------------------
+  !
+  ! ... matrix times matrix with summation index (k=1,npw) running on
+  ! ... G-vectors or PWs : betapsi(i,j) = \sum_k beta^*(i,k) psi(k,j)
+  !
+  USE mp_bands, ONLY : intra_bgrp_comm
+  USE mp,       ONLY : mp_sum
+
+  IMPLICIT NONE
+  COMPLEX (DP), INTENT (in) :: beta(:,:), psi(:,:)
+  COMPLEX (DP), INTENT (out) :: betapsi(:,:)
+  INTEGER, INTENT (in) :: npw
+  INTEGER, OPTIONAL :: nbnd
+  INTEGER :: nkb, npwx, m
+
+  nkb = size (beta, 2)
+  IF( nkb == 0 ) RETURN
+
+  IF( npw == 0 ) betapsi(:,:) = (0.0_DP,0.0_DP)
+    
+  npwx = size(beta, 1)
+
+
+  IF( npwx /= size(psi, 1) ) CALL errore ('calbec', 'size mismatch', 1)
+  IF( npwx < npw ) CALL errore ('calbec', 'size mismatch', 2)
+  !
+  IF( present (nbnd) ) THEN
+    m = nbnd
+  ELSE
+    m = size(psi,2)
+  ENDIF
+
 #if defined(DEBUG)
     WRITE (*,*) 'calbec k'
     WRITE (*,*)  nkb,  size (betapsi,1) , m , size (betapsi, 2)
 #endif
-    IF ( nkb /= size (betapsi,1) .or. m > size (betapsi, 2) ) &
-      CALL errore ('calbec', 'size mismatch', 3)
-    !
-    IF ( m == 1 ) THEN
-       !
-       CALL ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi, 1, &
-                   (0.0_DP, 0.0_DP), betapsi, 1 )
-       !
-    ELSE
-       !
-       CALL ZGEMM( 'C', 'N', nkb, m, npw, (1.0_DP,0.0_DP), &
-                 beta, npwx, psi, npwx, (0.0_DP,0.0_DP), betapsi, nkb )
-       !
-    ENDIF
-    !
-    CALL mp_sum( betapsi( :, 1:m ), intra_bgrp_comm )
-    !
-    CALL stop_clock( 'calbec' )
-    !
-    RETURN
-    !
-  END SUBROUTINE calbec_k
+
+  IF( nkb /= size (betapsi,1) .or. m > size (betapsi, 2) ) then
+    CALL errore ('calbec', 'size mismatch', 3)
+  endif
+
+  IF( m == 1 ) THEN
+     CALL ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi, 1, &
+                 (0.0_DP, 0.0_DP), betapsi, 1 )
+  ELSE
+     CALL ZGEMM( 'C', 'N', nkb, m, npw, (1.0_DP,0.0_DP), &
+               beta, npwx, psi, npwx, (0.0_DP,0.0_DP), betapsi, nkb )
+  ENDIF
+
+  CALL mp_sum( betapsi( :, 1:m ), intra_bgrp_comm )
+
+  RETURN
+
+END SUBROUTINE calbec_k
+
+
+
   !
   !-----------------------------------------------------------------------
   SUBROUTINE calbec_nc ( npw, beta, psi, betapsi, nbnd )
@@ -305,23 +312,26 @@ CONTAINS
     !
   END SUBROUTINE calbec_nc
   !
-  !
-  !-----------------------------------------------------------------------
-  FUNCTION is_allocated_bec_type (bec) RESULT (isalloc)
-    !-----------------------------------------------------------------------
-    IMPLICIT NONE
-    TYPE (bec_type) :: bec
-    LOGICAL :: isalloc
-    isalloc = (allocated(bec%r) .or. allocated(bec%nc) .or. allocated(bec%k))
-    RETURN
-    !
-    !-----------------------------------------------------------------------
-  END FUNCTION is_allocated_bec_type
-  !-----------------------------------------------------------------------
-  !
+
+
+
+
+!-----------------------------------------------------------------------
+FUNCTION is_allocated_bec_type (bec) RESULT (isalloc)
+  IMPLICIT NONE
+  TYPE (bec_type) :: bec
+  LOGICAL :: isalloc
+  isalloc = (allocated(bec%r) .or. allocated(bec%nc) .or. allocated(bec%k))
+  RETURN
+END FUNCTION is_allocated_bec_type
+!-----------------------------------------------------------------------
+
+
+
+
   !-----------------------------------------------------------------------
   SUBROUTINE allocate_bec_type ( nkb, nbnd, bec, comm )
-    !-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
     USE mp, ONLY: mp_size, mp_rank, mp_get_comm_null
     IMPLICIT NONE
     TYPE (bec_type) :: bec
@@ -464,4 +474,4 @@ CONTAINS
     RETURN
   END SUBROUTINE becscal_gamma
 
-END MODULE becmod
+END MODULE
