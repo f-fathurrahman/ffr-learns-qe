@@ -10,6 +10,7 @@ subroutine prepare_h_s_psi(ik)
   USE mp_bands, ONLY : intra_bgrp_comm
   USE bp, ONLY : lelfield
   USE uspp, ONLY : vkb, nkb
+  USE buffers, ONLY: get_buffer
   !
   implicit none
   !

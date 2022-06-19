@@ -365,7 +365,7 @@ paro_k.o : paro_k.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh
 paro_k_new.o : paro_k_new.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 
 parser.o : parser.f90 mp_images.o mp.o kind.o io_global.o 
 paw_exx.o : paw_exx.f90 pwcom.o paw_onecenter.o atom.o constants.o io_global.o paw_variables.o uspp.o uspp.o ions_base.o kind.o 
-paw_init.o : paw_init.f90 constants.o pwcom.o radial_grids.o atom.o noncol.o atomic_wfc_mod.o random_numbers.o paw_symmetry.o scf_mod.o uspp.o funct.o control_flags.o io_global.o mp.o mp_images.o paw_variables.o uspp.o ions_base.o pwcom.o kind.o 
+paw_init.o : paw_init.f90 constants.o mp.o mp_images.o funct.o pwcom.o radial_grids.o atom.o noncol.o atomic_wfc_mod.o random_numbers.o paw_symmetry.o scf_mod.o uspp.o paw_variables.o uspp.o ions_base.o pwcom.o kind.o 
 paw_onecenter.o : paw_onecenter.f90 io_global.o pwcom.o uspp.o radial_grids.o xc_gga_drivers.o xc_lda_lsda_drivers.o funct.o constants.o noncol.o uspp.o pwcom.o ions_base.o atom.o mp.o mp_images.o paw_variables.o kind.o 
 paw_symmetry.o : paw_symmetry.f90 constants.o io_global.o uspp.o symm_base.o ions_base.o uspp.o pwcom.o noncol.o cell_base.o pwcom.o mp.o mp_images.o kind.o 
 paw_variables.o : paw_variables.f90 kind.o 
