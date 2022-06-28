@@ -254,13 +254,7 @@ MODULE paw_onecenter
           !
        ENDIF ifpaw
     ENDDO atoms
-#if defined(__MPI)
-    ! recollect D coeffs and total one-center energy
-    IF( mykey /= 0 ) energy_tot = 0.0d0
-    CALL mp_sum(energy_tot, intra_image_comm)
-    IF( mykey /= 0 ) d = 0.0d0
-    CALL mp_sum(d, intra_image_comm)
-#endif
+
     ! put energy back in the output variable
     IF ( PRESENT(energy) ) energy = energy_tot
     !

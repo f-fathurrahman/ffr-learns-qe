@@ -35,7 +35,7 @@ SUBROUTINE my_s_psi( lda, n, m, psi, spsi )
   !
   INTEGER :: m_start, m_end
   INTEGER :: column_type
-  INTEGER, ALLOCATABLE :: recv_counts(:), displs(:)
+  INTEGER, ALLOCATABLE :: displs(:)
   !
   IF (use_bgrp_in_hpsi .AND. .NOT. exx_is_active() .AND. m > 1) THEN
     stop 'Not supported my_s_psi: 41'

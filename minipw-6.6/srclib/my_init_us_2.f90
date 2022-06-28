@@ -103,7 +103,7 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
       
       ! add spherical harmonic part  (Y_lm(q)*f_l(q)) 
       DO ih = 1, nh(nt)
-        IF (nb == indv(ih,nt) ) THEN
+        IF( nb == indv(ih,nt) ) THEN
           !l = nhtol(ih, nt)
           lm = nhtolm(ih,nt)
           DO ig = 1, npw_

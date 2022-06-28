@@ -5,6 +5,9 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
+
+! Modified by ffr
+
 MODULE paw_init
   !
   USE kinds, ONLY : DP
@@ -13,10 +16,7 @@ MODULE paw_init
 
   PUBLIC :: PAW_atomic_becsum
   PUBLIC :: PAW_init_onecenter
-  !PUBLIC :: PAW_increase_lm ! <-- unused
-#if defined(__MPI)
-  PUBLIC :: PAW_post_init
-#endif
+
   !
   PUBLIC :: allocate_paw_internals, deallocate_paw_internals
   !
@@ -24,10 +24,11 @@ MODULE paw_init
   !
   !
  CONTAINS
-  !
+
+
   !----------------------------------------------------------------------------
   SUBROUTINE allocate_paw_internals
-    !--------------------------------------------------------------------------
+  !--------------------------------------------------------------------------
     !! Allocate PAW internal variables require for SCF calculation.
     !
     USE lsda_mod,       ONLY : nspin
@@ -37,9 +38,7 @@ MODULE paw_init
     USE paw_variables
     !
     IMPLICIT NONE
-
     write(*,*) 'allocate_paw_internals: nhm = ', nhm
-
     !
     ALLOCATE( ddd_paw(nhm*(nhm+1)/2,nat,nspin) )
     !
@@ -62,22 +61,22 @@ MODULE paw_init
     IF (ALLOCATED(ddd_paw)) DEALLOCATE (ddd_paw)
     !
     IF (ALLOCATED(rad)) THEN
-       !
-       DO nt = 1,ntyp  
-          IF (ASSOCIATED(rad(nt)%ww))       DEALLOCATE( rad(nt)%ww  )  
-          IF (ASSOCIATED(rad(nt)%ylm))      DEALLOCATE( rad(nt)%ylm )  
-          IF (ASSOCIATED(rad(nt)%wwylm))    DEALLOCATE( rad(nt)%wwylm )  
-          IF (ASSOCIATED(rad(nt)%dylmt))    DEALLOCATE( rad(nt)%dylmt )  
-          IF (ASSOCIATED(rad(nt)%dylmp))    DEALLOCATE( rad(nt)%dylmp )  
-          IF (ASSOCIATED(rad(nt)%cotg_th))  DEALLOCATE( rad(nt)%cotg_th )  
-          IF (ASSOCIATED(rad(nt)%cos_phi))  DEALLOCATE( rad(nt)%cos_phi )  
-          IF (ASSOCIATED(rad(nt)%sin_phi))  DEALLOCATE( rad(nt)%sin_phi )  
-          IF (ASSOCIATED(rad(nt)%cos_th))   DEALLOCATE( rad(nt)%cos_th )  
-          IF (ASSOCIATED(rad(nt)%sin_th))   DEALLOCATE( rad(nt)%sin_th )  
-       ENDDO
-       !
-       DEALLOCATE( rad )
-       !
+      !
+      DO nt = 1,ntyp  
+        IF(ASSOCIATED(rad(nt)%ww))       DEALLOCATE( rad(nt)%ww  )  
+        IF(ASSOCIATED(rad(nt)%ylm))      DEALLOCATE( rad(nt)%ylm )  
+        IF(ASSOCIATED(rad(nt)%wwylm))    DEALLOCATE( rad(nt)%wwylm )  
+        IF(ASSOCIATED(rad(nt)%dylmt))    DEALLOCATE( rad(nt)%dylmt )  
+        IF(ASSOCIATED(rad(nt)%dylmp))    DEALLOCATE( rad(nt)%dylmp )  
+        IF(ASSOCIATED(rad(nt)%cotg_th))  DEALLOCATE( rad(nt)%cotg_th )  
+        IF(ASSOCIATED(rad(nt)%cos_phi))  DEALLOCATE( rad(nt)%cos_phi )  
+        IF(ASSOCIATED(rad(nt)%sin_phi))  DEALLOCATE( rad(nt)%sin_phi )  
+        IF(ASSOCIATED(rad(nt)%cos_th))   DEALLOCATE( rad(nt)%cos_th )  
+        IF(ASSOCIATED(rad(nt)%sin_th))   DEALLOCATE( rad(nt)%sin_th )  
+      ENDDO
+      !
+      DEALLOCATE( rad )
+      !
     ENDIF
     !
     IF ( ALLOCATED(vs_rad) )   DEALLOCATE( vs_rad )
@@ -87,84 +86,10 @@ MODULE paw_init
     RETURN
     !
   END SUBROUTINE deallocate_paw_internals
-  !
-  !
-#if defined(__MPI)
-  !
-  !---------------------------------------------------------------------------------
-  SUBROUTINE PAW_post_init()
-    !--------------------------------------------------------------------------------
-    !! Deallocate variables that are used only at init and then no more necessary. 
-    !! This is only useful in parallel, as each node only does a limited number of atoms.
-    !
-    ! this routine does nothing at the moment...
-    !
-    USE ions_base,          ONLY : nat, ntyp=>nsp, ityp
-    USE uspp_param,         ONLY : upf
-    USE mp_images,          ONLY : me_image, nproc_image, intra_image_comm
-    USE mp,                 ONLY : mp_sum
-    USE io_global,          ONLY : stdout, ionode
-    USE control_flags,      ONLY : iverbosity
-    USE funct,              ONLY : dft_is_hybrid
-    !
-    INTEGER :: nt, np, ia, ia_s, ia_e, mykey, nnodes
-    INTEGER :: info(0:nproc_image-1,ntyp)
-    !
-    ! FIXME: the PAW EXX code is not parallelized (but it is very fast)
-    IF ( dft_is_hybrid() ) RETURN
-    !
-    IF (ionode) &
-    WRITE(stdout,"(5x,a)") &
-        'Checking if some PAW data can be deallocated... '
-    info(:,:) = 0
-    !
-    CALL block_distribute( nat, me_image, nproc_image, ia_s, ia_e, mykey )
-    !
-    types : &
-    DO nt = 1, ntyp
-        DO ia = ia_s, ia_e
-            IF (ityp(ia) == nt.OR..NOT.upf(nt)%tpawp ) CYCLE types
-        ENDDO
-        !
-        ! If I can't find any atom within first_nat and last_nat
-        ! which is of type nt, then I can deallocate:
-        IF ( ALLOCATED(upf(nt)%paw%ae_rho_atc) ) DEALLOCATE( upf(nt)%paw%ae_rho_atc )
-        IF ( ALLOCATED(upf(nt)%paw%pfunc)      ) DEALLOCATE( upf(nt)%paw%pfunc      )
-        IF ( ALLOCATED(upf(nt)%paw%ptfunc)     ) DEALLOCATE( upf(nt)%paw%ptfunc     )
-        IF ( ALLOCATED(upf(nt)%paw%pfunc_rel)  ) DEALLOCATE( upf(nt)%paw%pfunc_rel  )
-        IF ( ALLOCATED(upf(nt)%paw%ae_vloc)    ) DEALLOCATE( upf(nt)%paw%ae_vloc    )
-        info(me_image,nt) = 1
-        !
-    ENDDO types
-    !
-    CALL mp_sum( info, intra_image_comm )
-    !
-    IF (ionode .AND. iverbosity>0 ) THEN
-    !
-#if defined (__DEBUG)
-        DO np = 0,nproc_image-1
-          DO nt = 1,ntyp
-             IF ( info(np,nt) > 0 ) &
-             WRITE(stdout,"(7x,a,i4,a,10i3)") "node ",np,&
-                         ", deallocated PAW data for type:", nt
-          ENDDO
-        ENDDO
-#else
-        DO nt = 1,ntyp
-          nnodes = SUM( info(:,nt) ) 
-          IF ( nnodes>0 ) WRITE(stdout,'(7x,"PAW data deallocated on ",&
-                  &                     i4," nodes for type:",i3)')   &
-                  &         nnodes,nt
-        ENDDO
-#endif
-    ENDIF
-    !
-    END SUBROUTINE PAW_post_init
-#endif
-  !
+
   !-----------------------------------------------------------------------------
   SUBROUTINE PAW_atomic_becsum()
-    !--------------------------------------------------------------------------
+  !--------------------------------------------------------------------------
     !! Initialize becsum with atomic occupations (for PAW atoms only).  
     !! NOTE: requires exact correspondence chi <--> beta in the atom,
     !! that is that all wavefunctions considered for PAW generation are
@@ -187,6 +112,11 @@ MODULE paw_init
     !REAL(DP), INTENT(INOUT) :: becsum(nhm*(nhm+1)/2,nat,nspin)
     INTEGER :: ispin, na, nt, ijh, ih, jh, nb, mb
     REAL(DP) :: noise = 0._DP
+
+    write(*,*)
+    write(*,*) '*** Calling PAW_atomic_becsum'
+    write(*,*)
+
     !
     IF (.NOT. okpaw) RETURN
     IF (.NOT. ALLOCATED(becsum))   CALL errore( 'PAW_init_becsum', &
@@ -198,56 +128,56 @@ MODULE paw_init
     !
     becsum = 0.0_DP
     na_loop: DO na = 1, nat
-       nt = ityp(na)
-       is_paw: IF (upf(nt)%tpawp) THEN
-          !
-          ijh = 1
-          ih_loop: DO ih = 1, nh(nt)
-             nb = indv(ih,nt)
-             !
-             IF (nspin == 1) THEN
-                !
-                becsum(ijh,na,1) = upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-                !
-             ELSEIF (nspin == 2) THEN
-                !
-                becsum(ijh,na,1) = 0.5_dp*(1._DP+starting_magnetization(nt))* &
-                                   upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-                becsum(ijh,na,2) = 0.5_dp*(1._DP-starting_magnetization(nt))* &
-                                   upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-                !
-             ELSEIF (nspin == 4) THEN
-                !
-                becsum(ijh,na,1) = upf(nt)%paw%oc(nb)/DBLE(2*nhtol(ih,nt)+1)
-                IF (nspin_mag == 4) THEN
-                   becsum(ijh,na,2) = becsum(ijh,na,1) *              &
-                                      starting_magnetization(nt)*     &
-                                      SIN(angle1(nt))*COS(angle2(nt))
-                   becsum(ijh,na,3) = becsum(ijh,na,1) *              &
-                                      starting_magnetization(nt)*     &
-                                      SIN(angle1(nt))*SIN(angle2(nt))
-                   becsum(ijh,na,4) = becsum(ijh,na,1) *              &
-                                      starting_magnetization(nt)*     &
-                                      COS(angle1(nt))
-                ENDIF
-                !
-             ENDIF
-             !
-             ijh = ijh + 1
-             !
-             jh_loop: &
-              DO jh = ( ih + 1 ), nh(nt)
-                !mb = indv(jh,nt)
-                DO ispin = 1, nspin_mag
-                   IF (noise > 0._DP) &
-                      becsum(ijh,na,ispin) = becsum(ijh,na,ispin) + noise *2._DP*(.5_DP-randy())
-                ENDDO
-                !
-                ijh = ijh + 1
-                !
-             ENDDO jh_loop
-          ENDDO ih_loop
-       ENDIF is_paw
+      nt = ityp(na)
+      is_paw: IF (upf(nt)%tpawp) THEN
+         !
+         ijh = 1
+         ih_loop: DO ih = 1, nh(nt)
+            nb = indv(ih,nt)
+            !
+            IF (nspin == 1) THEN
+               !
+               becsum(ijh,na,1) = upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+               !
+            ELSEIF (nspin == 2) THEN
+               !
+               becsum(ijh,na,1) = 0.5_dp*(1._DP+starting_magnetization(nt))* &
+                                  upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+               becsum(ijh,na,2) = 0.5_dp*(1._DP-starting_magnetization(nt))* &
+                                  upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+               !
+            ELSEIF (nspin == 4) THEN
+               !
+               becsum(ijh,na,1) = upf(nt)%paw%oc(nb)/DBLE(2*nhtol(ih,nt)+1)
+               IF (nspin_mag == 4) THEN
+                  becsum(ijh,na,2) = becsum(ijh,na,1) *              &
+                                     starting_magnetization(nt)*     &
+                                     SIN(angle1(nt))*COS(angle2(nt))
+                  becsum(ijh,na,3) = becsum(ijh,na,1) *              &
+                                     starting_magnetization(nt)*     &
+                                     SIN(angle1(nt))*SIN(angle2(nt))
+                  becsum(ijh,na,4) = becsum(ijh,na,1) *              &
+                                     starting_magnetization(nt)*     &
+                                     COS(angle1(nt))
+               ENDIF
+               !
+            ENDIF
+            !
+            ijh = ijh + 1
+            !
+            jh_loop: &
+             DO jh = ( ih + 1 ), nh(nt)
+               !mb = indv(jh,nt)
+               DO ispin = 1, nspin_mag
+                  IF (noise > 0._DP) &
+                     becsum(ijh,na,ispin) = becsum(ijh,na,ispin) + noise *2._DP*(.5_DP-randy())
+               ENDDO
+               !
+               ijh = ijh + 1
+               !
+            ENDDO jh_loop
+         ENDDO ih_loop
+      ENDIF is_paw
     ENDDO na_loop
     !
     ! ... copy becsum in scf structure and symmetrize it
@@ -375,79 +305,10 @@ MODULE paw_init
 
     !
   END SUBROUTINE PAW_init_onecenter
-  !
-#if defined(__COMPILE_THIS_UNUSED_FUNCTION)
-  !
-  !-------------------------------------------------------------------------------------------
-  SUBROUTINE PAW_increase_lm( incr )
-    !-----------------------------------------------------------------------------------------
-    !! Increase maximum angularm momentum component for integration from l to l+incr.
-    !
-    USE ions_base,          ONLY : nat, ityp, ntyp => nsp
-    USE paw_variables,      ONLY : rad, paw_is_init
-    USE mp_images,          ONLY : me_image, nproc_image, intra_image_comm
-    USE io_global,          ONLY : stdout, ionode
-    !
-    INTEGER, INTENT(IN) :: incr
-    !! required increase in lm precision
-    !
-    ! ... local variables
-    !
-    INTEGER :: nt, lmax_safe
-    INTEGER :: ia, ia_s, ia_e, mykey
-    !
-    IF( .NOT. paw_is_init .OR. .NOT. ALLOCATED(rad) ) THEN
-       CALL infomsg( 'PAW_increase_lm', &
-               'WARNING: trying to increase max paw angular momentum, but it is not set!' )
-       RETURN
-    ENDIF
-    !
-    ! Parallel: divide among processors for the same image
-    CALL block_distribute( nat, me_image, nproc_image, ia_s, ia_e, mykey )
-    !
-    IF (ionode) &
-        WRITE( stdout, '(5x,a)') &
-            "WARNING: increasing angular resolution of radial grid for PAW."
-    !
-    types : &
-    DO nt = 1,ntyp
-        IF (ionode) THEN
-        WRITE( stdout, '(7x,a,i3,a,i3,a,i3,a,i3)') &
-               "type: ", nt,                      &
-               ", prev. max{l}:",rad(nt)%lmax,    &
-               ", cur. max{l}:",rad(nt)%lmax+incr,&
-               ", directions:",((rad(nt)%lmax+1+incr)*(rad(nt)%lmax+2+incr))/2
-        ENDIF
-        ! only allocate radial grid integrator for atomic species
-        ! that are actually present on this parallel node:
-        DO ia = ia_s, ia_e
-          IF (ityp(ia) == nt ) THEN
-            IF (ASSOCIATED(rad(nt)%ww)  )      DEALLOCATE( rad(nt)%ww  )
-            IF (ASSOCIATED(rad(nt)%ylm) )      DEALLOCATE( rad(nt)%ylm )
-            IF (ASSOCIATED(rad(nt)%wwylm) )    DEALLOCATE( rad(nt)%wwylm )
-            IF (ASSOCIATED(rad(nt)%dylmt) )    DEALLOCATE( rad(nt)%dylmt )
-            IF (ASSOCIATED(rad(nt)%dylmp) )    DEALLOCATE( rad(nt)%dylmp )
-            IF (ASSOCIATED(rad(nt)%cos_phi) )  DEALLOCATE( rad(nt)%cos_phi )
-            IF (ASSOCIATED(rad(nt)%sin_phi) )  DEALLOCATE( rad(nt)%sin_phi )
-            IF (ASSOCIATED(rad(nt)%cos_th)  )  DEALLOCATE( rad(nt)%cos_th  )
-            IF (ASSOCIATED(rad(nt)%sin_th)  )  DEALLOCATE( rad(nt)%sin_th  )
-            IF (ASSOCIATED(rad(nt)%cotg_th) )  DEALLOCATE( rad(nt)%cotg_th )
-            !
-            CALL PAW_rad_init( rad(nt)%lmax+incr, rad(nt) )
-            !
-            CYCLE types
-          ENDIF
-        ENDDO
-    ENDDO types
-    !
-    !paw_is_init = .TRUE.
-    !
-  END SUBROUTINE PAW_increase_lm
-#endif
-  !
+
   !----------------------------------------------------------------------------------
   SUBROUTINE PAW_rad_init( l, ls, rad )
-    !--------------------------------------------------------------------------------
+  !--------------------------------------------------------------------------------
     !! Initialize several quantities related to radial integration: spherical harmonics and their 
     !! gradients along a few (depending on lmaxq) directions, weights for spherical integration.
     !
@@ -510,20 +371,20 @@ MODULE paw_init
     ii = 0
     !
     DO i = 1, n
-        z = x(i)
-        rho = SQRT(1._DP-z**2)
-        DO m = 1, nphi !rad%lmax
-            ii= ii+1
-            phi = dphi*DBLE(m-1)
-            r(1,ii) = rho*COS(phi)
-            r(2,ii) = rho*SIN(phi)
-            r(3,ii) = z
-            rad%ww(ii) = w(i)*2._dp*pi/nphi !(rad%lmax+1)
-            r2(ii) = r(1,ii)**2+r(2,ii)**2+r(3,ii)**2
-            ! these will be used later:
-            ath(ii) = ACOS(z/SQRT(r2(ii)))
-            aph(ii) = phi
-        ENDDO
+      z = x(i)
+      rho = SQRT(1._DP-z**2)
+      DO m = 1, nphi !rad%lmax
+        ii= ii+1
+        phi = dphi*DBLE(m-1)
+        r(1,ii) = rho*COS(phi)
+        r(2,ii) = rho*SIN(phi)
+        r(3,ii) = z
+        rad%ww(ii) = w(i)*2._dp*pi/nphi !(rad%lmax+1)
+        r2(ii) = r(1,ii)**2+r(2,ii)**2+r(3,ii)**2
+        ! these will be used later:
+        ath(ii) = ACOS(z/SQRT(r2(ii)))
+        aph(ii) = phi
+      ENDDO
     ENDDO
     ! cleanup
     DEALLOCATE( x, w )
@@ -550,10 +411,10 @@ MODULE paw_init
     ALLOCATE( rad%sin_th(rad%nx) )
     !
     DO i = 1, rad%nx
-       rad%cos_phi(i) = COS(aph(i))
-       rad%sin_phi(i) = SIN(aph(i))
-       rad%cos_th(i) = COS(ath(i))
-       rad%sin_th(i) = SIN(ath(i))
+      rad%cos_phi(i) = COS(aph(i))
+      rad%sin_phi(i) = SIN(aph(i))
+      rad%cos_th(i) = COS(ath(i))
+      rad%sin_th(i) = SIN(ath(i))
     ENDDO
     !
     ! if gradient corrections will be used than we need

@@ -88,50 +88,49 @@ subroutine init_us_1
   end do
 
   if (lspinorb) then
-!
-!  In the spin-orbit case we need the unitary matrix u which rotates the
-!  real spherical harmonics and yields the complex ones.
-!
-     rot_ylm=(0.d0,0.d0)
-     l=lmaxx
-     rot_ylm(l+1,1)=(1.d0,0.d0)
-     do n1=2,2*l+1,2
-       m=n1/2
-       n=l+1-m
-       rot_ylm(n,n1)=CMPLX((-1.d0)**m/sqrt2,0.0_dp,kind=DP)
-       rot_ylm(n,n1+1)=CMPLX(0.d0,-(-1.d0)**m/sqrt2,kind=DP)
-       n=l+1+m
-       rot_ylm(n,n1)=CMPLX(1.0_dp/sqrt2,0.d0,kind=DP)
-       rot_ylm(n,n1+1)=CMPLX(0.d0, 1.0_dp/sqrt2,kind=DP)
-     enddo
-     fcoef=(0.d0,0.d0)
-     dvan_so = (0.d0,0.d0)
-     qq_so=(0.d0,0.d0)
-     qq_at  = 0.d0
-     qq_nt=0.d0
+    !
+    !  In the spin-orbit case we need the unitary matrix u which rotates the
+    !  real spherical harmonics and yields the complex ones.
+    !
+    rot_ylm=(0.d0,0.d0)
+    l=lmaxx
+    rot_ylm(l+1,1)=(1.d0,0.d0)
+    do n1=2,2*l+1,2
+      m=n1/2
+      n=l+1-m
+      rot_ylm(n,n1)=CMPLX((-1.d0)**m/sqrt2,0.0_dp,kind=DP)
+      rot_ylm(n,n1+1)=CMPLX(0.d0,-(-1.d0)**m/sqrt2,kind=DP)
+      n=l+1+m
+      rot_ylm(n,n1)=CMPLX(1.0_dp/sqrt2,0.d0,kind=DP)
+      rot_ylm(n,n1+1)=CMPLX(0.d0, 1.0_dp/sqrt2,kind=DP)
+    enddo
+    fcoef = (0.d0,0.d0)
+    dvan_so = (0.d0,0.d0)
+    qq_so = (0.d0,0.d0)
+    qq_at  = 0.d0
+    qq_nt = 0.d0
   else
-     qq_nt=0.d0
-     qq_at  = 0.d0
-     dvan = 0.d0
+    qq_nt = 0.d0
+    qq_at = 0.d0
+    dvan = 0.d0
   endif
-  !
-  !   For each pseudopotential we initialize the indices nhtol, nhtolm,
-  !   nhtoj, indv, and if the pseudopotential is of KB type we initialize the
-  !   atomic D terms
-  !
+
+  ! For each pseudopotential we initialize the indices nhtol, nhtolm,
+  ! nhtoj, indv, and if the pseudopotential is of KB type we initialize the
+  ! atomic D terms
   ijkb0 = 0
   do nt = 1, ntyp
-     ih = 1
-     do nb = 1, upf(nt)%nbeta
-        l = upf(nt)%lll (nb)
-        do m = 1, 2 * l + 1
-           nhtol (ih, nt) = l
-           nhtolm(ih, nt) = l*l+m
-           indv  (ih, nt) = nb
-           ih = ih + 1
-        enddo
-     enddo
-     if ( upf(nt)%has_so ) then
+    ih = 1
+    do nb = 1, upf(nt)%nbeta
+      l = upf(nt)%lll (nb)
+      do m = 1, 2 * l + 1
+        nhtol (ih, nt) = l
+        nhtolm(ih, nt) = l*l+m
+        indv  (ih, nt) = nb
+        ih = ih + 1
+      enddo
+    enddo
+    if ( upf(nt)%has_so ) then
         ih = 1
         do nb = 1, upf(nt)%nbeta
            l = upf(nt)%lll (nb)
@@ -223,13 +222,13 @@ subroutine init_us_1
           do jh = 1, nh (nt)
             if (nhtol (ih, nt) == nhtol (jh, nt) .and. &
               nhtolm(ih, nt) == nhtolm(jh, nt) ) then
-              ir = indv (ih, nt)
-              is = indv (jh, nt)
+              ir = indv(ih, nt)
+              is = indv(jh, nt)
               if (lspinorb) then
-                 dvan_so (ih, jh, 1, nt) = upf(nt)%dion (ir, is)
-                 dvan_so (ih, jh, 4, nt) = upf(nt)%dion (ir, is)
+                 dvan_so(ih, jh, 1, nt) = upf(nt)%dion (ir, is)
+                 dvan_so(ih, jh, 4, nt) = upf(nt)%dion (ir, is)
               else
-                 dvan (ih, jh, nt) = upf(nt)%dion (ir, is)
+                 dvan(ih, jh, nt) = upf(nt)%dion (ir, is)
               endif
             endif
           enddo
