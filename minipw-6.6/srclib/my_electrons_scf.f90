@@ -66,7 +66,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   USE paw_variables,        ONLY : okpaw, ddd_paw, total_core_energy, only_paw
   USE paw_onecenter,        ONLY : PAW_potential
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
-  USE dfunct,               ONLY : newd
+  USE my_dfunct,            ONLY : my_newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
   USE fcp_variables,        ONLY : lfcpopt, lfcpdyn
   USE wrappers,             ONLY : memstat
@@ -394,7 +394,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
      ! ... term in the nonlocal potential
      ! ... PAW: newd contains PAW updates of NL coefficients
      !
-     CALL newd()
+     CALL my_newd()
      !
      IF ( lelfield ) en_el =  my_calc_pol( )
      !
@@ -408,8 +408,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
      IF ( conv_elec ) WRITE( stdout, 9101 )
  
      IF ( conv_elec ) THEN 
-           scf_error = dr2
-           n_scf_steps = iter
+       scf_error = dr2
+       n_scf_steps = iter
      ENDIF  
 
      !
