@@ -256,6 +256,7 @@ subroutine init_us_1
 #endif
   allocate (ylmk0( lmaxq * lmaxq))
   call ylmr2 (lmaxq * lmaxq, 1, g, gg, ylmk0)
+  
   do nt = 1, ntyp
     if ( upf(nt)%tvanp ) then
       if (upf(nt)%has_so) then
@@ -280,10 +281,10 @@ subroutine init_us_1
             enddo
           enddo
         enddo
-      else
+      else ! using ultrasoft, without spin-orbit coupling
         do ih = 1, nh (nt)
           do jh = ih, nh (nt)
-             call qvan2 (1, ih, jh, nt, gg, qgm, ylmk0)
+             call qvan2(1, ih, jh, nt, gg, qgm, ylmk0)
              if (lspinorb) then
                  qq_so(ih, jh, 1, nt) = omega *  DBLE (qgm (1) )
                  qq_so(jh, ih, 1, nt) = qq_so(ih, jh, 1, nt)
@@ -298,6 +299,7 @@ subroutine init_us_1
     endif
   enddo
   deallocate(ylmk0)
+
 #if defined(__MPI)
 100 continue
   if (lspinorb) then
@@ -307,6 +309,7 @@ subroutine init_us_1
     call mp_sum(  qq_nt, intra_bgrp_comm )
   endif
 #endif
+
   ! finally we set the atomic specific qq_at matrices
   do na=1, nat
      qq_at(:,:, na) = qq_nt(:,:,ityp(na))
