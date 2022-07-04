@@ -15,7 +15,8 @@ my_h_psi.o my_s_psi.o \
 my_c_bands.o \
 prepare_h_s_psi.o \
 my_newd.o \
-my_add_vuspsi.o
+my_add_vuspsi.o \
+jl_comm_module.o
 
 
 # NOTE: my_becmod is deleted. There are many modules and subroutines that use it.
