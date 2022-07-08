@@ -37,7 +37,6 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
   !
   ! ... local variables
   !
-  INTEGER :: ngm_s, ngm_e, ngm_l
   ! starting/ending indices, local number of G-vectors
   INTEGER :: ig, nt, ih, jh, na, is, ijh, nij, nb, nab
   ! counters on g vectors, atom type, beta functions x 2,
@@ -57,21 +56,15 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
 
   deeq(:,:,:,:) = 0.D0
 
-  ! With k-point parallelization, distribute G-vectors across processors
-  ! ngm_s = index of first G-vector for this processor
-  ! ngm_e = index of last  G-vector for this processor
-  ! ngm_l = local number of G-vectors 
-  CALL divide( inter_pool_comm, ngm, ngm_s, ngm_e )
-  ngm_l = ngm_e - ngm_s + 1
+  !
+  ! ffr: parallelization with ngm is removed here ...
+  !
 
-  ! for the extraordinary unlikely case of more processors than G-vectors
-  IF ( ngm_l > 0 ) THEN
-    ALLOCATE( vaux(ngm_l,nspin_mag), qmod(ngm_l), ylmk0(ngm_l,lmaxq*lmaxq) )
-    CALL ylmr2( lmaxq*lmaxq, ngm_l, g(1,ngm_s), gg(ngm_s), ylmk0 )
-    DO ig = 1, ngm_l
-      qmod(ig) = SQRT(gg(ngm_s+ig-1))*tpiba
-    ENDDO
-  ENDIF
+  ALLOCATE( vaux(ngm,nspin_mag), qmod(ngm), ylmk0(ngm,lmaxq*lmaxq) )
+  CALL ylmr2( lmaxq*lmaxq, ngm, g(1,ngm), gg(ngm), ylmk0 )
+  DO ig = 1, ngm
+    qmod(ig) = SQRT(gg(ig))*tpiba
+  ENDDO
 
   ! fourier transform of the total effective potential
   DO is = 1, nspin_mag
@@ -86,86 +79,88 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
       ENDDO
     ENDIF
     CALL fwfft( 'Rho', psic, dfftp )
-    DO ig = 1, ngm_l
-      vaux(ig,is) = psic(dfftp%nl(ngm_s+ig-1))
+    DO ig = 1, ngm
+      vaux(ig,is) = psic( dfftp%nl(ig) )
     ENDDO
   ENDDO
 
+  write(*,*) 'my_newq is called 87'
+
   !
   DO nt = 1, ntyp
-     !
-     IF ( upf(nt)%tvanp ) THEN
-        !
-        ! nij = max number of (ih,jh) pairs per atom type nt
-        !
-        nij = nh(nt)*(nh(nt)+1)/2
-        ALLOCATE( qgm(ngm_l,nij) )
-        !
-        ! ... Compute and store Q(G) for this atomic species 
-        ! ... (without structure factor)
-        !
-        ijh = 0
-        DO ih = 1, nh(nt)
-           DO jh = ih, nh(nt)
-              ijh = ijh + 1
-              CALL qvan2( ngm_l, ih, jh, nt, qmod, qgm(1,ijh), ylmk0 )
-           ENDDO
+    !
+    IF( upf(nt)%tvanp ) THEN
+      !
+      ! nij = max number of (ih,jh) pairs per atom type nt
+      !
+      nij = nh(nt)*(nh(nt)+1)/2
+      !
+      ALLOCATE( qgm(ngm,nij) )
+      !
+      ! Compute and store Q(G) for this atomic species 
+      ! (without structure factor)
+      !
+      ijh = 0
+      DO ih = 1, nh(nt)
+        DO jh = ih, nh(nt)
+          ijh = ijh + 1
+          CALL qvan2( ngm, ih, jh, nt, qmod, qgm(1,ijh), ylmk0 )
         ENDDO
-        !
-        ! count max number of atoms of type nt
-        !
-        nab = 0
+      ENDDO
+      !
+      ! count max number of atoms of type nt
+      !
+      nab = 0
+      DO na = 1, nat
+        IF( ityp(na) == nt ) nab = nab + 1
+      ENDDO
+      !
+      ALLOCATE( aux(ngm,nab), deeaux(nij,nab) )
+      !
+      ! Compute and store V(G) times the structure factor e^(-iG*tau)
+      !
+      DO is = 1, nspin_mag
+        nb = 0
         DO na = 1, nat
-           IF ( ityp(na) == nt ) nab = nab + 1
-        ENDDO
-        ALLOCATE( aux(ngm_l,nab ), deeaux(nij,nab) )
-        !
-        ! ... Compute and store V(G) times the structure factor e^(-iG*tau)
-        !
-        DO is = 1, nspin_mag
-           nb = 0
-           DO na = 1, nat
-              IF ( ityp(na) == nt ) THEN
-                 nb = nb + 1
-!$omp parallel do default(shared) private(ig)
-                 DO ig = 1, ngm_l
-                    aux(ig, nb) = vaux(ig,is) * CONJG( &
-                      eigts1(mill(1,ngm_s+ig-1),na) * &
-                      eigts2(mill(2,ngm_s+ig-1),na) * &
-                      eigts3(mill(3,ngm_s+ig-1),na) )
-                 ENDDO
-!$omp end parallel do
-              ENDIF
-           ENDDO
-           !
-           ! ... here we compute the integral Q*V for all atoms of this kind
-           !
-           CALL DGEMM( 'C', 'N', nij, nab, 2*ngm_l, fact, qgm, 2*ngm_l, aux, &
-                    2*ngm_l, 0.0_dp, deeaux, nij )
-           IF ( gamma_only .AND. gstart == 2 ) &
-                CALL DGER( nij, nab, -1.0_dp, qgm, 2*ngm_l, aux, 2*ngm_l, deeaux, nij )
-           !
-           nb = 0
-           DO na = 1, nat
-              IF ( ityp(na) == nt ) THEN
-                 nb = nb + 1
-                 ijh = 0
-                 DO ih = 1, nh(nt)
-                    DO jh = ih, nh(nt)
-                       ijh = ijh + 1
-                       deeq(ih,jh,na,is) = omega * deeaux(ijh,nb)
-                       IF (jh > ih) deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
-                    ENDDO
-                 ENDDO
-              ENDIF
-           ENDDO
-           !
+          IF ( ityp(na) == nt ) THEN
+             nb = nb + 1
+             DO ig = 1, ngm
+                aux(ig, nb) = vaux(ig,is) * CONJG( eigts1(mill(1,ig),na) * &
+                                                   eigts2(mill(2,ig),na) * &
+                                                   eigts3(mill(3,ig),na) )
+             ENDDO
+          ENDIF
         ENDDO
         !
-        DEALLOCATE( deeaux, aux, qgm )
+        ! ... here we compute the integral Q*V for all atoms of this kind
         !
-     ENDIF
-     !
+        CALL DGEMM( 'C', 'N', nij, nab, 2*ngm, fact, qgm, 2*ngm, aux, &
+                 2*ngm, 0.0_dp, deeaux, nij )
+        !
+        IF( gamma_only .AND. gstart == 2 ) then
+          CALL DGER( nij, nab, -1.0_dp, qgm, 2*ngm, aux, 2*ngm, deeaux, nij )
+        endif
+        !
+        nb = 0
+        DO na = 1, nat
+          IF( ityp(na) == nt ) THEN
+            nb = nb + 1
+            ijh = 0
+            DO ih = 1, nh(nt)
+              DO jh = ih, nh(nt)
+                ijh = ijh + 1
+                deeq(ih,jh,na,is) = omega * deeaux(ijh,nb)
+                IF (jh > ih) deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
+              ENDDO
+            ENDDO
+          ENDIF
+        ENDDO
+      
+      ENDDO
+      DEALLOCATE( deeaux, aux, qgm )
+
+    ENDIF ! tvanp
+
   ENDDO
   !
   DEALLOCATE( qmod, ylmk0, vaux )
@@ -202,7 +197,9 @@ SUBROUTINE my_newd( )
   ! counters on g vectors, atom type, beta functions x 2,
   !   atoms, spin, aux, aux, beta func x2 (again)
   !
-  !
+  
+  write(*,*) 'my_newd is called here ...'
+
   IF( .NOT. okvan ) THEN
     !
     ! ... no ultrasoft potentials: use bare coefficients for projectors
@@ -253,12 +250,8 @@ SUBROUTINE my_newd( )
     nt  = ityp(na)
     if_noncolin:&
     IF( noncolin ) THEN
-      !
-      IF(upf(nt)%has_so) THEN
-        CALL newd_so(na)
-      ELSE
-        CALL newd_nc(na)
-      ENDIF
+      stop 'noncolin is not supported in my_newd 249'
+    !
     ELSE if_noncolin
       !
       write(*,*) 'Pass here 263 in my_newd (this should be done in USPP case)'
@@ -274,147 +267,17 @@ SUBROUTINE my_newd( )
      !
   ENDDO atoms
   !
-  IF (.NOT.noncolin) CALL add_paw_to_deeq( deeq )
+  IF (.NOT. noncolin) CALL add_paw_to_deeq( deeq )
   !
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
 
   RETURN
 
-  CONTAINS
+! CONTAINS
+! inner subroutines here ...
+! newd_so and newd_nc are removed
 
-    !------------------------------------------------------------------------
-    SUBROUTINE newd_so( na )
-      !------------------------------------------------------------------------
-      !
-      USE spin_orb,      ONLY : fcoef
-      !
-      IMPLICIT NONE
-      !
-      INTEGER :: na
-      !
-      INTEGER :: ijs, is1, is2, kh, lh
-      !
-      !
-      nt = ityp(na)
-      ijs = 0
-      !
-      DO is1 = 1, 2
-         !
-         DO is2 = 1, 2
-            !
-            ijs = ijs + 1
-            !
-            IF (domag) THEN
-               DO ih = 1, nh(nt)
-                  !
-                  DO jh = 1, nh(nt)
-                     !
-                     deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
-                     !
-                     DO kh = 1, nh(nt)
-                        !
-                        DO lh = 1, nh(nt)
-                           !
-                           deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs)   + &
-                             deeq (kh,lh,na,1)*              &
-                             (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) +  &
-                             fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))  + &
-                             deeq (kh,lh,na,2)*              &
-                             (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) +  &
-                             fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
-                             (0.D0,-1.D0)*deeq (kh,lh,na,3)* &
-                             (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) -  &
-                             fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
-                             deeq (kh,lh,na,4)*              &
-                             (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) -  &
-                             fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))
-                           !
-                        ENDDO
-                        !
-                     ENDDO
-                     !
-                  ENDDO
-                  !
-               ENDDO
-               !
-            ELSE
-               !
-               DO ih = 1, nh(nt)
-                  !
-                  DO jh = 1, nh(nt)
-                     !
-                     deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
-                     !
-                     DO kh = 1, nh(nt)
-                        !
-                        DO lh = 1, nh(nt)
-                           !
-                           deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs) +   &
-                                deeq (kh,lh,na,1)*            &
-                             (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt)  + &
-                             fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) ) 
-                           !
-                        ENDDO
-                        !
-                     ENDDO
-                     !
-                  ENDDO
-                  !
-               ENDDO
-               !
-            ENDIF
-            !
-         ENDDO
-         !
-      ENDDO
-      !
-    RETURN
-    !
-    END SUBROUTINE newd_so
-    !
-    !------------------------------------------------------------------------
-    SUBROUTINE newd_nc(na)
-      !------------------------------------------------------------------------
-      !
-      IMPLICIT NONE
-      !
-      INTEGER :: na
-      !
-      nt = ityp(na)
-      !
-      DO ih = 1, nh(nt)
-         DO jh = 1, nh(nt)
-            !
-            IF (lspinorb) THEN
-               deeq_nc(ih,jh,na,1) = dvan_so(ih,jh,1,nt) + &
-                                     deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
-               !                      
-               deeq_nc(ih,jh,na,4) = dvan_so(ih,jh,4,nt) + &
-                                     deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
-               !
-            ELSE
-               deeq_nc(ih,jh,na,1) = dvan(ih,jh,nt) + &
-                                     deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
-               !                      
-               deeq_nc(ih,jh,na,4) = dvan(ih,jh,nt) + &
-                                     deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
-               !
-            ENDIF
-            deeq_nc(ih,jh,na,2) = deeq(ih,jh,na,2) - &
-                                  ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
-            !                      
-            deeq_nc(ih,jh,na,3) = deeq(ih,jh,na,2) + &
-                                  ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
-            !                      
-         ENDDO
-      ENDDO
-      !
-      RETURN
-      !
-    END SUBROUTINE newd_nc
-    !
 END SUBROUTINE
-!
-!
+
 END MODULE
 
