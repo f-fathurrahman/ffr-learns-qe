@@ -99,6 +99,8 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   INTEGER :: ipol, ibnd
   REAL(DP) :: ee
 
+
+
   !
   ! ... Here we set the kinetic energy (k+G)^2 psi and clean up garbage
   !
@@ -150,6 +152,9 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   !
   IF( nkb > 0 .AND. .NOT. real_space) THEN
     CALL calbec( n, vkb, psi, becp, m )
+    !
+    write(*,*) 'in h_psi: sum becp_k = ', sum(becp%k)*0.5d0 ! to Ha
+    !s
     CALL add_vuspsi( lda, n, m, hpsi )
   ENDIF
 

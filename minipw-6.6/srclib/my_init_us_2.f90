@@ -158,10 +158,10 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
 
   ENDDO
 
-  ! write(*,*)
-  ! write(*,*) 'init_us_2: sum vkb_ = ', sum(vkb_)*0.5d0 ! to Ha
-  ! write(*,*) 'shape vkb_ = ', shape(vkb_)
-  ! write(*,*)
+  write(*,*)
+  write(*,*) 'init_us_2: sum vkb_ = ', sum(vkb_)*0.5d0 ! to Ha
+  write(*,*) 'shape vkb_ = ', shape(vkb_)
+  write(*,*)
 
   DEALLOCATE( gk )
   DEALLOCATE( ylm )
