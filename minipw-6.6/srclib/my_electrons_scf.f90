@@ -290,172 +290,171 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       IF (.NOT. scf_must_converge .AND. idum == niter) conv_elec = .TRUE.
 
 
-        ! ... if convergence is achieved or if the self-consistency error
-        ! ... (dr2) is smaller than the estimated error due to diagonalization
-        ! ... (tr2_min), rhoin and rho are unchanged: rhoin contains the input
-        ! ... density and rho contains the output density.
-        ! ... In all other cases, rhoin contains the mixed charge density 
-        ! ... (the new input density) while rho is unchanged
+      ! ... if convergence is achieved or if the self-consistency error
+      ! ... (dr2) is smaller than the estimated error due to diagonalization
+      ! ... (tr2_min), rhoin and rho are unchanged: rhoin contains the input
+      ! ... density and rho contains the output density.
+      ! ... In all other cases, rhoin contains the mixed charge density 
+      ! ... (the new input density) while rho is unchanged
+      !
+      IF( first .and. nat > 0) THEN
         !
-        IF ( first .and. nat > 0) THEN
-           !
-           ! ... first scf iteration: check if the threshold on diagonalization
-           ! ... (ethr) was small enough wrt the error in self-consistency (dr2)
-           ! ... if not, perform a new diagonalization with reduced threshold
-           !
-           first = .FALSE.
-           !
-           IF ( dr2 < tr2_min ) THEN
-              !
-              WRITE( stdout, '(/,5X,"Threshold (ethr) on eigenvalues was ", &
-                               &    "too large:",/,5X,                      &
-                               & "Diagonalizing with lowered threshold",/)' )
-              !
-              ethr = 0.1D0*dr2 / MAX( 1.D0, nelec )
-              !
-              CYCLE scf_step
-              !
-           ENDIF
-           !
+        ! ... first scf iteration: check if the threshold on diagonalization
+        ! ... (ethr) was small enough wrt the error in self-consistency (dr2)
+        ! ... if not, perform a new diagonalization with reduced threshold
+        !
+        first = .FALSE.
+        !
+        IF( dr2 < tr2_min ) THEN
+          !
+          WRITE( stdout, '(/,5X,"Threshold (ethr) on eigenvalues was ", &
+                           &    "too large:",/,5X,                      &
+                           & "Diagonalizing with lowered threshold",/)' )
+          !
+          ethr = 0.1D0*dr2 / MAX( 1.D0, nelec )
+          !
+          CYCLE scf_step
+          !
         ENDIF
         !
-        IF ( .NOT. conv_elec ) THEN
-           !
-           ! ... no convergence yet: calculate new potential from mixed
-           ! ... charge density (i.e. the new estimate)
-           !
-           CALL v_of_rho( rhoin, rho_core, rhog_core, &
-                          ehart, etxc, vtxc, eth, etotefield, charge, v )
-           !
-           IF (okpaw) THEN
-              CALL PAW_potential( rhoin%bec, ddd_paw, epaw,etot_cmp_paw )
-              CALL PAW_symmetrize_ddd( ddd_paw )
-           ENDIF
-           !
-           ! ... estimate correction needed to have variational energy:
-           ! ... T + E_ion (eband + deband) are calculated in sum_band
-           ! ... and delta_e using the output charge density rho;
-           ! ... E_H (ehart) and E_xc (etxc) are calculated in v_of_rho
-           ! ... above, using the mixed charge density rhoin%of_r.
-           ! ... delta_escf corrects for this difference at first order
-           !
-           descf = my_delta_escf( rhoin, rho )
-           !
-           ! ... now copy the mixed charge density in R- and G-space in rho
-           !
-           CALL scf_type_COPY( rhoin, rho )
-
-           !
-        ELSE 
-           !
-           ! ... convergence reached:
-           ! ... 1) the output HXC-potential is saved in v
-           ! ... 2) vnew contains V(out)-V(in) ( used to correct the forces ).
-           !
-           vnew%of_r(:,:) = v%of_r(:,:)
-
-           CALL v_of_rho( rho,rho_core,rhog_core, &
-                          ehart, etxc, vtxc, eth, etotefield, charge, v )
-           vnew%of_r(:,:) = v%of_r(:,:) - vnew%of_r(:,:)
-           !
-           IF (okpaw) THEN
-              CALL PAW_potential( rho%bec, ddd_paw, epaw, etot_cmp_paw )
-              CALL PAW_symmetrize_ddd( ddd_paw )
-           ENDIF
-           !
-           ! ... note that rho is here the output, not mixed, charge density
-           ! ... so correction for variational energy is no longer needed
-           !
-           descf = 0._dp
-           !
-        ENDIF 
+      ENDIF
+      !
+      IF( .NOT. conv_elec ) THEN
         !
-        ! ... if we didn't cycle before we can exit the do-loop
+        ! ... no convergence yet: calculate new potential from mixed
+        ! ... charge density (i.e. the new estimate)
         !
-        EXIT scf_step
+        CALL v_of_rho( rhoin, rho_core, rhog_core, &
+                       ehart, etxc, vtxc, eth, etotefield, charge, v )
         !
-     ENDDO scf_step
-     !
-     plugin_etot = 0.0_dp
-     !
-     CALL plugin_scf_energy(plugin_etot,rhoin)
-     !
-     CALL plugin_scf_potential(rhoin,conv_elec,dr2,vltot)
-     !
-     ! ... define the total local potential (external + scf)
-     !
-     CALL sum_vrs( dfftp%nnr, nspin, vltot, v%of_r, vrs )
-     !
-     ! ... interpolate the total local potential
-     !
-     CALL interpolate_vrs( dfftp%nnr, nspin, doublegrid, kedtau, v%kin_r, vrs )
-     !
-     ! ... in the US case we have to recompute the self-consistent
-     ! ... term in the nonlocal potential
-     ! ... PAW: newd contains PAW updates of NL coefficients
-     !
-     CALL my_newd()
-     !
-     IF ( lelfield ) en_el =  my_calc_pol( )
-     !
-     IF ( report > 0 ) THEN
-        IF ( conv_elec .OR.  MOD(iter,report) == 0 ) CALL report_mag()
-     ELSE IF ( report < 0 ) THEN
-        IF ( conv_elec ) CALL report_mag()
-     END IF
+        IF (okpaw) THEN
+           CALL PAW_potential( rhoin%bec, ddd_paw, epaw,etot_cmp_paw )
+           CALL PAW_symmetrize_ddd( ddd_paw )
+        ENDIF
+        !
+        ! ... estimate correction needed to have variational energy:
+        ! ... T + E_ion (eband + deband) are calculated in sum_band
+        ! ... and delta_e using the output charge density rho;
+        ! ... E_H (ehart) and E_xc (etxc) are calculated in v_of_rho
+        ! ... above, using the mixed charge density rhoin%of_r.
+        ! ... delta_escf corrects for this difference at first order
+        !
+        descf = my_delta_escf( rhoin, rho )
+        !
+        ! ... now copy the mixed charge density in R- and G-space in rho
+        !
+        CALL scf_type_COPY( rhoin, rho )
+        !
+      ELSE 
+        !
+        ! ... convergence reached:
+        ! ... 1) the output HXC-potential is saved in v
+        ! ... 2) vnew contains V(out)-V(in) ( used to correct the forces ).
+        !
+        vnew%of_r(:,:) = v%of_r(:,:)
 
-     !
-     IF ( conv_elec ) WRITE( stdout, 9101 )
+        CALL v_of_rho( rho,rho_core,rhog_core, &
+                       ehart, etxc, vtxc, eth, etotefield, charge, v )
+        vnew%of_r(:,:) = v%of_r(:,:) - vnew%of_r(:,:)
+        !
+        IF(okpaw) THEN
+          CALL PAW_potential( rho%bec, ddd_paw, epaw, etot_cmp_paw )
+          CALL PAW_symmetrize_ddd( ddd_paw )
+        ENDIF
+        !
+        ! ... note that rho is here the output, not mixed, charge density
+        ! ... so correction for variational energy is no longer needed
+        !
+        descf = 0._dp
+        !
+      ENDIF 
+      !
+      ! ... if we didn't cycle before we can exit the do-loop
+      !
+      EXIT scf_step
+      !
+    ENDDO scf_step
+    !
+    plugin_etot = 0.0_dp
+    !
+    CALL plugin_scf_energy(plugin_etot,rhoin)
+    !
+    CALL plugin_scf_potential(rhoin,conv_elec,dr2,vltot)
+    !
+    ! ... define the total local potential (external + scf)
+    !
+    CALL sum_vrs( dfftp%nnr, nspin, vltot, v%of_r, vrs )
+    !
+    ! ... interpolate the total local potential
+    !
+    CALL interpolate_vrs( dfftp%nnr, nspin, doublegrid, kedtau, v%kin_r, vrs )
+    !
+    ! ... in the US case we have to recompute the self-consistent
+    ! ... term in the nonlocal potential
+    ! ... PAW: newd contains PAW updates of NL coefficients
+    !
+    CALL my_newd()
+    !
+    IF( lelfield ) en_el =  my_calc_pol( )
+    !
+    IF( report > 0 ) THEN
+      IF( conv_elec .OR.  MOD(iter,report) == 0 ) CALL report_mag()
+    ELSEIF ( report < 0 ) THEN
+      IF( conv_elec ) CALL report_mag()
+    ENDIF
+
+    IF( conv_elec ) WRITE( stdout, 9101 )
  
-     IF ( conv_elec ) THEN 
-       scf_error = dr2
-       n_scf_steps = iter
-     ENDIF  
+    IF( conv_elec ) THEN 
+      scf_error = dr2
+      n_scf_steps = iter
+    ENDIF  
 
-     !
-     IF ( conv_elec .OR. MOD( iter, iprint ) == 0 ) THEN
-        ! iverbosity == 0 for the PW code
-        ! iverbosity >  2 for the HP code
-        CALL print_ks_energies()
-     ENDIF
-     !
-     IF ( ABS( charge - nelec ) / charge > 1.D-7 ) THEN
-        WRITE( stdout, 9050 ) charge, nelec
-        IF ( ABS( charge - nelec ) / charge > 1.D-3 ) THEN
-           IF (.not.lgauss) THEN
-              CALL errore( 'electrons', 'charge is wrong: smearing is needed', 1 )
-           ELSE
-              CALL errore( 'electrons', 'charge is wrong', 1 )
-           ENDIF
+    !
+    IF( conv_elec .OR. MOD( iter, iprint ) == 0 ) THEN
+      ! iverbosity == 0 for the PW code
+      ! iverbosity >  2 for the HP code
+      CALL print_ks_energies()
+    ENDIF
+    !
+    IF( ABS( charge - nelec ) / charge > 1.D-7 ) THEN
+      WRITE( stdout, 9050 ) charge, nelec
+      IF( ABS( charge - nelec ) / charge > 1.D-3 ) THEN
+        IF(.not.lgauss) THEN
+          CALL errore( 'electrons', 'charge is wrong: smearing is needed', 1 )
+        ELSE
+          CALL errore( 'electrons', 'charge is wrong', 1 )
         ENDIF
-     ENDIF
-     !
-     etot = eband + ( etxc - etxcc ) + ewld + ehart + deband + demet + descf
-     ! for hybrid calculations, add the current estimate of exchange energy
-     ! (it will subtracted later if exx_is_active to be replaced with a better estimate)
-     etot = etot - exxen
-     hwf_energy = hwf_energy - exxen ! [LP]
-     !
-     IF (okpaw) etot = etot + epaw
+      ENDIF
+    ENDIF
+    !
+    etot = eband + ( etxc - etxcc ) + ewld + ehart + deband + demet + descf
+    ! for hybrid calculations, add the current estimate of exchange energy
+    ! (it will subtracted later if exx_is_active to be replaced with a better estimate)
+    etot = etot - exxen
+    hwf_energy = hwf_energy - exxen ! [LP]
+    !
+    IF (okpaw) etot = etot + epaw
 
-     !
-     IF ( lelfield ) etot = etot + en_el
-     ! not sure about the HWF functional in the above case
-     IF( textfor ) THEN
-        eext = alat*compute_eextfor()
-        etot = etot + eext
-        hwf_energy = hwf_energy + eext
-     ENDIF
-     IF (llondon) THEN
+    !
+    IF ( lelfield ) etot = etot + en_el
+    ! not sure about the HWF functional in the above case
+    IF( textfor ) THEN
+      eext = alat*compute_eextfor()
+      etot = etot + eext
+      hwf_energy = hwf_energy + eext
+    ENDIF
+    
+    IF( llondon ) THEN
         etot = etot + elondon
         hwf_energy = hwf_energy + elondon
-     ENDIF
-     !
-     ! grimme-d3 dispersion energy
-     IF (ldftd3) THEN
-        etot = etot + edftd3
-        hwf_energy = hwf_energy + edftd3
-     ENDIF
+    ENDIF
+    !
+    ! grimme-d3 dispersion energy
+    IF(ldftd3) THEN
+      etot = etot + edftd3
+      hwf_energy = hwf_energy + edftd3
+    ENDIF
      !
      ! calculate the xdm energy contribution with converged density
      IF (lxdm .and. conv_elec) THEN
