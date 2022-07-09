@@ -80,7 +80,7 @@ SUBROUTINE my_usnldiag(npw, h_diag, s_diag)
             !
             DO jh = 1, nh (nt)
               !
-              IF( jh /= ih ) THEN  ! diagonal only
+              IF( jh /= ih ) THEN  ! diagonal only ?
                 !
                 jkb = indv_ijkb0(na) + jh
                 !

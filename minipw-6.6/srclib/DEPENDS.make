@@ -168,6 +168,7 @@ h_psi.o : h_psi.f90 fft_helper_subroutines.o exx.o fft_base.o realus.o control_f
 h_psi_meta.o : h_psi_meta.f90 fft_interfaces.o fft_base.o wavefunctions.o control_flags.o pwcom.o scf_mod.o recvec.o pwcom.o pwcom.o cell_base.o kind.o 
 hs_1psi.o : hs_1psi.f90 realus.o noncol.o bp_mod.o control_flags.o kind.o 
 hs_psi.o : hs_psi.f90 noncol.o kind.o 
+info_upf.o : info_upf.f90 uspp.o ions_base.o 
 init_at_1.o : init_at_1.f90 mp.o mp_bands.o uspp.o pwcom.o ions_base.o cell_base.o constants.o atom.o kind.o 
 init_ns.o : init_ns.f90 noncol.o uspp.o scf_mod.o ldaU.o pwcom.o ions_base.o kind.o 
 init_nsg.o : init_nsg.f90 ldaU.o pwcom.o uspp.o ions_base.o kind.o 
@@ -190,6 +191,7 @@ ions_base.o : ions_base.f90 random_numbers.o cell_base.o io_global.o constants.o
 io_rho_xml.o : io_rho_xml.f90 mp.o mp_images.o mp_bands.o mp_pools.o io_global.o control_flags.o recvec.o cell_base.o scf_mod.o pwcom.o noncol.o funct.o ldaU.o paw_variables.o io_base.o io_files.o kind.o 
 irrek.o : irrek.f90 kind.o 
 iweights.o : iweights.f90 mp_pools.o mp.o noncol.o kind.o 
+jl_comm_module.o : jl_comm_module.f90 becmod.o kind.o 
 kind.o : kind.f90 
 kpoint_grid.o : kpoint_grid.f90 invmat.o noncol.o io_global.o bp_mod.o kind.o 
 la_error.o : la_error.f90 la_param.o 
@@ -325,6 +327,7 @@ mp_world.o : mp_world.f90 parallel_include.o io_global.o mp.o
 multable.o : multable.f90 
 my_addusdens.o : my_addusdens.f90 kind.o fft_base.o noncol.o control_flags.o 
 my_addusdens_g.o : my_addusdens_g.f90 mp.o mp_bands.o mp_pools.o uspp.o uspp.o noncol.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
+my_add_vuspsi.o : my_add_vuspsi.f90 becmod.o uspp.o uspp.o noncol.o control_flags.o pwcom.o ions_base.o kind.o 
 my_calc_pol.o : my_calc_pol.f90 bp_mod.o constants.o cell_base.o io_global.o kind.o 
 my_c_bands.o : my_c_bands.f90 atomic_wfc_mod.o mp_bands.o becmod.o scf_mod.o g_psi_mod.o noncol.o check_stop.o mp.o mp_pools.o bp_mod.o wavefunctions.o pwcom.o ldaU.o control_flags.o pwcom.o recvec.o uspp.o pwcom.o buffers.o io_files.o io_global.o kind.o 
 my_cegterg.o : my_cegterg.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 
@@ -335,7 +338,7 @@ my_electrons.o : my_electrons.f90 control_flags.o funct.o io_global.o kind.o
 my_electrons_scf.o : my_electrons_scf.f90 constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o my_newd.o paw_symmetry.o paw_onecenter.o paw_variables.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o mp.o mp_pools.o io_rho_xml.o pwcom.o noncol.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o pwcom.o gvecw.o pwcom.o pwcom.o pwcom.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o bp_mod.o ions_base.o cell_base.o io_global.o check_stop.o kind.o 
 my_h_psi.o : my_h_psi.f90 fft_helper_subroutines.o exx.o fft_base.o realus.o control_flags.o recvec.o ldaU.o uspp.o pwcom.o scf_mod.o pwcom.o becmod.o bp_mod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_init_us_2.o : my_init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
-my_newd.o : my_newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
+my_newd.o : my_newd.f90 ldaU.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
 my_s_psi.o : my_s_psi.f90 fft_base.o wavefunctions.o realus.o control_flags.o ions_base.o uspp.o pwcom.o uspp.o becmod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
