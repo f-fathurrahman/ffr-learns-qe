@@ -215,7 +215,24 @@ SUBROUTINE newd( )
   ! counters on g vectors, atom type, beta functions x 2,
   !   atoms, spin, aux, aux, beta func x2 (again)
   !
-  !
+  
+  write(*,*)
+  write(*,*) '**** newd is called'
+  write(*,*)
+  
+
+  ! For debugging
+  !DO na = 1, nat
+  !  nt  = ityp(na)
+  !  nht = nh(nt)
+  !  DO is = 1, nspin
+  !    deeq(1:nht,1:nht,na,is) = dvan(1:nht,1:nht,nt)
+  !  ENDDO
+  !enddo
+  !write(*,*) 'Early return, set to bare coefs'
+  !return
+
+
   IF ( .NOT. okvan ) THEN
      !
      ! ... no ultrasoft potentials: use bare coefficients for projectors
