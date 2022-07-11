@@ -516,8 +516,6 @@ SUBROUTINE sum_band()
        INTEGER, PARAMETER :: blocksize = 256
        INTEGER :: numblock
 
-       write(*,*) 'sum_band_k is caled'
-
        !
        ! ... here we sum for each k point the contribution
        ! ... of the wavefunctions to the charge
