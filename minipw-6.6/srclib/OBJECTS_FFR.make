@@ -16,6 +16,7 @@ my_c_bands.o \
 prepare_h_s_psi.o \
 my_newd.o \
 my_add_vuspsi.o \
+my_usnldiag.o \
 jl_comm_module.o \
 info_upf.o
 

@@ -114,7 +114,7 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
 
     ENDDO ! loop over nb
 
-    write(*,*) 'init_us_2: sum(vkb1) = ', sum(vkb1(:,1:nh(nt)))*0.5d0 ! to Ha
+    write(*,*) 'init_us_2: sum(vkb1) (in Ha) = ', sum(vkb1(:,1:nh(nt)))*0.5d0 ! to Ha
 
     !
     ! vkb1 contains all betas including angular part for type nt
@@ -159,7 +159,7 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
   ENDDO
 
   write(*,*)
-  write(*,*) 'init_us_2: sum vkb_ = ', sum(vkb_)*0.5d0 ! to Ha
+  write(*,*) 'init_us_2: sum vkb_ (in Ha) = ', sum(vkb_)*0.5d0 ! to Ha
   write(*,*) 'shape vkb_ = ', shape(vkb_)
   write(*,*)
 

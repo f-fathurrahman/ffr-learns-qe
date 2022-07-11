@@ -27,7 +27,7 @@ subroutine prepare_h_s_psi(ik)
   CALL g2_kin( ik )
 
   ! More stuff needed by the hamiltonian: nonlocal projectors
-  IF ( nkb > 0 ) CALL my_init_us_2( ngk(ik), igk_k(1,ik), xk(1,ik), vkb )
+  IF ( nkb > 0 ) CALL init_us_2( ngk(ik), igk_k(1,ik), xk(1,ik), vkb )
   
 
   ! read in wavefunctions from the previous iteration

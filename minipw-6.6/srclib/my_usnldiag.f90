@@ -41,6 +41,11 @@ SUBROUTINE my_usnldiag(npw, h_diag, s_diag)
       s_diag(ig, ipol) = 1.d0
     ENDDO
   ENDDO
+
+  write(*,*) 'my_usnldiag: sum(deeq) (times 2)= ', sum(deeq)*2.d0
+  write(*,*) 'my_usnldiag: sum(qq_at) = ', sum(qq_at)
+  write(*,*) 'my_usnldiag: sum(vkb) (in Ha) = ', sum(vkb)*0.5d0
+
   !
   !    multiply on projectors
   !
