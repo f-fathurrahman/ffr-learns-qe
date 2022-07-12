@@ -338,10 +338,11 @@ my_electrons.o : my_electrons.f90 control_flags.o funct.o io_global.o kind.o
 my_electrons_scf.o : my_electrons_scf.f90 constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o my_newd.o paw_symmetry.o paw_onecenter.o paw_variables.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o mp.o mp_pools.o io_rho_xml.o pwcom.o noncol.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o pwcom.o gvecw.o pwcom.o pwcom.o pwcom.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o bp_mod.o ions_base.o cell_base.o io_global.o check_stop.o kind.o 
 my_h_psi.o : my_h_psi.f90 fft_helper_subroutines.o exx.o fft_base.o realus.o control_flags.o recvec.o ldaU.o uspp.o pwcom.o scf_mod.o pwcom.o becmod.o bp_mod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_init_us_2.o : my_init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
-my_newd.o : my_newd.f90 ldaU.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
+my_newd.o : my_newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
 my_s_psi.o : my_s_psi.f90 fft_base.o wavefunctions.o realus.o control_flags.o ions_base.o uspp.o pwcom.o uspp.o becmod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
+my_sum_bec.o : my_sum_bec.f90 mp.o mp_bands.o us_exx.o realus.o wavefunctions.o noncol.o pwcom.o pwcom.o uspp.o uspp.o ions_base.o control_flags.o becmod.o kind.o 
 my_usnldiag.o : my_usnldiag.f90 noncol.o pwcom.o uspp.o uspp.o pwcom.o pwcom.o ions_base.o kind.o 
 my_vloc_psi_k.o : my_vloc_psi_k.f90 wavefunctions.o fft_helper_subroutines.o fft_interfaces.o fft_base.o mp_bands.o pwcom.o pwcom.o kind.o parallel_include.o 
 newd.o : newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 

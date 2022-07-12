@@ -67,6 +67,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   USE paw_onecenter,        ONLY : PAW_potential
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE my_dfunct,            ONLY : my_newd
+  !USE dfunct,            ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
   USE fcp_variables,        ONLY : lfcpopt, lfcpdyn
   USE wrappers,             ONLY : memstat
@@ -252,7 +253,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       ! the new density is computed here. For PAW:
       ! sum_band computes new becsum (stored in uspp modules)
       ! and a subtly different copy in rho%bec (scf module)
-      CALL my_sum_band()
+      !CALL sum_band()
+      call my_sum_band()
 
       ! the Harris-Weinert-Foulkes energy is computed here using only
       ! quantities obtained from the input density
@@ -393,7 +395,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     ! ... term in the nonlocal potential
     ! ... PAW: newd contains PAW updates of NL coefficients
     !
-    CALL my_newd()
+    !CALL newd()
+    call my_newd()
     !
     IF( lelfield ) en_el =  my_calc_pol( )
     !

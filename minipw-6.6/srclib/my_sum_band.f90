@@ -153,7 +153,7 @@ SUBROUTINE my_sum_band()
      IF (tqr) CALL mp_sum(ebecsum, inter_bgrp_comm )
      !
      ! ... PAW: symmetrize becsum and store it
-     ! ... FIXME: the same should be done for USPP as well
+     ! ... FIXME: the same should be done for USPP as well (ffr: we need to check this!)
      !
      IF ( okpaw ) THEN
         rho%bec(:,:,:) = becsum(:,:,:)
@@ -164,24 +164,21 @@ SUBROUTINE my_sum_band()
      !
      CALL addusdens(rho%of_g(:,:))
   ENDIF
-  !
-  ! ... symmetrize rho(G) 
-  !
+
+  ! symmetrize rho(G) 
   CALL sym_rho( nspin_mag, rho%of_g )
-  !
-  ! ... synchronize rho%of_r to the calculated rho%of_g (use psic as work array)
-  !
+
+  ! synchronize rho%of_r to the calculated rho%of_g (use psic as work array)
   DO is = 1, nspin_mag
-     psic(:) = ( 0.D0, 0.D0 )
-     psic(dfftp%nl(:)) = rho%of_g(:,is)
-     IF ( gamma_only ) psic(dfftp%nlm(:)) = CONJG( rho%of_g(:,is) )
-     CALL invfft ('Rho', psic, dfftp)
-     rho%of_r(:,is) = psic(:)
+    psic(:) = ( 0.D0, 0.D0 )
+    psic(dfftp%nl(:)) = rho%of_g(:,is)
+    IF ( gamma_only ) psic(dfftp%nlm(:)) = CONJG( rho%of_g(:,is) )
+    CALL invfft('Rho', psic, dfftp)
+    rho%of_r(:,is) = psic(:)
   END DO
-  !
-  ! ... rho_kin(r): sum over bands, k-points, bring to G-space, symmetrize,
-  ! ... synchronize with rho_kin(G)
-  !
+  
+  ! rho_kin(r): sum over bands, k-points, bring to G-space, symmetrize,
+  ! synchronize with rho_kin(G)
   IF ( dft_is_meta() .OR. lxdm) THEN
      !
      CALL mp_sum( rho%kin_r, inter_pool_comm )
@@ -306,7 +303,7 @@ SUBROUTINE my_sum_band_k()
     END DO
 
     ! If we have a US pseudopotential we compute here the becsum term
-    IF( okvan ) CALL sum_bec( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd ) 
+    IF( okvan ) CALL my_sum_bec( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd ) 
           !
   END DO k_loop
   

@@ -17,6 +17,7 @@ prepare_h_s_psi.o \
 my_newd.o \
 my_add_vuspsi.o \
 my_usnldiag.o \
+my_sum_bec.o \
 jl_comm_module.o \
 info_upf.o
 
