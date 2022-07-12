@@ -84,20 +84,10 @@ SUBROUTINE my_sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
     IF( upf(np)%tvanp ) THEN
       !
       ! allocate work space used to perform GEMM operations
-      IF( gamma_only ) THEN
-        nbnd_loc = becp%nbnd_loc
-        ALLOCATE( auxg( nbnd_loc, nh(np) ) )
-      ELSE
-        ALLOCATE( auxk1( ibnd_start:ibnd_end, nh(np)*npol ), &
-                  auxk2( ibnd_start:ibnd_end, nh(np)*npol ) )
-      ENDIF
+      ALLOCATE( auxk1( ibnd_start:ibnd_end, nh(np)*npol ), &
+                auxk2( ibnd_start:ibnd_end, nh(np)*npol ) )
       !
-      IF( noncolin ) THEN
-        ALLOCATE( aux_nc( nh(np)*npol,nh(np)*npol ) ) 
-      ELSE
-        ALLOCATE( aux_gk( nh(np),nh(np) ) ) 
-        if(tqr) ALLOCATE ( aux_egk( nh(np),nh(np) ) ) 
-      ENDIF
+      ALLOCATE( aux_gk( nh(np),nh(np) ) )
       !
       ! In becp=<vkb_i|psi_j> terms corresponding to atom na of type nt
       ! run from index i=indv_ijkb0(na)+1 to i=indv_ijkb0(na)+nh(nt)
@@ -134,7 +124,7 @@ SUBROUTINE my_sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
               ! single index (matrix is symmetric wrt (ih,jh))
               !
               IF ( jh == ih ) THEN
-                becsum(ijh,na,current_spin) = becsum(ijh,na,current_spin) + aux_gk (ih,jh)
+                becsum(ijh,na,current_spin) = becsum(ijh,na,current_spin) + aux_gk(ih,jh)
               ELSE
                 becsum(ijh,na,current_spin) = becsum(ijh,na,current_spin) + aux_gk(ih,jh)*2.0_dp
               ENDIF

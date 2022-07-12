@@ -18,6 +18,11 @@ my_newd.o \
 my_add_vuspsi.o \
 my_usnldiag.o \
 my_sum_bec.o \
+my_wfcinit.o \
+my_init_wfc.o \
+my_potinit.o \
+my_atomic_rho.o \
+my_init_run.o \
 jl_comm_module.o \
 info_upf.o
 

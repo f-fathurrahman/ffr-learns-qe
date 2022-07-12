@@ -328,6 +328,7 @@ multable.o : multable.f90
 my_addusdens.o : my_addusdens.f90 kind.o fft_base.o noncol.o control_flags.o 
 my_addusdens_g.o : my_addusdens_g.f90 mp.o mp_bands.o mp_pools.o uspp.o uspp.o noncol.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_add_vuspsi.o : my_add_vuspsi.f90 becmod.o uspp.o uspp.o noncol.o control_flags.o pwcom.o ions_base.o kind.o 
+my_atomic_rho.o : my_atomic_rho.f90 fft_rho.o fft_base.o mp.o mp_bands.o control_flags.o io_global.o uspp.o noncol.o pwcom.o pwcom.o recvec.o cell_base.o ions_base.o atom.o constants.o kind.o 
 my_calc_pol.o : my_calc_pol.f90 bp_mod.o constants.o cell_base.o io_global.o kind.o 
 my_c_bands.o : my_c_bands.f90 atomic_wfc_mod.o mp_bands.o becmod.o scf_mod.o g_psi_mod.o noncol.o check_stop.o mp.o mp_pools.o bp_mod.o wavefunctions.o pwcom.o ldaU.o control_flags.o pwcom.o recvec.o uspp.o pwcom.o buffers.o io_files.o io_global.o kind.o 
 my_cegterg.o : my_cegterg.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 
@@ -337,14 +338,18 @@ my_delta_escf.o : my_delta_escf.f90 mp.o paw_variables.o mp_bands.o cell_base.o 
 my_electrons.o : my_electrons.f90 control_flags.o funct.o io_global.o kind.o 
 my_electrons_scf.o : my_electrons_scf.f90 constants.o plugin_variables.o wrappers.o fcp_variables.o esm.o my_newd.o paw_symmetry.o paw_onecenter.o paw_variables.o tsvdw.o xdm_dispersion.o dftd3_qe.o dftd3_api.o mm_dispersion.o mp.o mp_pools.o io_rho_xml.o pwcom.o noncol.o extfield.o ldaU.o io_files.o control_flags.o scf_mod.o pwcom.o gvecw.o pwcom.o pwcom.o pwcom.o pwcom.o pwcom.o recvec.o recvec.o fft_base.o bp_mod.o ions_base.o cell_base.o io_global.o check_stop.o kind.o 
 my_h_psi.o : my_h_psi.f90 fft_helper_subroutines.o exx.o fft_base.o realus.o control_flags.o recvec.o ldaU.o uspp.o pwcom.o scf_mod.o pwcom.o becmod.o bp_mod.o mp.o mp_bands.o funct.o noncol.o kind.o 
+my_init_run.o : my_init_run.f90 uspp.o uspp.o ions_base.o Coul_cut_2D.o tsvdw.o esm.o my_newd.o recvec_subs.o funct.o fft_base.o bp_mod.o paw_init.o paw_variables.o dynamics_module.o pwcom.o cell_base.o recvec.o recvec.o control_flags.o pwcom.o symme.o pwcom.o 
 my_init_us_2.o : my_init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
+my_init_wfc.o : my_init_wfc.f90 funct.o mp.o mp_bands.o random_numbers.o wavefunctions.o noncol.o uspp.o pwcom.o pwcom.o recvec.o atomic_wfc_mod.o constants.o becmod.o bp_mod.o kind.o 
 my_newd.o : my_newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
+my_potinit.o : my_potinit.f90 paw_onecenter.o paw_init.o paw_variables.o uspp.o fft_rho.o io_base.o io_rho_xml.o mp_bands.o mp.o pwcom.o io_files.o noncol.o ldaU.o pwcom.o funct.o scf_mod.o control_flags.o recvec.o recvec.o fft_base.o pwcom.o pwcom.o atomic_wfc_mod.o ions_base.o cell_base.o io_global.o constants.o kind.o 
 my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
 my_s_psi.o : my_s_psi.f90 fft_base.o wavefunctions.o realus.o control_flags.o ions_base.o uspp.o pwcom.o uspp.o becmod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
 my_sum_bec.o : my_sum_bec.f90 mp.o mp_bands.o us_exx.o realus.o wavefunctions.o noncol.o pwcom.o pwcom.o uspp.o uspp.o ions_base.o control_flags.o becmod.o kind.o 
 my_usnldiag.o : my_usnldiag.f90 noncol.o pwcom.o uspp.o uspp.o pwcom.o pwcom.o ions_base.o kind.o 
 my_vloc_psi_k.o : my_vloc_psi_k.f90 wavefunctions.o fft_helper_subroutines.o fft_interfaces.o fft_base.o mp_bands.o pwcom.o pwcom.o kind.o parallel_include.o 
+my_wfcinit.o : my_wfcinit.f90 mp_images.o mp.o pwcom.o wavefunctions.o uspp.o buffers.o io_files.o pwcom.o ldaU.o pwcom.o control_flags.o pwcom.o bp_mod.o atomic_wfc_mod.o io_global.o 
 newd.o : newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 new_nsb.o : new_nsb.f90 becmod.o mp.o mp_pools.o buffers.o io_files.o wavefunctions.o control_flags.o pwcom.o pwcom.o symm_base.o ldaU.o pwcom.o ions_base.o kind.o io_global.o 
 new_ns.o : new_ns.f90 mp_bands.o recvec.o noncol.o uspp.o uspp.o becmod.o mp.o mp_pools.o buffers.o io_files.o wavefunctions.o control_flags.o pwcom.o pwcom.o symm_base.o ldaU.o pwcom.o ions_base.o kind.o io_global.o 
