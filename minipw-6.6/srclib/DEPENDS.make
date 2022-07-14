@@ -348,7 +348,11 @@ my_s_psi.o : my_s_psi.f90 fft_base.o wavefunctions.o realus.o control_flags.o io
 my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
 my_sum_bec.o : my_sum_bec.f90 mp.o mp_bands.o us_exx.o realus.o wavefunctions.o noncol.o pwcom.o pwcom.o uspp.o uspp.o ions_base.o control_flags.o becmod.o kind.o 
 my_usnldiag.o : my_usnldiag.f90 noncol.o pwcom.o uspp.o uspp.o pwcom.o pwcom.o ions_base.o kind.o 
+my_v_h.o : my_v_h.f90 Coul_cut_2D.o esm.o martyna_tuckerman.o mp.o mp_bands.o control_flags.o cell_base.o pwcom.o recvec.o fft_interfaces.o fft_base.o kind.o constants.o 
 my_vloc_psi_k.o : my_vloc_psi_k.f90 wavefunctions.o fft_helper_subroutines.o fft_interfaces.o fft_base.o mp_bands.o pwcom.o pwcom.o kind.o parallel_include.o 
+my_v_of_rho.o : my_v_of_rho.f90 tsvdw.o control_flags.o cell_base.o scf_mod.o funct.o ldaU.o ions_base.o noncol.o recvec.o fft_base.o kind.o 
+my_v_xc.o : my_v_xc.f90 mp.o mp_bands.o scf_mod.o xc_lda_lsda_drivers.o funct.o pwcom.o cell_base.o pwcom.o recvec.o fft_base.o io_global.o constants.o kind.o 
+my_v_xc_meta.o : my_v_xc_meta.f90 mp_bands.o mp.o scf_mod.o xc_mgga_drivers.o funct.o cell_base.o pwcom.o recvec.o fft_base.o io_global.o constants.o kind.o 
 my_wfcinit.o : my_wfcinit.f90 mp_images.o mp.o pwcom.o wavefunctions.o uspp.o buffers.o io_files.o pwcom.o ldaU.o pwcom.o control_flags.o pwcom.o bp_mod.o atomic_wfc_mod.o io_global.o 
 newd.o : newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 new_nsb.o : new_nsb.f90 becmod.o mp.o mp_pools.o buffers.o io_files.o wavefunctions.o control_flags.o pwcom.o pwcom.o symm_base.o ldaU.o pwcom.o ions_base.o kind.o io_global.o 

@@ -23,9 +23,12 @@ my_init_wfc.o \
 my_potinit.o \
 my_atomic_rho.o \
 my_init_run.o \
+my_v_of_rho.o my_v_h.o my_v_xc.o my_v_xc_meta.o \
+my_set_vrs.o \
 jl_comm_module.o \
 info_upf.o
 
+# fft_interpolate is defined as an interface
 
 # NOTE: my_becmod is deleted. There are many modules and subroutines that use it.
 # We modify becmod directly.
