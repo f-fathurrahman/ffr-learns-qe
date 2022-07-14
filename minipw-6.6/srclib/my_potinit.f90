@@ -30,7 +30,7 @@ SUBROUTINE my_potinit()
   USE basis,                ONLY : starting_pot
   USE klist,                ONLY : nelec
   USE lsda_mod,             ONLY : lsda, nspin
-  USE fft_base,             ONLY : dfftp
+  USE fft_base,             ONLY : dfftp, dffts
   USE gvect,                ONLY : ngm, gstart, g, gg, ig_l2g
   USE gvecs,                ONLY : doublegrid
   USE control_flags,        ONLY : lscf, gamma_only
@@ -64,8 +64,7 @@ SUBROUTINE my_potinit()
   INTEGER               :: is
   LOGICAL               :: exst 
   CHARACTER(LEN=320)    :: filename
-  !
-  CALL start_clock('potinit')
+
   !
   filename = TRIM (restart_dir( )) // 'charge-density'
   exst     =  check_file_exist( TRIM(filename) // '.dat' )
@@ -76,86 +75,69 @@ SUBROUTINE my_potinit()
     stop 'Disabled in my_potinit'
     !
   ELSE
-     !
-     ! ... Case c): the potential is built from a superposition 
-     ! ... of atomic charges contained in the array rho_at
-     !
-     WRITE( UNIT = stdout, &
-            FMT = '(/5X,"Initial potential from superposition of free atoms")' )
-     !
-     CALL my_atomic_rho_g( rho%of_g, nspin )
+    !
+    ! ... Case c): the potential is built from a superposition 
+    ! ... of atomic charges contained in the array rho_at
+    !
+    WRITE( UNIT = stdout, &
+           FMT = '(/5X,"Initial potential from superposition of free atoms")' )
+    !
+    CALL my_atomic_rho_g( rho%of_g, nspin )
 
-     ! ... in the DFT+U(+V) case set the initial value of ns (or nsg)
-     !
-     IF (lda_plus_u) THEN
-        !
-        IF (lda_plus_u_kind == 0) THEN
-           CALL init_ns()
-        ELSEIF (lda_plus_u_kind == 1) THEN
-           IF (noncolin) THEN
-              CALL init_ns_nc()
-           ELSE
-              CALL init_ns()
-           ENDIF
-        ELSEIF (lda_plus_u_kind == 2) THEN
-           CALL init_nsg()
-        ENDIF
-        !
-     ENDIF
+    ! in the DFT+U(+V) case set the initial value of ns (or nsg)
+    !
+    IF (lda_plus_u) THEN
+      stop 'lda_plus_u is disabled in my_potinit'
+    ENDIF
 
-     ! ... in the paw case uses atomic becsum
-     IF ( okpaw )      CALL PAW_atomic_becsum()
-     !
-     IF ( input_drho /= ' ' ) THEN
-        !
-        IF ( nspin > 1 ) CALL errore &
-             ( 'potinit', 'spin polarization not allowed in drho', 1 )
-        !
-        filename = TRIM( restart_dir( )) // input_drho
-        CALL read_rhog ( filename, root_bgrp, intra_bgrp_comm, &
-             ig_l2g, nspin, v%of_g, gamma_only )
-        !
-        WRITE( UNIT = stdout, &
-               FMT = '(/5X,"a scf correction to at. rho is read from",A)' ) &
-            TRIM( filename )
-        !
-        rho%of_g = rho%of_g + v%of_g
-        !
-     END IF
-     !
-  END IF
+    ! ... in the paw case uses atomic becsum
+    IF( okpaw )      CALL PAW_atomic_becsum()
+  
+    IF( input_drho /= ' ' ) THEN
+      write(*,*) 'input_drho = ', input_drho
+      stop 'input_drho is disabled in my_potinit'
+    ENDIF
+    !
+  ENDIF
   !
   ! ... check the integral of the starting charge, renormalize if needed
   !
   charge = 0.D0
-  IF ( gstart == 2 ) THEN
-     charge = omega*REAL( rho%of_g(1,1) )
-  END IF
-  CALL mp_sum(  charge , intra_bgrp_comm )
+  IF( gstart == 2 ) THEN
+    charge = omega*REAL( rho%of_g(1,1) )
+  ENDIF
+  CALL mp_sum( charge , intra_bgrp_comm )
+
+  write(*,*) 'my_potinit: charge = ', charge
+
   !
   IF ( lscf .AND. ABS( charge - nelec ) > ( 1.D-7 * charge ) ) THEN
-     !
-     IF ( charge > 1.D-8 .AND. nat > 0 ) THEN
-        WRITE( stdout, '(/,5X,"starting charge ",F10.5, &
-                         & ", renormalised to ",F10.5)') charge, nelec
-        rho%of_g = rho%of_g / charge * nelec
-     ELSE 
-        WRITE( stdout, '(/,5X,"Starting from uniform charge")')
-        rho%of_g(:,1:nspin) = (0.0_dp,0.0_dp)
-        IF ( gstart == 2 ) rho%of_g(1,1) = nelec / omega
-     ENDIF
-     !
-  ELSE IF ( .NOT. lscf .AND. ABS( charge - nelec ) > (1.D-3 * charge ) ) THEN
-     !
-     CALL errore( 'potinit', 'starting and expected charges differ', 1 )
-     !
-  END IF
+    !
+    IF( charge > 1.D-8 .AND. nat > 0 ) THEN
+      WRITE( stdout, '(/,5X,"starting charge ",F10.5, &
+                       & ", renormalised to ",F10.5)') charge, nelec
+      rho%of_g = rho%of_g / charge * nelec
+    ELSE 
+      WRITE( stdout, '(/,5X,"Starting from uniform charge")')
+      rho%of_g(:,1:nspin) = (0.0_dp,0.0_dp)
+      IF( gstart == 2 ) rho%of_g(1,1) = nelec / omega
+    ENDIF
+    !
+  ELSEIF( .NOT. lscf .AND. ABS( charge - nelec ) > (1.D-3 * charge ) ) THEN
+    !
+    CALL errore( 'potinit', 'starting and expected charges differ', 1 )
+    !
+  ENDIF
   !
   ! ... bring starting rho from G- to R-space
   !
   CALL rho_g2r(dfftp, rho%of_g, rho%of_r)
+
+  write(*,*) 'my_potinit: integ rho%of_r(:,1): ', &
+    sum(rho%of_r(:,1))*omega/(dfftp%nr1 * dfftp%nr2 * dfftp%nr3)
+
   !
-  IF  ( dft_is_meta() ) THEN
+  IF( dft_is_meta() ) THEN
      IF (starting_pot /= 'file') THEN
         ! ... define a starting (TF) guess for rho%kin_r from rho%of_r
         ! ... to be verified for LSDA: rho is (tot,magn), rho_kin is (up,down)
@@ -178,17 +160,33 @@ SUBROUTINE my_potinit()
   !
   ! ... plugin contribution to local potential
   !
-  CALL plugin_scf_potential(rho,.FALSE.,-1.d0,vltot)
+  CALL plugin_scf_potential(rho, .FALSE., -1.d0, vltot)
   !
   ! ... compute the potential and store it in v
   !
-  CALL v_of_rho( rho, rho_core, rhog_core, &
+  CALL my_v_of_rho( rho, rho_core, rhog_core, &
                  ehart, etxc, vtxc, eth, etotefield, charge, v )
-  IF (okpaw) CALL PAW_potential(rho%bec, ddd_PAW, epaw)
+  IF( okpaw ) CALL PAW_potential(rho%bec, ddd_PAW, epaw)
+
   !
   ! ... define the total local potential (external+scf)
   !
-  CALL set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
+  write(*,*)
+  write(*,*) '>>>> sum vltot before my_set_vrs = ', sum(vltot)
+  write(*,*) '>>>> sum vrs before my_set_vrs = ', sum(vrs)
+  write(*,*) '>>>> sum v%of_r before my_set_vrs = ', sum(v%of_r)
+  write(*,*)
+
+  CALL my_set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
+
+  write(*,*)
+  write(*,*) '>>>> sum vltot after my_set_vrs = ', sum(vltot)
+  write(*,*) '>>>> sum vrs after my_set_vrs = ', sum(vrs)
+  write(*,*) 'sum my_set_vrs until ddfts%nnr = ', sum( vrs(1:dffts%nnr,1) )
+  write(*,*) '>>>> sum v%of_r after my_set_vrs = ', sum(v%of_r)
+  write(*,*)
+  
+
   !
   ! ... write on output the parameters used in the DFT+U(+V) calculation
   !
@@ -215,8 +213,6 @@ SUBROUTINE my_potinit()
   !
   IF ( report /= 0 .AND. &
        noncolin .AND. domag .AND. lscf ) CALL report_mag()
-  !
-  CALL stop_clock('potinit')
   !
   RETURN
   !

@@ -116,7 +116,7 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
   do ig = 1,5
     write(*,'(1x,I3,2F18.10)') ig, rhocg(ig,1)
   enddo
-  stop 'ffr 119 in atomic_rho_g'
+  write(*,*) 'sum abs rhocg = ', sum(abs(rhocg))
 
   DEALLOCATE(aux)
   DEALLOCATE(rhocgnt)
@@ -153,20 +153,20 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
   ! ... local variables
   !
   REAL(DP) :: rhoneg
-  COMPLEX(DP), allocatable :: rhocg (:,:)
+  COMPLEX(DP), allocatable :: rhocg(:,:)
   INTEGER :: ir, is
   !
   ! allocate work space 
   !
   ALLOCATE (rhocg(dfftp%ngm, nspina))
   !
-  CALL atomic_rho_g (rhocg, nspina)
+  CALL atomic_rho_g(rhocg, nspina)
   !
   ! bring to real space
   !
   rhoa(:,:) = 0.d0
-  CALL rho_g2r ( dfftp, rhocg, rhoa )
-  DEALLOCATE (rhocg)
+  CALL rho_g2r( dfftp, rhocg, rhoa )
+  DEALLOCATE( rhocg )
   !
   DO is = 1, nspina
     !
@@ -174,11 +174,11 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
     !
     rhoneg = 0.0_dp
     DO ir = 1, dfftp%nnr
-      rhoneg = rhoneg + MIN (0.0_dp,  DBLE (rhoa (ir,is)) )
+      rhoneg = rhoneg + MIN (0.0_dp,  DBLE(rhoa(ir,is)) )
     ENDDO
     rhoneg = omega * rhoneg / (dfftp%nr1 * dfftp%nr2 * dfftp%nr3)
     !
-    CALL mp_sum(  rhoneg, intra_bgrp_comm )
+    CALL mp_sum( rhoneg, intra_bgrp_comm )
     !
     IF( (is == 1) .OR. lsda ) THEN
       !
