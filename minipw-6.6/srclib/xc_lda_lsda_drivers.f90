@@ -105,6 +105,11 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
 #if defined(__LIBXC)
   !
+
+  write(*,*)
+  write(*,*) '@@@@@@ Pass here 109 in xc_lda_lsda_drivers'
+  write(*,*)
+
   fkind_x = -1
   lengthxc = length
   !
@@ -144,7 +149,10 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   !
   ! ... EXCHANGE
+
   IF ( is_libxc(1) ) THEN
+     write(*,*) 'using libxc: iexch = ', iexch
+     write(*,*) 'rho_threshold = ', rho_threshold
      CALL xc_f03_func_init( xc_func, iexch, sv_d )
        xc_info1 = xc_f03_func_get_info( xc_func )
        CALL xc_f03_func_set_dens_threshold( xc_func, rho_threshold )
@@ -155,7 +163,9 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   ! ... CORRELATION
   IF ( is_libxc(2) ) THEN
-     CALL xc_f03_func_init( xc_func, icorr, sv_d )
+     write(*,*) 'using libxc: icorr = ', icorr
+     write(*,*) 'rho_threshold = ', rho_threshold
+      CALL xc_f03_func_init( xc_func, icorr, sv_d )
       xc_info2 = xc_f03_func_get_info( xc_func )
       CALL xc_f03_func_set_dens_threshold( xc_func, rho_threshold )
       CALL xc_f03_lda_exc_vxc( xc_func, lengthxc, rho_lxc(1), ec_out(1), vc_lxc(1) )
@@ -168,6 +178,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
      SELECT CASE( sr_d )
      CASE( 1 )
         !
+        write(*,*) 'sum(abs(rho_in(:,1)) = ', sum(abs(rho_in(:,1)))
         CALL xc_lda( length, ABS(rho_in(:,1)), ex_out, ec_out, vx_out(:,1), vc_out(:,1) )
         !
      CASE( 2 )
