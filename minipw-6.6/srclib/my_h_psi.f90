@@ -140,7 +140,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
       !
     ELSE
       ! The usual case
-      CALL vloc_psi_k( lda, n, m, psi, vrs(1,current_spin), hpsi )
+      CALL my_vloc_psi_k( lda, n, m, psi, vrs(1,current_spin), hpsi )
       !
     ENDIF
     !

@@ -49,107 +49,39 @@ SUBROUTINE my_vloc_psi_k( lda, n, m, psi, v, hpsi )
   COMPLEX(DP), ALLOCATABLE :: tg_psic(:)
   INTEGER :: v_siz, idx
 
-
   use_tg = dffts%has_task_groups 
-  !
+
   IF( use_tg ) THEN
-     !     v_siz =  dffts%nnr_tg
-     !
-     ALLOCATE( tg_v   ( v_siz ) )
-     ALLOCATE( tg_psic( v_siz ) )
-     !
-     CALL tg_gather( dffts, v, tg_v )
+    stop 'use_tg is disabled in my_vloc_psi_k'
   ENDIF
-  !
+
+
+  DO ibnd = 1, m
+    !
+    CALL threaded_barrier_memset(psic, 0.D0, dffts%nnr*2)
+    DO j = 1, n
+      psic( dffts%nl(igk_k(j,current_k)) ) = psi(j, ibnd)
+    ENDDO
+    !
+    CALL invfft('Wave', psic, dffts)
+    !
+    DO j = 1, dffts%nnr
+      psic (j) = psic(j) * v(j)
+    ENDDO
+    !
+    CALL fwfft('Wave', psic, dffts)
+    !
+    !   addition to the total product
+    !
+    DO j = 1, n
+       hpsi(j, ibnd)   = hpsi(j, ibnd)   + psic(dffts%nl(igk_k(j,current_k)))
+    ENDDO
+
+  ENDDO
+
   IF( use_tg ) THEN
-
-     CALL tg_get_nnr( dffts, right_nnr )
-
-     ! compute the number of chuncks
-     numblock  = (n+blocksize-1)/blocksize
-
-     DO ibnd = 1, m, fftx_ntgrp(dffts)
-        !
-
-        CALL threaded_barrier_memset(tg_psic, 0.D0, fftx_ntgrp(dffts)*right_nnr*2)
-
-        DO idx = 0, MIN(fftx_ntgrp(dffts)-1, m-ibnd)
-           DO j = 1, numblock
-              tg_psic(dffts%nl (igk_k((j-1)*blocksize+1:MIN(j*blocksize, n),current_k))+right_nnr*idx) = &
-                 psi((j-1)*blocksize+1:MIN(j*blocksize, n),idx+ibnd)
-           ENDDO
-        ENDDO
-
-        !
-        CALL  invfft ('tgWave', tg_psic, dffts )
-        !write (6,*) 'wfc R ' 
-        !write (6,99) (tg_psic(i), i=1,400)
-        !
-        CALL tg_get_group_nr3( dffts, right_nr3 )
-        !
-
-        DO j = 1, dffts%nr1x*dffts%nr2x* right_nr3
-           tg_psic (j) = tg_psic (j) * tg_v(j)
-        ENDDO
-
-        !write (6,*) 'v psi R ' 
-        !write (6,99) (tg_psic(i), i=1,400)
-        !
-        CALL fwfft ('tgWave',  tg_psic, dffts )
-        !
-        !   addition to the total product
-        !
-        CALL tg_get_recip_inc( dffts, right_inc )
-        !
-
-        DO idx = 0, MIN(fftx_ntgrp(dffts)-1, m-ibnd)
-           DO j = 1, numblock
-              hpsi ((j-1)*blocksize+1:MIN(j*blocksize, n), ibnd+idx) = &
-                 hpsi ((j-1)*blocksize+1:MIN(j*blocksize, n), ibnd+idx) + &
-                 tg_psic( dffts%nl(igk_k((j-1)*blocksize+1:MIN(j*blocksize, n),current_k)) + right_inc*idx )
-           ENDDO
-        ENDDO
-        !
-     ENDDO
-  ELSE
-     DO ibnd = 1, m
-        !
-        CALL threaded_barrier_memset(psic, 0.D0, dffts%nnr*2)
-        DO j = 1, n
-           psic (dffts%nl (igk_k(j,current_k))) = psi(j, ibnd)
-        ENDDO
-        !write (6,*) 'wfc G ', ibnd
-        !write (6,99) (psic(i), i=1,400)
-        !
-        CALL invfft ('Wave', psic, dffts)
-        !write (6,*) 'wfc R ' 
-        !write (6,99) (psic(i), i=1,400)
-        !
-        DO j = 1, dffts%nnr
-           psic (j) = psic (j) * v(j)
-        ENDDO
-        !write (6,*) 'v psi R ' 
-        !write (6,99) (psic(i), i=1,400)
-        !
-        CALL fwfft ('Wave', psic, dffts)
-        !
-        !   addition to the total product
-        !
-
-        DO j = 1, n
-           hpsi (j, ibnd)   = hpsi (j, ibnd)   + psic (dffts%nl(igk_k(j,current_k)))
-        ENDDO
-        !write (6,*) 'v psi G ', ibnd
-        !write (6,99) (psic(i), i=1,400)
-        !
-     ENDDO
-  ENDIF
-  !
-  IF( use_tg ) THEN
-     !
      DEALLOCATE( tg_psic )
      DEALLOCATE( tg_v )
-     !
   ENDIF
   !
 99 format ( 20 ('(',2f12.9,')') )
