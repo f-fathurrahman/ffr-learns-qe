@@ -22,6 +22,7 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
   REAL(DP), INTENT(IN) :: v_in(:) !dfft_in%nnr)
   REAL(DP), INTENT(OUT) :: v_out(:) !dfft_out%nnr)
   ! local variables
+  integer :: i
   INTEGER :: ngm
   COMPLEX(DP), ALLOCATABLE :: aux_in (:), aux_out (:)
 
@@ -30,6 +31,9 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
   write(*,*)
   write(*,*) 'fft_interpolate_real: shape v_in = ', shape(v_in)
   write(*,*) 'fft_interpolate_real: shape v_out = ', shape(v_out)
+  write(*,*)
+  write(*,*) 'dfft_in%nnr  = ', dfft_in%nnr
+  write(*,*) 'dfft_out%nnr = ', dfft_out%nnr
   write(*,*)
 
 
@@ -40,44 +44,66 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
 
   ELSE
      
-     write(*,*) 'fft_interpolate_real: two different grids'
-     write(*,*) 'fft_interpolate_real: dfft_in%nnr = ', dfft_in%nnr
-     write(*,*) 'fft_interpolate_real: dfft_out%nnr = ', dfft_out%nnr
+    write(*,*) 'fft_interpolate_real: two different grids'
+    write(*,*) 'fft_interpolate_real: dfft_in%nnr = ', dfft_in%nnr
+    write(*,*) 'fft_interpolate_real: dfft_out%nnr = ', dfft_out%nnr
 
-     if (dfft_in%lgamma .neqv. dfft_out%lgamma) &
-        call fftx_error__ ('fft_interpolate_real','two grids with inconsistent lgamma values', 1)
+    if (dfft_in%lgamma .neqv. dfft_out%lgamma) &
+       call fftx_error__ ('fft_interpolate_real','two grids with inconsistent lgamma values', 1)
 
-     ALLOCATE( aux_in(dfft_in%nnr) )
-     ALLOCATE( aux_out(dfft_out%nnr) )
+    ALLOCATE( aux_in(dfft_in%nnr) )
+    ALLOCATE( aux_out(dfft_out%nnr) )
 
-     ! Copy all data to aux_in
-     aux_in(1:dfft_in%nnr) = v_in(1:dfft_in%nnr)
+    ! Copy all data to aux_in
+    aux_in(1:dfft_in%nnr) = v_in(1:dfft_in%nnr)
 
-     ! To G-space
-     CALL fwfft('Rho', aux_in, dfft_in)
+    ! To G-space
+    CALL fwfft('Rho', aux_in, dfft_in)
 
-     ! Zero out aux_out
-     aux_out(1:dfft_out%nnr) = (0.d0, 0.d0)
+    write(*,*) 'Some aux_in after fwfft'
+    do i = 1,10
+      write(*,'(1x,I5,2F18.10)') i, aux_in(i)
+    enddo
 
-     ! find the minimum of ngm for both FFT grids
-     ngm = min(dfft_in%ngm, dfft_out%ngm)
-     write(*,*) 'fft_interpolate_real: ngm = ', ngm
 
-     ! The indices dfft_in%nl(1:ngm)
-     ! Copy aux_in to aux_out
-     aux_out( dfft_out%nl(1:ngm) ) = aux_in( dfft_in%nl(1:ngm) )
-     
-     ! additional work for gamma-trick
-     IF(dfft_in%lgamma) aux_out( dfft_out%nlm(1:ngm) ) = aux_in( dfft_in%nlm(1:ngm) )
+    ! Zero out aux_out
+    aux_out(1:dfft_out%nnr) = (0.d0, 0.d0)
 
-     ! Back to R-space
-     CALL invfft('Rho', aux_out, dfft_out)
+    ! find the minimum of ngm for both FFT grids
+    ngm = min(dfft_in%ngm, dfft_out%ngm)
+    write(*,*) 'fft_interpolate_real: ngm = ', ngm
 
-     v_out(1:dfft_out%nnr) = aux_out(1:dfft_out%nnr)
+    ! The indices dfft_in%nl(1:ngm)
+    ! Copy aux_in to aux_out
+    aux_out( dfft_out%nl(1:ngm) ) = aux_in( dfft_in%nl(1:ngm) )
+    
+    write(*,*) 'Some aux_out before invfft'
+    do i = 1,10
+      write(*,'(1x,I5,2F18.10)') i, aux_out(i)
+    enddo
 
-     DEALLOCATE(aux_in, aux_out)
 
-  END IF
+    ! additional work for gamma-trick
+    IF(dfft_in%lgamma) aux_out( dfft_out%nlm(1:ngm) ) = aux_in( dfft_in%nlm(1:ngm) )
+
+    write(*,*) 'Before invfft: sum(aux_out) = ', sum(aux_out)
+    
+    ! Back to R-space
+    CALL invfft('Rho', aux_out, dfft_out)
+
+    write(*,*) 'Some aux_out after invfft'
+    do i = 1,10
+      write(*,'(1x,I5,2F18.10)') i, aux_out(i)
+    enddo
+    
+    !
+    write(*,*) 'After invfft: sum(aux_out) = ', sum(aux_out)
+
+    v_out(1:dfft_out%nnr) = aux_out(1:dfft_out%nnr)
+
+    DEALLOCATE(aux_in, aux_out)
+
+  ENDIF
 
   call stop_clock ('interpolate')
 
