@@ -8,6 +8,7 @@ implicit none
 integer :: Nrow_becp_k ! nkb
 integer :: Ncol_becp_k ! nbnd
 complex(dp), allocatable :: becp_k(:,:)
+real(dp), allocatable :: rho_of_r(:,:)
 
 
 contains
@@ -35,8 +36,30 @@ subroutine copy_becp_k()
 end subroutine
 
 
+! TODO: make a more general subroutine
+! e.g.: export_scf_rho
+!--------------------------------------
+subroutine copy_rho_of_r( rho_of_r_in )
+!--------------------------------------
+  implicit none
+  ! Argument
+  real(8), intent(in) :: rho_of_r_in(:,:)
+  ! Local
+  integer :: Nrows, Ncols
 
-!CALL calbec( n, vkb, psi, becp, m )
+  Nrows = size(rho_of_r, 1)
+  Ncols = size(rho_of_r, 2)
+
+  if( allocated(rho_of_r) ) deallocate(rho_of_r)
+  allocate(rho_of_r(Nrows, Ncols))
+
+  rho_of_r(:,:) = rho_of_r_in(:,:)
+
+  write(*,*) 'copied rho_of_r to jl_comm_module'
+
+  return
+end
+
 
 
 end module
