@@ -344,6 +344,7 @@ my_init_wfc.o : my_init_wfc.f90 funct.o mp.o mp_bands.o random_numbers.o wavefun
 my_newd.o : my_newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_potinit.o : my_potinit.f90 paw_onecenter.o paw_init.o paw_variables.o uspp.o fft_rho.o io_base.o io_rho_xml.o mp_bands.o mp.o pwcom.o io_files.o noncol.o ldaU.o pwcom.o funct.o scf_mod.o control_flags.o recvec.o recvec.o fft_base.o pwcom.o pwcom.o atomic_wfc_mod.o ions_base.o cell_base.o io_global.o constants.o kind.o 
 my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 
+my_set_vrs.o : my_set_vrs.f90 fft_interfaces.o fft_base.o funct.o kind.o 
 my_s_psi.o : my_s_psi.f90 fft_base.o wavefunctions.o realus.o control_flags.o ions_base.o uspp.o pwcom.o uspp.o becmod.o mp.o mp_bands.o funct.o noncol.o kind.o 
 my_sum_band.o : my_sum_band.f90 fft_helper_subroutines.o becmod.o paw_variables.o paw_symmetry.o funct.o mp.o mp_bands.o mp_pools.o pwcom.o pwcom.o noncol.o wavefunctions.o uspp.o uspp.o buffers.o io_files.o symme.o scf_mod.o pwcom.o ldaU.o pwcom.o recvec.o recvec.o fft_interfaces.o fft_base.o ions_base.o cell_base.o control_flags.o pwcom.o kind.o 
 my_sum_bec.o : my_sum_bec.f90 mp.o mp_bands.o us_exx.o realus.o wavefunctions.o noncol.o pwcom.o pwcom.o uspp.o uspp.o ions_base.o control_flags.o becmod.o kind.o 

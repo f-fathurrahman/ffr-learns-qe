@@ -12,6 +12,7 @@ my_sum_band.o \
 my_init_us_2.o \
 my_cegterg.o \
 my_h_psi.o my_s_psi.o \
+my_vloc_psi_k.o \
 my_c_bands.o \
 prepare_h_s_psi.o \
 my_newd.o \
