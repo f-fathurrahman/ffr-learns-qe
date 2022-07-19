@@ -60,10 +60,10 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
     ! To G-space
     CALL fwfft('Rho', aux_in, dfft_in)
 
-    write(*,*) 'Some aux_in after fwfft'
-    do i = 1,10
-      write(*,'(1x,I5,2F18.10)') i, aux_in(i)
-    enddo
+    !write(*,*) 'Some aux_in after fwfft'
+    !do i = 1,10
+    !  write(*,'(1x,I5,2F18.10)') i, aux_in(i)
+    !enddo
 
 
     ! Zero out aux_out
@@ -71,33 +71,33 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
 
     ! find the minimum of ngm for both FFT grids
     ngm = min(dfft_in%ngm, dfft_out%ngm)
-    write(*,*) 'fft_interpolate_real: ngm = ', ngm
+    !write(*,*) 'fft_interpolate_real: ngm = ', ngm
 
     ! The indices dfft_in%nl(1:ngm)
     ! Copy aux_in to aux_out
     aux_out( dfft_out%nl(1:ngm) ) = aux_in( dfft_in%nl(1:ngm) )
     
-    write(*,*) 'Some aux_out before invfft'
-    do i = 1,10
-      write(*,'(1x,I5,2F18.10)') i, aux_out(i)
-    enddo
+    !write(*,*) 'Some aux_out before invfft'
+    !do i = dfft_out%nnr-10,dfft_out%nnr
+    !  write(*,'(1x,I8,2F18.10)') i, aux_out(i)
+    !enddo
 
 
     ! additional work for gamma-trick
     IF(dfft_in%lgamma) aux_out( dfft_out%nlm(1:ngm) ) = aux_in( dfft_in%nlm(1:ngm) )
 
-    write(*,*) 'Before invfft: sum(aux_out) = ', sum(aux_out)
+    !write(*,*) 'Before invfft: sum(aux_out) = ', sum(aux_out)
     
     ! Back to R-space
     CALL invfft('Rho', aux_out, dfft_out)
 
-    write(*,*) 'Some aux_out after invfft'
-    do i = 1,10
-      write(*,'(1x,I5,2F18.10)') i, aux_out(i)
-    enddo
+    !write(*,*) 'Some aux_out after invfft'
+    !do i = 1,10
+    !  write(*,'(1x,I5,2F18.10)') i, aux_out(i)
+    !enddo
     
     !
-    write(*,*) 'After invfft: sum(aux_out) = ', sum(aux_out)
+    !write(*,*) 'After invfft: sum(aux_out) = ', sum(aux_out)
 
     v_out(1:dfft_out%nnr) = aux_out(1:dfft_out%nnr)
 

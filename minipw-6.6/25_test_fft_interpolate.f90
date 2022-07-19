@@ -16,11 +16,12 @@ subroutine test_interpolate()
   USE fft_interfaces,  ONLY : fft_interpolate
   implicit none
   real(8), allocatable :: vin(:), vout(:)
+  integer :: i
 
   allocate( vin(dfftp%nnr) )
-  allocate( vout(dffts%nnr) )
+  allocate( vout(dfftp%nnr) )
 
-  vin(:) = 1.d0
+  vin(:) = 1.1d0
   vin(1:10) = 2.5d0
   vout(:) = 0.d0
 
@@ -30,7 +31,12 @@ subroutine test_interpolate()
   call fft_interpolate( dfftp, vin, dffts, vout )
 
   write(*,*) 'sum vin after fft_interpolate = ', sum(vin)
-  write(*,*) 'sum vout after fft_interpolate = ', sum(vout)
+  write(*,*) 'sum vout after fft_interpolate = ', sum(vout(1:dffts%nnr))
+
+  write(*,*) 'Some vin and vout'
+  do i = 1,10
+    write(*,'(1x,I5,2F18.10)') i, vin(i), vout(i)
+  enddo
 
   deallocate( vin )
   deallocate( vout )
