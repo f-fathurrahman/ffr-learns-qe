@@ -32,31 +32,33 @@ SUBROUTINE init_vloc()
   vloc(:,:) = 0._DP
   !
   DO nt = 1, ntyp
-     !
-     ! compute V_loc(G) for a given type of atom
-     !
-     IF ( upf(nt)%is_gth ) THEN
-        !
-        ! special case: GTH pseudopotential
-        !
-        CALL vloc_gth( nt, upf(nt)%zp, tpiba2, ngl, gl, omega, vloc(1,nt) )
-        !
-     ELSE IF ( upf(nt)%tcoulombp ) THEN
-        !
-        ! special case: pseudopotential is coulomb 1/r potential
-        !
-        CALL vloc_coul( upf(nt)%zp, tpiba2, ngl, gl, omega, vloc(1,nt) )
-        !
-     ELSE
-        !
-        ! normal case
-        !
-        CALL vloc_of_g( rgrid(nt)%mesh, msh(nt), rgrid(nt)%rab, rgrid(nt)%r, &
-                        upf(nt)%vloc(1), upf(nt)%zp, tpiba2, ngl, gl, omega, &
-                        vloc(1,nt) )
-        !
-     ENDIF
-     !
+    !
+    ! compute V_loc(G) for a given type of atom
+    !
+    IF ( upf(nt)%is_gth ) THEN
+      !
+      ! special case: GTH pseudopotential
+      !
+      CALL vloc_gth( nt, upf(nt)%zp, tpiba2, ngl, gl, omega, vloc(1,nt) )
+      !
+    ELSEIF ( upf(nt)%tcoulombp ) THEN
+      !
+      ! special case: pseudopotential is coulomb 1/r potential
+      !
+      CALL vloc_coul( upf(nt)%zp, tpiba2, ngl, gl, omega, vloc(1,nt) )
+      !
+    ELSE
+      !
+      ! normal case
+      !
+      CALL vloc_of_g( rgrid(nt)%mesh, msh(nt), rgrid(nt)%rab, rgrid(nt)%r, &
+                      upf(nt)%vloc(1), upf(nt)%zp, tpiba2, ngl, gl, omega, &
+                      vloc(1,nt) )
+      !
+    ENDIF
+    !
+    write(*,*) 'nt = ', nt, ' sum vloc(:,nt) in Ha = ', sum(vloc(:,nt))*0.5d0
+    !
   ENDDO
   !
   ! in 2D calculations the long range part of vloc(g) (erf/r part)
