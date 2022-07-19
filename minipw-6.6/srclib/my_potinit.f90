@@ -86,7 +86,7 @@ SUBROUTINE my_potinit()
 
     ! in the DFT+U(+V) case set the initial value of ns (or nsg)
     !
-    IF (lda_plus_u) THEN
+    IF( lda_plus_u ) THEN
       stop 'lda_plus_u is disabled in my_potinit'
     ENDIF
 
@@ -157,62 +157,42 @@ SUBROUTINE my_potinit()
      ENDIF
      !
   ENDIF
-  !
-  ! ... plugin contribution to local potential
-  !
+
+  ! plugin contribution to local potential
   CALL plugin_scf_potential(rho, .FALSE., -1.d0, vltot)
-  !
-  ! ... compute the potential and store it in v
-  !
+  
+  ! compute the potential and store it in v
   CALL my_v_of_rho( rho, rho_core, rhog_core, &
                  ehart, etxc, vtxc, eth, etotefield, charge, v )
   IF( okpaw ) CALL PAW_potential(rho%bec, ddd_PAW, epaw)
 
-  !
-  ! ... define the total local potential (external+scf)
-  !
+  ! define the total local potential (external+scf)
   write(*,*)
-  write(*,*) '>>>> sum vltot before my_set_vrs = ', sum(vltot)
-  write(*,*) '>>>> sum vrs before my_set_vrs = ', sum(vrs)
-  write(*,*) '>>>> sum v%of_r before my_set_vrs = ', sum(v%of_r)
+  write(*,*) '>>>> sum vltot before my_set_vrs (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*) '>>>> sum vrs before my_set_vrs (in Ha) = ', sum(vrs)*0.5d0
+  write(*,*) '>>>> sum v%of_r before my_set_vrs (in Ha) = ', sum(v%of_r)*0.5d0
   write(*,*)
 
   CALL my_set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
 
   write(*,*)
-  write(*,*) '>>>> sum vltot after my_set_vrs = ', sum(vltot)
-  write(*,*) '>>>> sum vrs after my_set_vrs = ', sum(vrs)
-  write(*,*) 'sum my_set_vrs until ddfts%nnr = ', sum( vrs(1:dffts%nnr,1) )
-  write(*,*) '>>>> sum v%of_r after my_set_vrs = ', sum(v%of_r)
+  write(*,*) '>>>> sum vltot after my_set_vrs (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*) '>>>> sum vrs after my_set_vrs (in Ha) = ', sum(vrs)*0.5d0
+  write(*,*) '>>>> sum vrs after my_set_vrs until ddfts%nnr (in Ha) = ', sum( vrs(1:dffts%nnr,1) )*0.5d0
+  write(*,*) '>>>> sum v%of_r after my_set_vrs (in Ha) = ', sum(v%of_r)*0.5d0
   write(*,*)
+  ! vrs is a global variable
   
 
   !
   ! ... write on output the parameters used in the DFT+U(+V) calculation
   !
-  IF ( lda_plus_u ) THEN
-     !
-     WRITE( stdout, '(5X,"Number of +U iterations with fixed ns =",I3)') &
-         niter_with_fixed_ns
-     WRITE( stdout, '(5X,"Starting occupations:")')
-     !
-     IF (lda_plus_u_kind == 0) THEN
-        CALL write_ns()
-     ELSEIF (lda_plus_u_kind == 1) THEN
-        IF (noncolin) THEN
-           CALL write_ns_nc()
-        ELSE
-           CALL write_ns()
-        ENDIF
-     ELSEIF (lda_plus_u_kind == 2) THEN
-        nsgnew = nsg
-        CALL write_nsg()
-     ENDIF
-     !
-  END IF
+  IF( lda_plus_u ) THEN
+    stop 'lda_plus_u is disabled in my_potinit'
+  ENDIF
   !
-  IF ( report /= 0 .AND. &
-       noncolin .AND. domag .AND. lscf ) CALL report_mag()
+  IF( report /= 0 .AND. &
+      noncolin .AND. domag .AND. lscf ) CALL report_mag()
   !
   RETURN
   !

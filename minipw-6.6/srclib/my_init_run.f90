@@ -103,7 +103,7 @@ SUBROUTINE my_init_run()
   CALL allocate_wfc_k()
   CALL openfil()
   !
-  CALL hinit0()
+  CALL my_hinit0()
   !
   CALL my_potinit()
   !
