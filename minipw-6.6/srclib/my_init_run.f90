@@ -26,7 +26,7 @@ SUBROUTINE my_init_run()
   IMPLICIT NONE
 
   write(*,*)
-  write(*,*) '*** Enter init_run ***'
+  write(*,*) '************************* Enter init_run *************************'
   write(*,*)
 
   !
@@ -114,7 +114,7 @@ SUBROUTINE my_init_run()
   IF ( lmd ) CALL allocate_dyn_vars()
 
   write(*,*)
-  write(*,*) '*** Exit my_init_run ***'
+  write(*,*) '************************* Exit my_init_run *************************'
   write(*,*)
 
   !
