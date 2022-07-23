@@ -53,7 +53,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
   ENDIF
   !
   deeq(:,:,:,:) = 0.D0
-  !
+  
 
   ! ffr: Parallelization wrt G-vectors is disabled
 
@@ -77,12 +77,15 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         psic(ig) = vltot(ig) + vr(ig,is)
       ENDDO
     ENDIF
+    write(*,*) 'my_newq: sum(psic) Veff (in Ha) = ', sum(psic)*0.5d0
     !
     CALL fwfft( 'Rho', psic, dfftp )
     DO ig = 1, ngm
       vaux(ig,is) = psic(dfftp%nl(ig))
     ENDDO
+    write(*,*) 'my_newq: sum vaux = ', sum(vaux)
   ENDDO
+  ! vaux is V_eff(G)
 
   DO nt = 1, ntyp
 
@@ -100,8 +103,10 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         DO jh = ih, nh(nt)
           ijh = ijh + 1
           CALL qvan2( ngm, ih, jh, nt, qmod, qgm(1,ijh), ylmk0 )
+          !write(*,*) 'ijh = ', ijh, ' sum qgm = ', sum(qgm(:,ijh))
         ENDDO
       ENDDO
+
       !
       ! count max number of atoms of type nt
       !
@@ -124,6 +129,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
                 eigts2(mill(2,ig),na) * &
                 eigts3(mill(3,ig),na) )
             ENDDO
+            !write(*,*) 'nb = ', nb, ' sum aux = ', sum(aux(:,nb))
           ENDIF
         ENDDO
         !
@@ -142,6 +148,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
               DO jh = ih, nh(nt)
                 ijh = ijh + 1
                 deeq(ih,jh,na,is) = omega * deeaux(ijh,nb)
+                !write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)*0.5d0 ! to Ha
                 IF (jh > ih) deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
               ENDDO
             ENDDO
@@ -155,7 +162,10 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
     ENDIF ! tvanp
     !
   ENDDO ! over ntyp
-  !
+  
+
+  write(*,*) '**** my_newq: sum(deeq) (in Ha) = ', sum(deeq)*0.5d0
+
   DEALLOCATE( qmod, ylmk0, vaux )
   
   !CALL mp_sum( deeq( :, :, :, 1:nspin_mag ), inter_pool_comm )
@@ -232,6 +242,10 @@ SUBROUTINE my_newd()
 
   IF(noncolin) CALL add_paw_to_deeq( deeq )
 
+  write(*,*) 'After newq: '
+
+  write(*,*) 'sum Dvan = ', sum(dvan)
+  write(*,*) 'Some Deeq'
   atoms : &
   DO na = 1, nat
     nt  = ityp(na)
@@ -244,6 +258,7 @@ SUBROUTINE my_newd()
             DO jh = ih, nh(nt)
               deeq(ih,jh,na,is) = deeq(ih,jh,na,is) + dvan(ih,jh,nt)
               deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
+              write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)
             ENDDO
          ENDDO
       ENDDO
