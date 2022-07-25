@@ -77,13 +77,13 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         psic(ig) = vltot(ig) + vr(ig,is)
       ENDDO
     ENDIF
-    write(*,*) 'my_newq: sum(psic) Veff (in Ha) = ', sum(psic)*0.5d0
+    !write(*,*) 'my_newq: sum(psic) Veff (in Ha) = ', sum(psic)*0.5d0
     !
     CALL fwfft( 'Rho', psic, dfftp )
     DO ig = 1, ngm
       vaux(ig,is) = psic(dfftp%nl(ig))
     ENDDO
-    write(*,*) 'my_newq: sum vaux = ', sum(vaux)
+    !write(*,*) 'my_newq: sum vaux = ', sum(vaux)
   ENDDO
   ! vaux is V_eff(G)
 
@@ -242,10 +242,10 @@ SUBROUTINE my_newd()
 
   IF(noncolin) CALL add_paw_to_deeq( deeq )
 
-  write(*,*) 'After newq: '
-
-  write(*,*) 'sum Dvan = ', sum(dvan)
-  write(*,*) 'Some Deeq'
+  !write(*,*) 'After newq: '
+  !write(*,*) 'sum Dvan = ', sum(dvan)
+  !write(*,*) 'Some Deeq'
+  
   atoms : &
   DO na = 1, nat
     nt  = ityp(na)
@@ -258,7 +258,7 @@ SUBROUTINE my_newd()
             DO jh = ih, nh(nt)
               deeq(ih,jh,na,is) = deeq(ih,jh,na,is) + dvan(ih,jh,nt)
               deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
-              write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)
+              !write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)
             ENDDO
          ENDDO
       ENDDO
