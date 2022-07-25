@@ -105,13 +105,13 @@ SUBROUTINE my_sum_band()
   !
   IF ( okvan ) CALL allocate_bec_type (nkb, this_bgrp_nbnd, becp, intra_bgrp_comm)
   IF (dft_is_meta() .OR. lxdm) ALLOCATE (kplusg(npwx))
-  !
-  ! ... specialized routines are called to sum at Gamma or for each k point 
-  ! ... the contribution of the wavefunctions to the charge
-  ! ... The band energy contribution eband is computed together with the charge
-  !
+
+
+
+  ! specialized routines are called to sum at Gamma or for each k point 
+  ! the contribution of the wavefunctions to the charge
+  ! The band energy contribution eband is computed together with the charge
   eband         = 0.D0
-  !
   IF(gamma_only) THEN
     stop 'gamma_only in my_sum_band is disabled'
   ELSE
@@ -134,7 +134,7 @@ SUBROUTINE my_sum_band()
   DO is = 1, nspin
      psic(1:dffts%nnr) = rho%of_r(1:dffts%nnr,is)
      psic(dffts%nnr+1:) = 0.0_dp
-     CALL fwfft ('Rho', psic, dffts)
+     CALL fwfft('Rho', psic, dffts)
      rho%of_g(1:dffts%ngm,is) = psic(dffts%nl(1:dffts%ngm))
      rho%of_g(dffts%ngm+1:,is) = (0.0_dp,0.0_dp)
   END DO
@@ -162,7 +162,7 @@ SUBROUTINE my_sum_band()
      !
      ! ... Here we add the (unsymmetrized) Ultrasoft contribution to the charge
      !
-     CALL addusdens(rho%of_g(:,:))
+     CALL my_addusdens(rho%of_g(:,:))
   ENDIF
 
   ! symmetrize rho(G) 
@@ -257,9 +257,9 @@ SUBROUTINE my_sum_band_k()
   k_loop: DO ik = 1, nks
 
     IF( lsda ) current_spin = isk(ik)
-    npw = ngk (ik)
+    npw = ngk(ik)
 
-    IF ( nks > 1 ) CALL get_buffer ( evc, nwordwfc, iunwfc, ik )
+    IF ( nks > 1 ) CALL get_buffer( evc, nwordwfc, iunwfc, ik )
 
     IF ( nkb > 0 ) CALL my_init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
 
@@ -282,7 +282,7 @@ SUBROUTINE my_sum_band_k()
       CALL invfft('Wave', psic, dffts)
 
       ! increment the charge density
-      CALL get_rho(rho%of_r(:,current_spin), dffts%nnr, w1, psic)
+      CALL get_rho( rho%of_r(:,current_spin), dffts%nnr, w1, psic )
 
       IF( dft_is_meta() .OR. lxdm) THEN
          DO j=1,3
@@ -312,6 +312,7 @@ SUBROUTINE my_sum_band_k()
 END SUBROUTINE
      
 
+! Inner subroutine
 !-------------------------------------------------------
 SUBROUTINE get_rho(rho_loc, nrxxs_loc, w1_loc, psic_loc)
 !-------------------------------------------------------
