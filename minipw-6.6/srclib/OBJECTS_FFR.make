@@ -20,7 +20,7 @@ my_add_vuspsi.o \
 my_usnldiag.o \
 my_sum_bec.o \
 my_wfcinit.o \
-my_init_wfc.o \
+my_init_wfc.o my_atomic_wfc.o \
 my_potinit.o \
 my_atomic_rho.o \
 my_init_run.o \

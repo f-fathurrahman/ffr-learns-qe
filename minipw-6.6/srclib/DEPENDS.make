@@ -329,6 +329,7 @@ my_addusdens.o : my_addusdens.f90 kind.o fft_base.o noncol.o control_flags.o
 my_addusdens_g.o : my_addusdens_g.f90 mp.o mp_bands.o mp_pools.o uspp.o uspp.o noncol.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_add_vuspsi.o : my_add_vuspsi.f90 becmod.o uspp.o uspp.o noncol.o control_flags.o pwcom.o ions_base.o kind.o 
 my_atomic_rho.o : my_atomic_rho.f90 fft_rho.o fft_base.o mp.o mp_bands.o control_flags.o io_global.o uspp.o noncol.o pwcom.o pwcom.o recvec.o cell_base.o ions_base.o atom.o constants.o kind.o 
+my_atomic_wfc.o : my_atomic_wfc.f90 mp.o mp_bands.o pwcom.o noncol.o uspp.o pwcom.o pwcom.o pwcom.o recvec.o atomic_wfc_mod.o ions_base.o cell_base.o constants.o kind.o 
 my_calc_pol.o : my_calc_pol.f90 bp_mod.o constants.o cell_base.o io_global.o kind.o 
 my_c_bands.o : my_c_bands.f90 atomic_wfc_mod.o mp_bands.o becmod.o scf_mod.o g_psi_mod.o noncol.o check_stop.o mp.o mp_pools.o bp_mod.o wavefunctions.o pwcom.o ldaU.o control_flags.o pwcom.o recvec.o uspp.o pwcom.o buffers.o io_files.o io_global.o kind.o 
 my_cegterg.o : my_cegterg.f90 laxlib_hi.fh laxlib_mid.fh laxlib_param.fh laxlib_kinds.fh laxlib_low.fh laxlib.fh mp.o mp_bands_util.o util_param.o 

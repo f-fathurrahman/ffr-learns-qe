@@ -1,19 +1,9 @@
-! 
-! Copyright (C) 2001-2020 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
-!
 !----------------------------------------------------------------------------
 SUBROUTINE my_wfcinit()
-  !----------------------------------------------------------------------------
-  !
-  ! ... This routine computes an estimate of the starting wavefunctions
-  ! ... from superposition of atomic wavefunctions and/or random wavefunctions.
-  ! ... It also open needed files or memory buffers
-  !
+!----------------------------------------------------------------------------
+  ! This routine computes an estimate of the starting wavefunctions
+  ! from superposition of atomic wavefunctions and/or random wavefunctions.
+  ! It also open needed files or memory buffers
   USE io_global,            ONLY : stdout, ionode, ionode_id
   USE basis,                ONLY : natomwfc, starting_wfc
   USE bp,                   ONLY : lelfield

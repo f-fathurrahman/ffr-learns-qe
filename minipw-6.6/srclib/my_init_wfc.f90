@@ -38,126 +38,100 @@ SUBROUTINE my_init_wfc( ik )
 
   write(*,*) 'my_init_wfc is called for ik = ', ik
 
-  IF ( starting_wfc(1:6) == 'atomic' ) THEN
-     !
-     n_starting_wfc = MAX( natomwfc, nbnd )
-     n_starting_atomic_wfc = natomwfc
-     !
-  ELSE IF ( starting_wfc == 'random' ) THEN
-     !
-     n_starting_wfc = nbnd
-     n_starting_atomic_wfc = 0
-     !
+  IF( starting_wfc(1:6) == 'atomic' ) THEN
+    !
+    n_starting_wfc = MAX( natomwfc, nbnd )
+    n_starting_atomic_wfc = natomwfc
+    !
+  ELSE IF( starting_wfc == 'random' ) THEN
+    !
+    n_starting_wfc = nbnd
+    n_starting_atomic_wfc = 0
+    !
   ELSE
-     !
-     ! ...case 'file' should not be done here
-     !
-     CALL errore ( 'init_wfc', &
-          'invalid value for startingwfc: ' // TRIM ( starting_wfc ) , 1 )
-     !
-  END IF
+    !
+    ! ...case 'file' should not be done here
+    !
+    CALL errore ( 'init_wfc', &
+         'invalid value for startingwfc: ' // TRIM ( starting_wfc ) , 1 )
+    !
+  ENDIF
   !
   ALLOCATE( wfcatom( npwx, npol, n_starting_wfc ) )
   !
   IF ( starting_wfc(1:6) == 'atomic' ) THEN
-     !
-     CALL start_clock( 'wfcinit:atomic' ); !write(*,*) 'start wfcinit:atomic' ; FLUSH(6)
-     CALL atomic_wfc( ik, wfcatom )
-     CALL stop_clock( 'wfcinit:atomic' ); !write(*,*) 'stop wfcinit:atomic' ; FLUSH(6)
-     !
-     IF ( starting_wfc == 'atomic+random' .AND. &
-         n_starting_wfc == n_starting_atomic_wfc ) THEN
-         !
-         ! ... in this case, introduce a small randomization of wavefunctions
-         ! ... to prevent possible "loss of states"
-         !
-         DO ibnd = 1, n_starting_atomic_wfc
-            !
-            DO ipol = 1, npol
-               !
-               DO ig = 1, ngk(ik)
-                  !
-                  rr  = randy()
-                  arg = tpi * randy()
-                  !
-                  wfcatom(ig,ipol,ibnd) = wfcatom(ig,ipol,ibnd) * &
-                     ( 1.0_DP + 0.05_DP * CMPLX( rr*COS(arg), rr*SIN(arg) ,kind=DP) ) 
-                  !
-               END DO
-               !
-            END DO
-            !
-         END DO
-         !
-     END IF
-     !
-  END IF
-  !
-  ! ... if not enough atomic wfc are available,
-  ! ... fill missing wfcs with random numbers
-  !
+
+    CALL my_atomic_wfc( ik, wfcatom )
+    !
+    IF( starting_wfc == 'atomic+random' .AND. &
+      n_starting_wfc == n_starting_atomic_wfc ) THEN
+
+      ! in this case, introduce a small randomization of wavefunctions
+      ! to prevent possible "loss of states"
+      DO ibnd = 1, n_starting_atomic_wfc
+        DO ipol = 1, npol
+          DO ig = 1, ngk(ik)
+            rr  = randy()
+            arg = tpi * randy()
+            wfcatom(ig,ipol,ibnd) = wfcatom(ig,ipol,ibnd) * &
+               ( 1.0_DP + 0.05_DP * CMPLX( rr*COS(arg), rr*SIN(arg), kind=DP) )
+          ENDDO ! ig
+        ENDDO ! ipol
+      ENDDO ! ibnd
+    ENDIF ! starting_wfc = atomic+random
+  ENDIF ! atomic
+
+  ! if not enough atomic wfc are available,
+  ! fill missing wfcs with random numbers
   DO ibnd = n_starting_atomic_wfc + 1, n_starting_wfc
-     !
-     DO ipol = 1, npol
-        ! 
-        wfcatom(:,ipol,ibnd) = (0.0_dp, 0.0_dp)
-        !
-        DO ig = 1, ngk(ik)
-           !
-           rr  = randy()
-           arg = tpi * randy()
-           !
-           wfcatom(ig,ipol,ibnd) = &
-                CMPLX( rr*COS( arg ), rr*SIN( arg ) ,kind=DP) / &
-                       ( ( xk(1,ik) + g(1,igk_k(ig,ik)) )**2 + &
-                         ( xk(2,ik) + g(2,igk_k(ig,ik)) )**2 + &
-                         ( xk(3,ik) + g(3,igk_k(ig,ik)) )**2 + 1.0_DP )
-        END DO
-        !
-     END DO
-     !
-  END DO
+    DO ipol = 1, npol
+      wfcatom(:,ipol,ibnd) = (0.0_dp, 0.0_dp)
+      DO ig = 1, ngk(ik)
+        rr  = randy()
+        arg = tpi * randy()
+        wfcatom(ig,ipol,ibnd) = &
+             CMPLX( rr*COS( arg ), rr*SIN( arg ) ,kind=DP) / &
+                    ( ( xk(1,ik) + g(1,igk_k(ig,ik)) )**2 + &
+                      ( xk(2,ik) + g(2,igk_k(ig,ik)) )**2 + &
+                      ( xk(3,ik) + g(3,igk_k(ig,ik)) )**2 + 1.0_DP )
+      ENDDO
+    ENDDO
+  ENDDO
   
   ! when band parallelization is active, the first band group distributes
   ! the wfcs to the others making sure all bgrp have the same starting wfc
   ! FIXME: maybe this should be done once evc are computed, not here?
   !
   IF( nbgrp > 1 ) CALL mp_bcast( wfcatom, root_bgrp_id, inter_bgrp_comm )
-  !
-  ! ... Diagonalize the Hamiltonian on the basis of atomic wfcs
-  !
+
+  ! Diagonalize the Hamiltonian on the basis of atomic wfcs
   ALLOCATE( etatom( n_starting_wfc ) )
-  !
-  ! ... Allocate space for <beta|psi>
-  !
+
+  ! Allocate space for <beta|psi>
   CALL allocate_bec_type( nkb, n_starting_wfc, becp, intra_bgrp_comm )
-  !
-  ! ... the following trick is for electric fields with Berry's phase:
-  ! ... by setting lelfield = .false. one prevents the calculation of
-  ! ... electric enthalpy in the Hamiltonian (cannot be calculated
-  ! ... at this stage: wavefunctions at previous step are missing)
-  ! 
+
+  ! the following trick is for electric fields with Berry's phase:
+  ! by setting lelfield = .false. one prevents the calculation of
+  ! electric enthalpy in the Hamiltonian (cannot be calculated
+  ! at this stage: wavefunctions at previous step are missing)
   lelfield_save = lelfield
   lelfield = .FALSE.
-  !
-  ! ... subspace diagonalization (calls Hpsi)
-  !
+
+  ! subspace diagonalization (calls Hpsi)
   IF ( dft_is_hybrid()  ) CALL stop_exx() 
-  CALL start_clock( 'wfcinit:wfcrot' ); !write(*,*) 'start wfcinit:wfcrot' ; FLUSH(6)
+
   CALL rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
-  CALL stop_clock( 'wfcinit:wfcrot' ); !write(*,*) 'stop wfcinit:wfcrot' ; FLUSH(6)
-  !
-  lelfield = lelfield_save
-  !
-  ! ... copy the first nbnd eigenvalues
-  ! ... eigenvectors are already copied inside routine rotate_wfc
-  !
+
+  lelfield = lelfield_save   ! ffr: set lelfield to its original value
+
+  ! copy the first nbnd eigenvalues
+  ! eigenvectors are already copied inside routine rotate_wfc
   et(1:nbnd,ik) = etatom(1:nbnd)
-  !
+
   CALL deallocate_bec_type ( becp )
   DEALLOCATE( etatom )
   DEALLOCATE( wfcatom )
-  !
+
   RETURN
-  !
+
 END SUBROUTINE my_init_wfc
