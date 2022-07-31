@@ -74,10 +74,6 @@ SUBROUTINE my_v_h( rhog, ehart, charge, v )
       ehart = ehart * 0.5D0 * omega
     ENDIF
 
-    write(*,*)
-    write(*,*) 'my_v_h: ehart = ', ehart*0.5d0
-    write(*,*)
-
     if( do_comp_mt ) then
       ALLOCATE( vaux( ngm ), rgtot(ngm) )
       rgtot(:) = rhog(:)

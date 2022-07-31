@@ -164,11 +164,6 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   vtxc = omega * vtxc / ( dfftp%nr1*dfftp%nr2*dfftp%nr3 )
   etxc = omega * etxc / ( dfftp%nr1*dfftp%nr2*dfftp%nr3 )
 
-  write(*,*)
-  write(*,*) 'Exc  (in Ha) = ', etxc*0.5d0
-  write(*,*) 'Vtxc (in Ha) = ', vtxc*0.5d0
-  write(*,*)
-
   !
   ! ... add gradient corrections (if any)
   !

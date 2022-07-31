@@ -1,10 +1,4 @@
 !
-! Copyright (C) 2001 PWSCF group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
 !----------------------------------------------------------------------------
 ! TB
 ! setup of the gate, search for 'TB'
@@ -41,6 +35,7 @@ SUBROUTINE my_setlocal
   COMPLEX(DP), ALLOCATABLE :: aux(:), v_corr(:)
   ! auxiliary variable
   INTEGER :: nt, ng
+  integer :: i
   ! counter on atom types
   ! counter on g vectors
   !
@@ -55,39 +50,42 @@ SUBROUTINE my_setlocal
   ENDIF
   !
   DO nt = 1, ntyp
-     DO ng = 1, ngm
-        aux(dfftp%nl(ng)) = aux(dfftp%nl(ng)) + vloc(igtongl(ng),nt) * strf(ng,nt)
-     ENDDO
+    DO ng = 1, ngm
+      aux(dfftp%nl(ng)) = aux(dfftp%nl(ng)) + vloc(igtongl(ng),nt) * strf(ng,nt)
+    ENDDO
   ENDDO
+
+  write(*,*) 'my_set_local: sum aux (in Ha) = ', sum(aux)*0.5d0
+
   !
   IF (gamma_only) THEN
-     DO ng = 1, ngm
-        aux(dfftp%nlm(ng)) = CONJG( aux(dfftp%nl(ng)) )
-     ENDDO
+    DO ng = 1, ngm
+      aux(dfftp%nlm(ng)) = CONJG( aux(dfftp%nl(ng)) )
+    ENDDO
   ENDIF
   !
   IF ( do_comp_esm .AND. ( esm_bc .NE. 'pbc' ) ) THEN
-     !
-     ! ... Perform ESM correction to local potential
-     !
-     CALL esm_local( aux )
-     !
+    !
+    ! ... Perform ESM correction to local potential
+    !
+    CALL esm_local( aux )
+    !
   ENDIF
   !
   ! 2D: re-add the erf/r function
   IF ( do_cutoff_2D ) THEN
-     !
-     ! ... re-add the CUTOFF fourier transform of erf function
-     !
-     CALL cutoff_local( aux )
-     !
+    !
+    ! ... re-add the CUTOFF fourier transform of erf function
+    !
+    CALL cutoff_local( aux )
+    !
   ENDIF 
   !
   ! ... v_of_0 is (Vloc)(G=0)
   !
   v_of_0 = 0.0_DP
   IF (gg(1) < eps8) v_of_0 = DBLE( aux(dfftp%nl(1)) )
-  write(*,'(1x,A,F18.10)') 'v_of_0 (in Ha) = ', v_of_0*2.d0
+  write(*,'(1x,A,F18.10)') 'v_of_0 (in Ha) = ', v_of_0*0.5d0
   !
   CALL mp_sum( v_of_0, intra_bgrp_comm )
   !
@@ -96,8 +94,16 @@ SUBROUTINE my_setlocal
   CALL invfft( 'Rho', aux, dfftp )
   !
   vltot(:) =  DBLE( aux(:) )
-  !
-  write(*,*) 'sum vltot = ', sum(vltot)
+
+  write(*,*) 'my_set_local: sum aux (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*) 'my_set_local: sum vltot (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*)
+  write(*,*) 'my_set_local: Some vltot (in Ha)'
+  do i = 1,10
+    write(*,'(1x,I8, F18.10)') i, vltot(i)*0.5d0
+  enddo
+  write(*,*)
+
   !
   ! ... If required add an electric field to the local potential 
   !

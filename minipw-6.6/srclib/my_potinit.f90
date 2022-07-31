@@ -167,22 +167,9 @@ SUBROUTINE my_potinit()
   IF( okpaw ) CALL PAW_potential(rho%bec, ddd_PAW, epaw)
 
   ! define the total local potential (external+scf)
-  write(*,*)
-  write(*,*) '>>>> sum vltot before my_set_vrs (in Ha) = ', sum(vltot)*0.5d0
-  write(*,*) '>>>> sum vrs before my_set_vrs (in Ha) = ', sum(vrs)*0.5d0
-  write(*,*) '>>>> sum v%of_r before my_set_vrs (in Ha) = ', sum(v%of_r)*0.5d0
-  write(*,*)
-
   CALL my_set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
 
-  write(*,*)
-  write(*,*) '>>>> sum vltot after my_set_vrs (in Ha) = ', sum(vltot)*0.5d0
-  write(*,*) '>>>> sum vrs after my_set_vrs (in Ha) = ', sum(vrs)*0.5d0
-  write(*,*) '>>>> sum vrs after my_set_vrs until ddfts%nnr (in Ha) = ', sum( vrs(1:dffts%nnr,1) )*0.5d0
-  write(*,*) '>>>> sum v%of_r after my_set_vrs (in Ha) = ', sum(v%of_r)*0.5d0
-  write(*,*)
-  ! vrs is a global variable
-  
+  ! vrs is a global variable  
 
   !
   ! ... write on output the parameters used in the DFT+U(+V) calculation

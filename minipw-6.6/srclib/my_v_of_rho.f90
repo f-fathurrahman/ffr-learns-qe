@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------
 SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
-                     ehart, etxc, vtxc, eth, etotefield, charge, v )
+                        ehart, etxc, vtxc, eth, etotefield, charge, v )
 !----------------------------------------------------------------------------
   !! This routine computes the Hartree and Exchange and Correlation
   !! potential and energies which corresponds to a given charge density
@@ -74,6 +74,12 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
   IF (lda_plus_u) THEN
     stop 'lda_plus_u is disable in my_v_of_rho'
   ENDIF
+
+  write(*,*)
+  write(*,*) 'my_v_of_rho: Ehartree (in Ha) = ', ehart*0.5d0
+  write(*,*) 'my_v_of_rho: Exc      (in Ha) = ', etxc*0.5d0
+  write(*,*) 'my_v_of_rho: Evtxc    (in Ha) = ', vtxc*0.5d0
+  write(*,*)
 
   ! add an electric field
   ! 

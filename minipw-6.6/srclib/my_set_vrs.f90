@@ -38,9 +38,19 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   write(*,*) 'my_set_vrs: nrxx = ', nrxx
   write(*,*) 'my_set_vrs: shape vltot = ', shape(vltot)
   write(*,*) 'my_set_vrs: shape vrs = ', shape(vrs)
+  write(*,*)
+  write(*,*) 'my_set_vrs: values given in Ha'
+  write(*,*)
+  write(*,*) 'my_set_vrs: sum vltot before = ', sum(vltot)*0.5d0
+  write(*,*) 'my_set_vrs: sum vr (dense) before = ', sum(vr)*0.5d0
+  write(*,*) 'my_set_vrs: sum vrs (smooth) before = ', sum(vrs)*0.5d0
 
   CALL my_sum_vrs( nrxx, nspin, vltot, vr, vrs )
   CALL my_interpolate_vrs( nrxx, nspin, doublegrid, kedtau, kedtaur, vrs )
+
+  write(*,*) 'my_set_vrs: sum vltot after = ', sum(vltot)*0.5d0
+  write(*,*) 'my_set_vrs: sum vr (dense) after = ', sum(vr)*0.5d0
+  write(*,*) 'my_set_vrs: sum vrs (smooth) after = ', sum(vrs)*0.5d0
 
   RETURN
   !
@@ -131,14 +141,14 @@ SUBROUTINE my_interpolate_vrs( nrxx, nspin, doublegrid, kedtau, kedtaur, vrs )
   INTEGER :: is
 
   ! interpolate it on the smooth mesh if necessary
-  write(*,*) 'fft_interpolate: sum vrs before interpolate: ', sum(vrs)
+  write(*,*) 'my_interpolate_vrs: sum vrs before interpolate: ', sum(vrs)*0.5d0
 
   DO is = 1, nspin
     IF( doublegrid ) CALL fft_interpolate( dfftp, vrs(:, is), dffts, vrs(:,is) )
     IF( dft_is_meta() ) CALL fft_interpolate( dfftp, kedtaur(:,is), dffts, kedtau(:,is) )
   ENDDO
 
-  write(*,*) 'fft_interpolate: sum vrs after interpolate: ', sum(vrs)
+  write(*,*) 'my_interpolate_vrs: sum vrs after interpolate: ', sum(vrs)*0.5d0
 
   RETURN
 
