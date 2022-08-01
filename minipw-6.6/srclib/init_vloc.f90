@@ -57,9 +57,12 @@ SUBROUTINE init_vloc()
       !
     ENDIF
     !
-    write(*,*) 'nt = ', nt, ' sum vloc(:,nt) in Ha = ', sum(vloc(:,nt))*0.5d0
+    write(*,*) 'init_vloc: nt = ', nt, ' sum vloc(:,nt) in Ha = ', sum(vloc(:,nt))*0.5d0
     !
   ENDDO
+
+  write(*,*) 'shape vloc = ', shape(vloc)
+
   !
   ! in 2D calculations the long range part of vloc(g) (erf/r part)
   ! was not re-added in g-space because everything is caclulated in
