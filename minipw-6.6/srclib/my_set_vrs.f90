@@ -35,6 +35,8 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   ! input: true if a doublegrid is used
   LOGICAL :: doublegrid
 
+  INTEGER :: i
+
   write(*,*) 'my_set_vrs: nrxx = ', nrxx
   write(*,*) 'my_set_vrs: shape vltot = ', shape(vltot)
   write(*,*) 'my_set_vrs: shape vrs = ', shape(vrs)
@@ -51,6 +53,12 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   write(*,*) 'my_set_vrs: sum vltot after = ', sum(vltot)*0.5d0
   write(*,*) 'my_set_vrs: sum vr (dense) after = ', sum(vr)*0.5d0
   write(*,*) 'my_set_vrs: sum vrs (smooth) after = ', sum(vrs)*0.5d0
+
+  write(*,*) 'Some potentials: vr and vrs '
+  do i = 1,10
+    write(*,'(1x,I5,2F18.10)') i, vr(i,1), vrs(i,1)
+  enddo
+
 
   RETURN
   !

@@ -242,8 +242,8 @@ SUBROUTINE my_newd()
 
   IF(noncolin) CALL add_paw_to_deeq( deeq )
 
-  !write(*,*) 'After newq: '
-  !write(*,*) 'sum Dvan = ', sum(dvan)
+  write(*,*) 'After newq: '
+  write(*,*) 'sum Dvan = ', sum(dvan)
   !write(*,*) 'Some Deeq'
   
   atoms : &
@@ -268,6 +268,8 @@ SUBROUTINE my_newd()
   IF(.NOT. noncolin) CALL add_paw_to_deeq(deeq)
 
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
+
+  write(*,*) 'sum Deeq = ', sum(deeq)
 
   !
   RETURN

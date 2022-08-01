@@ -1,13 +1,6 @@
-!
-! Copyright (C) 2001-2005 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
 !-----------------------------------------------------------------------
 SUBROUTINE my_hinit0()
-  !-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
   !! Hamiltonian initialization: atomic position independent initialization
   !! for nonlocal PP, structure factors, local potential, core charge.
   !
