@@ -113,7 +113,7 @@ end subroutine fft_interpolate_real
 
 
 !-------------------------------------------------------------------
-subroutine fft_interpolate_complex (dfft_in, v_in, dfft_out, v_out )
+subroutine fft_interpolate_complex(dfft_in, v_in, dfft_out, v_out )
 !-------------------------------------------------------------------
   !
   !   This subroutine interpolates an array  v_in   defined on fft grid  dfft_in
@@ -141,21 +141,27 @@ subroutine fft_interpolate_complex (dfft_in, v_in, dfft_out, v_out )
 
   ELSE
 
-     ALLOCATE (aux_in( dfft_in%nnr))
+    write(*,*)
+    write(*,*) '@@@@ fft_interpolate_complex: two different grids'
+    write(*,*) '@@@@ fft_interpolate_complex: dfft_in%nnr = ', dfft_in%nnr
+    write(*,*) '@@@@ fft_interpolate_complex: dfft_out%nnr = ', dfft_out%nnr
+
+
+     ALLOCATE(aux_in( dfft_in%nnr))
 
      aux_in (1:dfft_in%nnr) = v_in(1:dfft_in%nnr)
 
-     CALL fwfft ('Rho', aux_in, dfft_in)
+     CALL fwfft('Rho', aux_in, dfft_in)
 
      v_out(1:dfft_out%nnr) = (0.d0, 0.d0)
 
      ngm = min(dfft_in%ngm, dfft_out%ngm)
 
-     v_out (dfft_out%nl (1:ngm) ) = aux_in (dfft_in%nl (1:ngm) )
+     v_out (dfft_out%nl (1:ngm) ) = aux_in(dfft_in%nl (1:ngm) )
 
-     CALL invfft ('Rho', v_out, dfft_out)
+     CALL invfft('Rho', v_out, dfft_out)
 
-     DEALLOCATE (aux_in)
+     DEALLOCATE(aux_in)
 
   END IF
 
