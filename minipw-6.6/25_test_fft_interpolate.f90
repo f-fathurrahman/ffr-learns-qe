@@ -22,7 +22,7 @@ subroutine test_interpolate()
   allocate( vout(dfftp%nnr) )
 
   vin(:) = 1.1d0
-  vin(1:10) = 2.5d0
+  vin(1:5) = 2.5d0
   vout(:) = 0.d0
 
   write(*,*) 'sum vin before fft_interpolate = ', sum(vin)
@@ -32,6 +32,7 @@ subroutine test_interpolate()
 
   write(*,*) 'sum vin after fft_interpolate = ', sum(vin)
   write(*,*) 'sum vout after fft_interpolate = ', sum(vout(1:dffts%nnr))
+  write(*,*) 'sum vout after fft_interpolate dfftp = ', sum(vout(1:dfftp%nnr))
 
   write(*,*) 'Some vin and vout'
   do i = 1,10

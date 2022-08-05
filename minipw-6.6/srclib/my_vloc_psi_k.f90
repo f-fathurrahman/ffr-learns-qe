@@ -66,7 +66,7 @@ SUBROUTINE my_vloc_psi_k( lda, n, m, psi, v, hpsi )
     CALL invfft('Wave', psic, dffts)
     !
     DO j = 1, dffts%nnr
-      psic (j) = psic(j) * v(j)
+      psic(j) = psic(j) * v(j)
     ENDDO
     !
     CALL fwfft('Wave', psic, dffts)
@@ -74,7 +74,7 @@ SUBROUTINE my_vloc_psi_k( lda, n, m, psi, v, hpsi )
     !   addition to the total product
     !
     DO j = 1, n
-       hpsi(j, ibnd)   = hpsi(j, ibnd)   + psic(dffts%nl(igk_k(j,current_k)))
+       hpsi(j,ibnd)   = hpsi(j,ibnd)   + psic(dffts%nl(igk_k(j,current_k)))
     ENDDO
 
   ENDDO

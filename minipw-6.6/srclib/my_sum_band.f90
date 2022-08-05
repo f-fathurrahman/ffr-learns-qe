@@ -1,14 +1,6 @@
-!
-! Copyright (C) 2001-2020 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
-!
 !----------------------------------------------------------------------------
 SUBROUTINE my_sum_band()
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !! Calculates the symmetrized charge density and related quantities.  
   !! Also computes the occupations and the sum of occupied eigenvalues.
   !
@@ -130,7 +122,7 @@ SUBROUTINE my_sum_band()
   CALL mp_sum( rho%of_r, inter_bgrp_comm )
   IF ( noncolin .AND. .NOT. domag ) rho%of_r(:,2:4)=0.D0
   
-  ! ... bring the unsymmetrized rho(r) to G-space (use psic as work array)
+  ! bring the unsymmetrized rho(r) to G-space (use psic as work array)
   DO is = 1, nspin
      psic(1:dffts%nnr) = rho%of_r(1:dffts%nnr,is)
      psic(dffts%nnr+1:) = 0.0_dp
@@ -162,7 +154,7 @@ SUBROUTINE my_sum_band()
      !
      ! ... Here we add the (unsymmetrized) Ultrasoft contribution to the charge
      !
-     CALL my_addusdens(rho%of_g(:,:))
+     CALL my_addusdens( rho%of_g(:,:) )
   ENDIF
 
   ! symmetrize rho(G) 
@@ -279,13 +271,14 @@ SUBROUTINE my_sum_band_k()
          psic(dffts%nl(igk_k(j,ik))) = evc(j,ibnd)
       ENDDO
 
-      CALL invfft('Wave', psic, dffts)
+      CALL invfft('Wave', psic, dffts) ! to real space
 
       ! increment the charge density
+      ! The operation is done on smooth grid 
       CALL get_rho( rho%of_r(:,current_spin), dffts%nnr, w1, psic )
 
       IF( dft_is_meta() .OR. lxdm) THEN
-         DO j=1,3
+        DO j=1,3
           psic(:) = ( 0.D0, 0.D0 )
           !
           kplusg (1:npw) = (xk(j,ik)+g(j,igk_k(1:npw,ik))) * tpiba
@@ -297,10 +290,10 @@ SUBROUTINE my_sum_band_k()
           ! ... increment the kinetic energy density ...
           !
           CALL get_rho(rho%kin_r(:,current_spin), dffts%nnr, w1, psic)
-         ENDDO
+        ENDDO
       ENDIF ! dft_is_meta
     
-    END DO
+    ENDDO
 
     ! If we have a US pseudopotential we compute here the becsum term
     IF( okvan ) CALL my_sum_bec( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd ) 
