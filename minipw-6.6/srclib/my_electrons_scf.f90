@@ -278,8 +278,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       ! mix_rho contains a call to rho_ddot that in the PAW case
       ! is parallelized on the entire image
       !
-      CALL mix_rho( rho, rhoin, mixing_beta, dr2, tr2_min, iter, nmix, &
-                    iunmix, conv_elec )
+      CALL my_mix_rho( rho, rhoin, mixing_beta, dr2, tr2_min, iter, nmix, &
+                      iunmix, conv_elec )
         
 
       ! Results are broadcast from pool 0 to others to prevent trouble
