@@ -343,6 +343,7 @@ my_h_psi.o : my_h_psi.f90 fft_helper_subroutines.o exx.o fft_base.o realus.o con
 my_init_run.o : my_init_run.f90 uspp.o uspp.o ions_base.o Coul_cut_2D.o tsvdw.o esm.o my_newd.o recvec_subs.o funct.o fft_base.o bp_mod.o paw_init.o paw_variables.o dynamics_module.o pwcom.o cell_base.o recvec.o recvec.o control_flags.o pwcom.o symme.o pwcom.o 
 my_init_us_2.o : my_init_us_2.f90 uspp.o uspp.o splinelib.o gth.o pwcom.o pwcom.o recvec.o constants.o cell_base.o ions_base.o kind.o 
 my_init_wfc.o : my_init_wfc.f90 funct.o mp.o mp_bands.o random_numbers.o wavefunctions.o noncol.o uspp.o pwcom.o pwcom.o recvec.o atomic_wfc_mod.o constants.o becmod.o bp_mod.o kind.o 
+my_mix_rho.o : my_mix_rho.f90 fft_interfaces.o fft_base.o mp_bands.o mp.o wavefunctions.o pwcom.o cell_base.o constants.o io_files.o io_global.o scf_mod.o uspp.o control_flags.o pwcom.o recvec.o recvec.o ions_base.o kind.o 
 my_newd.o : my_newd.f90 ldaU.o realus.o pwcom.o uspp.o mp.o mp_pools.o mp_bands.o noncol.o wavefunctions.o control_flags.o uspp.o scf_mod.o pwcom.o recvec.o fft_interfaces.o fft_base.o cell_base.o ions_base.o kind.o 
 my_potinit.o : my_potinit.f90 paw_onecenter.o paw_init.o paw_variables.o uspp.o fft_rho.o io_base.o io_rho_xml.o mp_bands.o mp.o pwcom.o io_files.o noncol.o ldaU.o pwcom.o funct.o scf_mod.o control_flags.o recvec.o recvec.o fft_base.o pwcom.o pwcom.o atomic_wfc_mod.o ions_base.o cell_base.o io_global.o constants.o kind.o 
 my_qvan2.o : my_qvan2.f90 uspp.o uspp.o pwcom.o kind.o 

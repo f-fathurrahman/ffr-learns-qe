@@ -475,6 +475,12 @@ CONTAINS
    ! ... local variable
    !
    INTEGER :: is
+
+   write(*,*)
+   write(*,*) 'high_frequency_mixing: ngms = ', ngms
+   write(*,*) 'high_frequency_mixing: ngm = ', ngm   
+   write(*,*)
+
    !
    IF (ngms < ngm ) THEN
       !
@@ -503,6 +509,9 @@ CONTAINS
       ENDIF
       !
    ELSE
+
+      write(*,*) 'high_frequency_mixing: set to zero'
+
       !
       rhoin%of_g(:,:)= (0.d0,0.d0)
       rhoin%of_r(:,:)= 0.d0

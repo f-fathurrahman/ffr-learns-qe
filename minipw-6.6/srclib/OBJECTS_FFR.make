@@ -28,6 +28,7 @@ my_v_of_rho.o my_v_h.o my_v_xc.o my_v_xc_meta.o \
 my_set_vrs.o \
 jl_comm_module.o \
 my_hinit0.o my_setlocal.o \
+my_mix_rho.o \
 info_upf.o
 
 # fft_interpolate is defined as an interface
