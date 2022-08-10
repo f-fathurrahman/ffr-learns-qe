@@ -131,53 +131,53 @@ SUBROUTINE PAW_atomic_becsum()
   na_loop: DO na = 1, nat
     nt = ityp(na)
     is_paw: IF (upf(nt)%tpawp) THEN
-       !
-       ijh = 1
-       ih_loop: DO ih = 1, nh(nt)
-          nb = indv(ih,nt)
+      !
+      ijh = 1
+      ih_loop: DO ih = 1, nh(nt)
+        nb = indv(ih,nt)
+        !
+        IF (nspin == 1) THEN
           !
-          IF (nspin == 1) THEN
-             !
-             becsum(ijh,na,1) = upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-             !
-          ELSEIF (nspin == 2) THEN
-             !
-             becsum(ijh,na,1) = 0.5_dp*(1._DP+starting_magnetization(nt))* &
-                                upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-             becsum(ijh,na,2) = 0.5_dp*(1._DP-starting_magnetization(nt))* &
-                                upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
-             !
-          ELSEIF (nspin == 4) THEN
-             !
-             becsum(ijh,na,1) = upf(nt)%paw%oc(nb)/DBLE(2*nhtol(ih,nt)+1)
-             IF (nspin_mag == 4) THEN
-                becsum(ijh,na,2) = becsum(ijh,na,1) *              &
-                                   starting_magnetization(nt)*     &
-                                   SIN(angle1(nt))*COS(angle2(nt))
-                becsum(ijh,na,3) = becsum(ijh,na,1) *              &
-                                   starting_magnetization(nt)*     &
-                                   SIN(angle1(nt))*SIN(angle2(nt))
-                becsum(ijh,na,4) = becsum(ijh,na,1) *              &
-                                   starting_magnetization(nt)*     &
-                                   COS(angle1(nt))
-             ENDIF
-             !
+          becsum(ijh,na,1) = upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          !
+        ELSEIF (nspin == 2) THEN
+          !
+          becsum(ijh,na,1) = 0.5_dp*(1._DP+starting_magnetization(nt))* &
+                             upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          becsum(ijh,na,2) = 0.5_dp*(1._DP-starting_magnetization(nt))* &
+                             upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          !
+        ELSEIF (nspin == 4) THEN
+          !
+          becsum(ijh,na,1) = upf(nt)%paw%oc(nb)/DBLE(2*nhtol(ih,nt)+1)
+          IF (nspin_mag == 4) THEN
+            becsum(ijh,na,2) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               SIN(angle1(nt))*COS(angle2(nt))
+            becsum(ijh,na,3) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               SIN(angle1(nt))*SIN(angle2(nt))
+            becsum(ijh,na,4) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               COS(angle1(nt))
           ENDIF
+          !
+        ENDIF
+        !
+        ijh = ijh + 1
+        !
+        jh_loop: &
+         DO jh = ( ih + 1 ), nh(nt)
+          !mb = indv(jh,nt)
+          DO ispin = 1, nspin_mag
+            IF (noise > 0._DP) &
+               becsum(ijh,na,ispin) = becsum(ijh,na,ispin) + noise *2._DP*(.5_DP-randy())
+          ENDDO
           !
           ijh = ijh + 1
           !
-          jh_loop: &
-           DO jh = ( ih + 1 ), nh(nt)
-             !mb = indv(jh,nt)
-             DO ispin = 1, nspin_mag
-                IF (noise > 0._DP) &
-                   becsum(ijh,na,ispin) = becsum(ijh,na,ispin) + noise *2._DP*(.5_DP-randy())
-             ENDDO
-             !
-             ijh = ijh + 1
-             !
-          ENDDO jh_loop
-       ENDDO ih_loop
+        ENDDO jh_loop
+      ENDDO ih_loop
     ENDIF is_paw
   ENDDO na_loop
   !
@@ -238,10 +238,11 @@ SUBROUTINE PAW_init_onecenter()
   max_nx = 0
   max_mesh = 0
   !
+  ! Calculate total_core_energy (will be reported at the end of SCF loop)
   DO na = 1, nat
     only_paw = only_paw .AND. upf(ityp(na))%tpawp
     !
-    IF ( upf(ityp(na))%tpawp ) &
+    IF( upf(ityp(na))%tpawp ) &
     total_core_energy = total_core_energy + upf(ityp(na))%paw%core_energy
   ENDDO
   !
@@ -425,44 +426,44 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   ! to initialize the gradient of ylm, as we are working in spherical
   ! coordinates the formula involves \hat{theta} and \hat{phi}
   gradient: IF (dft_is_gradient()) THEN
-      ALLOCATE( rad%dylmt(rad%nx,rad%lm_max), &
-                rad%dylmp(rad%nx,rad%lm_max), &
-                aux(rad%nx,rad%lm_max) )
-      ALLOCATE( rad%cotg_th(rad%nx) )
+    ALLOCATE( rad%dylmt(rad%nx,rad%lm_max), &
+              rad%dylmp(rad%nx,rad%lm_max), &
+              aux(rad%nx,rad%lm_max) )
+    ALLOCATE( rad%cotg_th(rad%nx) )
+    !
+    rad%dylmt(:,:) = 0._DP
+    rad%dylmp(:,:) = 0._DP
+    !
+    ! Compute derivative along x, y and z => gradient, then compute the
+    ! scalar products with \hat{theta} and \hat{phi} and store them in
+    ! dylmt and dylmp respectively.
+    !
+    DO ipol = 1, 3 !x,y,z
       !
-      rad%dylmt(:,:) = 0._DP
-      rad%dylmp(:,:) = 0._DP
+      CALL dylmr2( rad%lm_max, rad%nx, r,r2, aux, ipol )
       !
-      ! Compute derivative along x, y and z => gradient, then compute the
-      ! scalar products with \hat{theta} and \hat{phi} and store them in
-      ! dylmt and dylmp respectively.
-      !
-      DO ipol = 1, 3 !x,y,z
-          !
-          CALL dylmr2( rad%lm_max, rad%nx, r,r2, aux, ipol )
-          !
-          DO lm = 1, rad%lm_max
-            DO i = 1, rad%nx
-              vph = (/-SIN(aph(i)), COS(aph(i)), 0._DP/)
-              ! this is the explicit form, but the cross product trick (below) is much faster:
-              ! vth = (/COS(aph(i))*COS(ath(i)), SIN(aph(i))*COS(ath(i)), -SIN(ath(i))/)
-              vth = (/vph(2)*r(3,i)-vph(3)*r(2,i),&
-                      vph(3)*r(1,i)-vph(1)*r(3,i),&
-                      vph(1)*r(2,i)-vph(2)*r(1,i)/)
-              rad%dylmt(i,lm) = rad%dylmt(i,lm) + aux(i,lm)*vth(ipol)
-              ! CHECK: the 1/SIN(th) factor should be correct, but deals wrong result, why?
-              rad%dylmp(i,lm) = rad%dylmp(i,lm) + aux(i,lm)*vph(ipol) !/SIN(ath(i))
-            ENDDO
-          ENDDO
-          !
+      DO lm = 1, rad%lm_max
+        DO i = 1, rad%nx
+          vph = (/-SIN(aph(i)), COS(aph(i)), 0._DP/)
+          ! this is the explicit form, but the cross product trick (below) is much faster:
+          ! vth = (/COS(aph(i))*COS(ath(i)), SIN(aph(i))*COS(ath(i)), -SIN(ath(i))/)
+          vth = (/vph(2)*r(3,i)-vph(3)*r(2,i),&
+                  vph(3)*r(1,i)-vph(1)*r(3,i),&
+                  vph(1)*r(2,i)-vph(2)*r(1,i)/)
+          rad%dylmt(i,lm) = rad%dylmt(i,lm) + aux(i,lm)*vth(ipol)
+          ! CHECK: the 1/SIN(th) factor should be correct, but deals wrong result, why?
+          rad%dylmp(i,lm) = rad%dylmp(i,lm) + aux(i,lm)*vph(ipol) !/SIN(ath(i))
+        ENDDO
       ENDDO
       !
-      DO i = 1, rad%nx
-         rad%cotg_th(i) = COS(ath(i))/SIN(ath(i))
-      ENDDO
-      !
-      DEALLOCATE( aux )
-      !
+    ENDDO
+    !
+    DO i = 1, rad%nx
+       rad%cotg_th(i) = COS(ath(i))/SIN(ath(i))
+    ENDDO
+    !
+    DEALLOCATE( aux )
+    !
   ENDIF gradient
   ! cleanup
   DEALLOCATE( r, r2, ath, aph )
