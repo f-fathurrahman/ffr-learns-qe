@@ -106,9 +106,9 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
 #if defined(__LIBXC)
   !
 
-  write(*,*)
-  write(*,*) '@@@@@@ Pass here 109 in xc_lda_lsda_drivers'
-  write(*,*)
+  !write(*,*)
+  !write(*,*) '@@@@@@ Pass here 109 in xc_lda_lsda_drivers'
+  !write(*,*)
 
   fkind_x = -1
   lengthxc = length
@@ -178,7 +178,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
      SELECT CASE( sr_d )
      CASE( 1 )
         !
-        write(*,*) 'sum(abs(rho_in(:,1)) = ', sum(abs(rho_in(:,1)))
+        !write(*,*) 'sum(abs(rho_in(:,1)) = ', sum(abs(rho_in(:,1)))
         CALL xc_lda( length, ABS(rho_in(:,1)), ex_out, ec_out, vx_out(:,1), vc_out(:,1) )
         !
      CASE( 2 )

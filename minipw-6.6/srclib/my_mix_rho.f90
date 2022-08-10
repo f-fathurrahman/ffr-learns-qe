@@ -130,7 +130,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   conv = ( dr2 < tr2 )
   !
-  IF ( conv .OR. dr2 < tr2_min ) THEN
+  IF( conv .OR. dr2 < tr2_min ) THEN
      !
      ! ... if convergence is achieved or if the self-consistency error (dr2) is
      ! ... smaller than the estimated error due to diagonalization (tr2_min),
@@ -154,11 +154,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
      !
      IF ( ALLOCATED( dv_nsg ) ) DEALLOCATE( dv_nsg )
      IF ( ALLOCATED( df_nsg ) ) DEALLOCATE( df_nsg )
-  
-
-     !
      RETURN
-     !
   ENDIF
 
   IF( .NOT. ALLOCATED( df ) ) THEN
@@ -196,8 +192,8 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
      CALL davcio_mix_type( df(ipos), iunmix, 1, read_ )
      CALL davcio_mix_type( dv(ipos), iunmix, 2, read_ )
      !
-     call mix_type_AXPY ( -1.d0, rhout_m, df(ipos) )
-     call mix_type_AXPY ( -1.d0, rhoin_m, dv(ipos) )
+     call mix_type_AXPY( -1.d0, rhout_m, df(ipos) )
+     call mix_type_AXPY( -1.d0, rhoin_m, dv(ipos) )
   ENDIF
   !
   DO i = 1, iter_used
@@ -225,15 +221,11 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     betamix = 0._dp
     !
     DO i = 1, iter_used
-        !
-        DO j = i, iter_used
-            !
-            betamix(i,j) = rho_ddot( df(j), df(i), ngm0 )
-            betamix(j,i) = betamix(i,j)
-            !
-        END DO
-        !
-    END DO
+      DO j = i, iter_used
+        betamix(i,j) = rho_ddot( df(j), df(i), ngm0 )
+        betamix(j,i) = betamix(i,j)
+      ENDDO
+    ENDDO
     !
     !   allocate(e(iter_used), v(iter_used, iter_used))
     !   CALL rdiagh(iter_used, betamix, iter_used, e, v)
@@ -286,10 +278,11 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   ! ... preconditioning the new search direction
   !
+  write(*,*) 'imix = ', imix
   IF ( imix == 1 ) THEN
-    CALL approx_screening( rhout_m )
+    CALL my_approx_screening( rhout_m )
   ELSE IF ( imix == 2 ) THEN
-    CALL approx_screening2( rhout_m, rhoin_m )
+    CALL my_approx_screening2( rhout_m, rhoin_m )
   ENDIF
 
   !

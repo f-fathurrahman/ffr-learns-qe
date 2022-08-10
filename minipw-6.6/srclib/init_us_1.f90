@@ -68,9 +68,9 @@ subroutine init_us_1
   real(DP), EXTERNAL :: spinor
   !
 
-  !write(*,*)
-  !write(*,*) '*** Enter init_us_1'
-  !write(*,*)
+  write(*,*)
+  write(*,*) '***** Enter init_us_1'
+  write(*,*)
 
   call start_clock ('init_us_1')
   !
@@ -366,7 +366,7 @@ subroutine init_us_1
   call stop_clock ('init_us_1')
 
   write(*,*)
-  write(*,*) '*** Exit init_us_1'
+  write(*,*) '***** Exit init_us_1'
   write(*,*)
 
   return
