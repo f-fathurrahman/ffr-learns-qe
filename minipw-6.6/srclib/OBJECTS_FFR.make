@@ -29,6 +29,8 @@ my_set_vrs.o \
 jl_comm_module.o \
 my_hinit0.o my_setlocal.o \
 my_mix_rho.o \
+my_forces.o \
+my_force_us.o my_addusforce.o my_compute_deff.o \
 info_upf.o
 
 # fft_interpolate is defined as an interface
