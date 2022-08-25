@@ -22,18 +22,18 @@ SUBROUTINE my_addusforce( forcenl )
 END SUBROUTINE my_addusforce
 !
 !
+!! This routine computes the contribution to atomic forces due
+!! to the dependence of the Q function on the atomic position.
+!! \[ F_{j,\text{at}} = \sum_G \sum_{lm} iG_j\ \text{exp}(-iG*R_\text{at})
+!!    V^*(G)\ Q_{lm}(G)\ \text{becsum}(lm,\text{at}) \]
+!! where:
+!! \[ \text{becsum}(lm,\text{at}) = \sum_i \langle \psi_i|\beta_l\rangle
+!!    w_i\langle \beta_m|\psi_i\rangle \]
+!! On output: the contribution is added to \(\text{forcenl}\).
+!
 !----------------------------------------------------------------------
 SUBROUTINE my_addusforce_g( forcenl )
 !----------------------------------------------------------------------
-  !! This routine computes the contribution to atomic forces due
-  !! to the dependence of the Q function on the atomic position.
-  !! \[ F_{j,\text{at}} = \sum_G \sum_{lm} iG_j\ \text{exp}(-iG*R_\text{at})
-  !!    V^*(G)\ Q_{lm}(G)\ \text{becsum}(lm,\text{at}) \]
-  !! where:
-  !! \[ \text{becsum}(lm,\text{at}) = \sum_i \langle \psi_i|\beta_l\rangle
-  !!    w_i\langle \beta_m|\psi_i\rangle \]
-  !! On output: the contribution is added to \(\text{forcenl}\).
-  !
   USE kinds,              ONLY : DP
   USE ions_base,          ONLY : nat, ntyp => nsp, ityp
   USE cell_base,          ONLY : omega, tpiba
@@ -51,12 +51,11 @@ SUBROUTINE my_addusforce_g( forcenl )
   !
   IMPLICIT NONE
   !
-  REAL(DP), INTENT(INOUT) :: forcenl (3, nat)
+  REAL(DP), INTENT(INOUT) :: forcenl(3, nat)
   !! the non-local contribution to the force
   !
   ! ... local variables
   !
-  INTEGER  :: ngm_s, ngm_e, ngm_l
   ! starting/ending indices, local number of G-vectors
   INTEGER  :: ig, nt, ih, jh, ijh, nij, ipol, is, na, nb, nab
   REAL(DP) :: fact
@@ -80,110 +79,103 @@ SUBROUTINE my_addusforce_g( forcenl )
   ALLOCATE( vg(ngm,nspin_mag) )
   ALLOCATE( aux(dfftp%nnr) )
   DO is = 1, nspin_mag
-     IF (nspin_mag==4.AND.is/=1) THEN
-        aux(:) = v%of_r(:,is)
-     ELSE
-        aux(:) = vltot (:) + v%of_r (:, is)
-     ENDIF
-     CALL fwfft( 'Rho', aux, dfftp )
-     ! Note the factors -i and 2pi/a *units of G) here in V(G) !
-     vg(:, is) = aux(dfftp%nl(:)) * tpiba * (0.d0, -1.d0)
+    IF(nspin_mag == 4 .AND. is /= 1) THEN
+      aux(:) = v%of_r(:,is)
+    ELSE
+      aux(:) = vltot(:) + v%of_r(:,is)
+    ENDIF
+    CALL fwfft( 'Rho', aux, dfftp )
+    ! Note the factors -i and 2pi/a *units of G) here in V(G) !
+    vg(:,is) = aux(dfftp%nl(:)) * tpiba * (0.d0, -1.d0)
   ENDDO
   DEALLOCATE( aux )
+  ! Finish calculation V_eff(G)
+
+
+  ! Parallelization over G is disabled
+
+  ALLOCATE( ylmk0(ngm, lmaxq*lmaxq) )
+  CALL ylmr2( lmaxq * lmaxq, ngm, g(:,1:ngm), gg(1:ngm), ylmk0 )
   !
-  ! With k-point parallelization, distribute G-vectors across processors
-  ! ngm_s = index of first G-vector for this processor
-  ! ngm_e = index of last  G-vector for this processor
-  ! ngm_l = local number of G-vectors 
-  !
-  CALL divide( inter_pool_comm, ngm, ngm_s, ngm_e )
-  ngm_l = ngm_e-ngm_s+1
-  ! for the extraordinary unlikely case of more processors than G-vectors
-  IF ( ngm_l <= 0 ) GO TO 10
-  !
-  ALLOCATE( ylmk0(ngm_l,lmaxq*lmaxq) )
-  CALL ylmr2( lmaxq * lmaxq, ngm_l, g(1,ngm_s), gg(ngm_s), ylmk0 )
-  !
-  ALLOCATE( qmod(ngm_l) )
-  DO ig = 1, ngm_l
-     qmod(ig) = SQRT( gg(ngm_s+ig-1) )*tpiba
+  ALLOCATE( qmod(ngm) )
+  DO ig = 1, ngm
+    qmod(ig) = SQRT( gg(ig) )*tpiba
   ENDDO
   !
   DO nt = 1, ntyp
-     IF ( upf(nt)%tvanp ) THEN
-        !
-        ! nij = max number of (ih,jh) pairs per atom type nt
-        ! qgm contains the Q functions in G space
-        !
-        nij = nh(nt)*(nh(nt)+1)/2
-        ALLOCATE( qgm(ngm_l,nij) )
-        ijh = 0
-        DO ih = 1, nh (nt)
-           DO jh = ih, nh (nt)
-              ijh = ijh + 1
-              CALL qvan2( ngm_l, ih, jh, nt, qmod, qgm(1,ijh), ylmk0 )
-           ENDDO
+    IF ( upf(nt)%tvanp ) THEN
+      !
+      ! nij = max number of (ih,jh) pairs per atom type nt
+      ! qgm contains the Q functions in G space
+      !
+      nij = nh(nt)*(nh(nt)+1)/2
+      ALLOCATE( qgm(ngm,nij) )
+      ijh = 0
+      DO ih = 1, nh(nt)
+        DO jh = ih, nh(nt)
+          ijh = ijh + 1
+          CALL qvan2( ngm, ih, jh, nt, qmod, qgm(:,ijh), ylmk0 )
         ENDDO
-        !
-        ! nab = number of atoms of type nt
-        !
-        nab = 0
+      ENDDO
+      !
+      ! nab = number of atoms of type nt
+      !
+      nab = 0
+      DO na = 1, nat
+        IF( ityp(na) == nt ) nab = nab + 1
+      ENDDO
+      ALLOCATE( aux1(ngm, nab, 3) )
+      ALLOCATE( ddeeq(nij, nab, 3, nspin_mag) )
+      !
+      DO is = 1, nspin_mag
+        nb = 0
         DO na = 1, nat
-           IF ( ityp(na) == nt ) nab = nab + 1
-        ENDDO
-        ALLOCATE ( aux1( ngm_l, nab, 3) )
-        ALLOCATE ( ddeeq(nij, nab, 3, nspin_mag) )
-        !
-        DO is = 1, nspin_mag
-           nb = 0
-           DO na = 1, nat
-              IF (ityp(na) == nt) THEN
-                 nb = nb + 1
-                 !
-                 ! aux1 = product of potential, structure factor and iG
-                 !
-                 do ig = 1, ngm_l
-                    cfac = vg(ngm_s+ig-1, is) * &
-                         CONJG(eigts1(mill(1,ngm_s+ig-1),na) * &
-                               eigts2(mill(2,ngm_s+ig-1),na) * &
-                               eigts3(mill(3,ngm_s+ig-1),na) )
-                    aux1(ig, nb, 1) = g(1,ngm_s+ig-1) * cfac
-                    aux1(ig, nb, 2) = g(2,ngm_s+ig-1) * cfac
-                    aux1(ig, nb, 3) = g(3,ngm_s+ig-1) * cfac
-                 enddo
-                 !
-              ENDIF
-           ENDDO
-           !
-           !    ddeeq = dot product of aux1 with the Q functions
-           !    No need for special treatment of the G=0 term (is zero)
-           !
-           DO ipol = 1, 3
-              CALL DGEMM( 'C', 'N', nij, nab, 2*ngm_l, fact, qgm, 2*ngm_l, &
-                   aux1(1,1,ipol), 2*ngm_l, 0.0_dp, ddeeq(1,1,ipol,is), nij )
-           ENDDO
-           !
+          IF (ityp(na) == nt) THEN
+            nb = nb + 1
+            !
+            ! aux1 = product of potential, structure factor and iG
+            !
+            DO ig = 1, ngm
+              cfac = vg(ig, is) * &
+                   CONJG(eigts1(mill(1,ig),na) * &
+                         eigts2(mill(2,ig),na) * &
+                         eigts3(mill(3,ig),na) )
+              aux1(ig,nb,1) = g(1,ig) * cfac
+              aux1(ig,nb,2) = g(2,ig) * cfac
+              aux1(ig,nb,3) = g(3,ig) * cfac
+            ENDDO
+            !
+          ENDIF
         ENDDO
         !
-        DEALLOCATE(aux1)
-        DEALLOCATE(qgm)
+        ! ddeeq = dot product of aux1 with the Q functions
+        ! No need for special treatment of the G=0 term (is zero)
         !
-        DO is = 1, nspin_mag
-           nb = 0
-           DO na = 1, nat
-              IF (ityp(na) == nt) THEN
-                 nb = nb + 1
-                 DO ipol = 1, 3
-                    DO ijh = 1, nij
-                       forceq(ipol, na) = forceq(ipol, na) + &
-                            ddeeq(ijh, nb, ipol, is) * becsum(ijh, na, is)
-                    ENDDO
-                 ENDDO
-              ENDIF
-           ENDDO
+        DO ipol = 1, 3
+          CALL DGEMM( 'C', 'N', nij, nab, 2*ngm, fact, qgm, 2*ngm, &
+               aux1(1,1,ipol), 2*ngm, 0.0_dp, ddeeq(1,1,ipol,is), nij )
         ENDDO
-        DEALLOCATE( ddeeq )
-     ENDIF
+        !
+      ENDDO
+      !
+      DEALLOCATE(aux1)
+      DEALLOCATE(qgm)
+      !
+      DO is = 1, nspin_mag
+        nb = 0
+        DO na = 1, nat
+          IF( ityp(na) == nt ) THEN
+            nb = nb + 1
+            DO ipol = 1, 3
+              DO ijh = 1, nij
+                 forceq(ipol,na) = forceq(ipol,na) + ddeeq(ijh,nb,ipol,is) * becsum(ijh,na,is)
+              ENDDO
+            ENDDO
+          ENDIF
+        ENDDO
+      ENDDO
+      DEALLOCATE( ddeeq )
+    ENDIF
   ENDDO
   !
   10 CONTINUE
