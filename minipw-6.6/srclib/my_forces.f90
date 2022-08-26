@@ -88,7 +88,7 @@ SUBROUTINE my_forces()
   !
   ! ... The local contribution
   !
-  CALL force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl,       &
+  CALL my_force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl,       &
                  g, rho%of_r(:,1), dfftp%nl, gstart, gamma_only, vloc, &
                  forcelc )
   !
@@ -96,12 +96,12 @@ SUBROUTINE my_forces()
   !
   CALL force_cc( forcecc )
   !
-  ! ... The Hubbard contribution
-  !     (included by force_us if using beta as local projectors)
+  ! The Hubbard contribution
+  ! (included by force_us if using beta as local projectors)
   !
   IF( lda_plus_u .AND. U_projection .NE. 'pseudo' ) CALL force_hub( forceh )
   !
-  ! ... The ionic contribution is computed here
+  ! The ionic contribution is computed here
   !
   IF( do_comp_esm ) THEN
      CALL esm_force_ew( forceion )
@@ -110,7 +110,7 @@ SUBROUTINE my_forces()
                     gg, ngm, gstart, gamma_only, gcutm, strf, forceion )
   ENDIF
   !
-  ! ... the semi-empirical dispersion correction
+  ! the semi-empirical dispersion correction
   !
   IF ( llondon ) THEN
     !
@@ -387,8 +387,6 @@ SUBROUTINE my_forces()
   IF ( lelfield ) DEALLOCATE( forces_bp_efield )
   !
   lforce = .TRUE.
-  !
-  CALL stop_clock( 'forces' )
   !
   IF ( ( sumfor < 10.D0*sumscf ) .AND. ( sumfor > nat*eps ) ) &
   WRITE( stdout,'(5x,"SCF correction compared to forces is large: ", &
