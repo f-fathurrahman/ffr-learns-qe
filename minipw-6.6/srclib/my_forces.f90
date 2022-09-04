@@ -21,7 +21,6 @@ SUBROUTINE my_forces()
   USE ions_base,         ONLY : nat, ntyp => nsp, ityp, tau, zv, amass, extfor, atm
   USE fft_base,          ONLY : dfftp
   USE gvect,             ONLY : ngm, gstart, ngl, igtongl, g, gg, gcutm
-  USE lsda_mod,          ONLY : nspin
   USE symme,             ONLY : symvector
   USE vlocal,            ONLY : strf, vloc
   USE force_mod,         ONLY : force, lforce, sumfor
