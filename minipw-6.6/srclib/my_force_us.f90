@@ -51,9 +51,8 @@ SUBROUTINE my_force_us( forcenl )
   ELSEIF (.NOT. gamma_only ) THEN
     ALLOCATE( deff(nhm,nhm,nat) )
   ENDIF
-  !
-  ! ... the forces are a sum over the K points and over the bands
-  !   
+
+  ! The forces are a sum over the K points and over the bands
   DO ik = 1, nks
     !
     IF( lsda ) current_spin = isk(ik)
@@ -66,22 +65,20 @@ SUBROUTINE my_force_us( forcenl )
     CALL calbec( npw, vkb, evc, becp )
     !
     DO ipol = 1, 3
+      ! Calculate derivative of Vkb in G-space
       DO jkb = 1, nkb
-         DO ig = 1, npw
-            vkb1(ig,jkb) = vkb(ig,jkb) * (0.D0,-1.D0) * g(ipol,igk_k(ig,ik))
-         ENDDO
+        DO ig = 1, npw
+          vkb1(ig,jkb) = vkb(ig,jkb) * (0.D0,-1.D0) * g(ipol,igk_k(ig,ik))
+        ENDDO
       ENDDO
-      !
+      ! betaNL  psi 
       CALL calbec( npw, vkb1, evc, dbecp )
       !
+      ! this will call sum over bands
       IF( gamma_only ) THEN
-        !
         CALL my_force_us_gamma( forcenl )
-        !
       ELSE
-        !
         CALL my_force_us_k( forcenl )
-        !
       ENDIF
     ENDDO
   ENDDO
@@ -206,38 +203,34 @@ SUBROUTINE my_force_us_k( forcenl )
     fac = wg(ibnd,ik)*tpiba
     !
     DO nt = 1, ntyp
-        DO na = 1, nat
-           ijkb0 = indv_ijkb0(na)
-           IF ( ityp(na) == nt ) THEN
-              DO ih = 1, nh(nt)
-                 ikb = ijkb0 + ih
-                  forcenl(ipol,na) = forcenl(ipol,na) -   &
-                       2.D0 * fac * deff(ih,ih,na)*       &
-                       DBLE( CONJG( dbecp%k(ikb,ibnd) ) * &
-                       becp%k(ikb,ibnd) )
-              ENDDO
-              !
-              IF ( upf(nt)%tvanp .OR. upf(nt)%is_multiproj ) THEN
-                 DO ih = 1, nh(nt)
-                    ikb = ijkb0 + ih
-                    !
-                    ! ... in US case there is a contribution for jh<>ih. 
-                    ! ... We use here the symmetry in the interchange 
-                    ! ... of ih and jh
-                    !
-                    DO jh = ( ih + 1 ), nh(nt)
-                      jkb = ijkb0 + jh
-                      forcenl(ipol,na) = forcenl(ipol,na) -     &
-                           2.D0 * fac * deff(ih,jh,na) *        &
-                           DBLE( CONJG( dbecp%k(ikb,ibnd) ) *   &
-                           becp%k(jkb,ibnd) + dbecp%k(jkb,ibnd) &
-                           * CONJG( becp%k(ikb,ibnd) ) )
-                    ENDDO !jh
-                 ENDDO !ih
-              ENDIF ! tvanp
-              !
-           ENDIF ! ityp(na) == nt
-        ENDDO ! nat
+      DO na = 1, nat
+        ijkb0 = indv_ijkb0(na)
+        IF( ityp(na) == nt ) THEN
+          DO ih = 1, nh(nt)
+            ikb = ijkb0 + ih
+            forcenl(ipol,na) = forcenl(ipol,na) - 2.D0*fac*deff(ih,ih,na) * &
+                   DBLE( CONJG(dbecp%k(ikb,ibnd)) * becp%k(ikb,ibnd) )
+          ENDDO
+          !
+          IF ( upf(nt)%tvanp .OR. upf(nt)%is_multiproj ) THEN
+             DO ih = 1, nh(nt)
+                ikb = ijkb0 + ih
+                ! in US case there is a contribution for jh<>ih. 
+                ! We use here the symmetry in the interchange 
+                ! of ih and jh
+                DO jh = ( ih + 1 ), nh(nt)
+                  jkb = ijkb0 + jh
+                  forcenl(ipol,na) = forcenl(ipol,na) -     &
+                       2.D0 * fac * deff(ih,jh,na) *        &
+                       DBLE( CONJG( dbecp%k(ikb,ibnd) ) *   &
+                       becp%k(jkb,ibnd) + dbecp%k(jkb,ibnd) &
+                       * CONJG( becp%k(ikb,ibnd) ) )
+                ENDDO !jh
+             ENDDO !ih
+          ENDIF ! tvanp
+          !
+        ENDIF ! ityp(na) == nt
+      ENDDO ! nat
      ENDDO ! ntyp
   ENDDO ! nbnd
   !
