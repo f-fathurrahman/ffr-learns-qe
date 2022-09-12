@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------
-subroutine my_force_corr(forcescc)
+SUBROUTINE my_force_corr(forcescc)
 !-----------------------------------------------------------------------
   !   This routine calculates the force term vanishing at full
   !     self-consistency. It follows the suggestion of Chan-Bohnen-Ho
@@ -25,74 +25,75 @@ subroutine my_force_corr(forcescc)
   USE mp_bands,             ONLY : intra_bgrp_comm
   USE mp,                   ONLY : mp_sum
   !
-  implicit none
+  IMPLICIT NONE 
   !
-  real(DP) :: forcescc(3,nat)
+  REAL(DP) :: forcescc(3,nat)
   !
-  real(DP), allocatable :: rhocgnt(:), aux(:) ! work space
-  real(DP) ::  gx, arg, fact ! temp factors
-  integer :: ir, isup, isdw, ig, nt, na, ndm ! counters
+  REAL(DP), ALLOCATABLE :: rhocgnt(:), aux(:) ! work space
+  REAL(DP) ::  gx, arg, fact ! temp factors
+  INTEGER :: ir, isup, isdw, ig, nt, na, ndm ! counters
   !
   ! vnew is V_out - V_in, psic is the temp space
   !
-  if (nspin == 1 .or. nspin == 4) then
+  IF( nspin == 1 .or. nspin == 4 ) THEN 
     psic(:) = vnew%of_r(:, 1)
-  else
+  ELSE 
     isup = 1
     isdw = 2
     psic(:) = ( vnew%of_r(:, isup) + vnew%of_r(:, isdw) ) * 0.5d0
-  endif
+  ENDIF
   !
   ndm = MAXVAL( msh(1:ntyp) )
-  allocate( rhocgnt(ngl) )
+  ALLOCATE( rhocgnt(ngl) )
 
-  CALL fwfft ('Rho', psic, dfftp)
+  CALL fwfft('Rho', psic, dfftp)
 
-  if (gamma_only) then
+  IF( gamma_only ) THEN 
     fact = 2.d0
-  else
+  ELSE 
     fact = 1.d0
-  endif
+  ENDIF
 
 
-  allocate ( aux(ndm) )
+  ALLOCATE( aux(ndm) )
   !
-  do nt = 1, ntyp
+  DO nt = 1, ntyp
     !
-    ! Here we compute the G.ne.0 term
+    ! Here we compute the G /= 0 term
     !
-    do ig = gstart, ngl
+    DO ig = gstart, ngl
       gx = sqrt (gl (ig) ) * tpiba
-      do ir = 1, msh (nt)
-        if (rgrid(nt)%r(ir) .lt.1.0d-8) then
+      DO ir = 1, msh (nt)
+        IF( rgrid(nt)%r(ir) .lt. 1.0d-8 ) THEN 
           aux(ir) = upf(nt)%rho_at (ir)
-        else
+        ELSE 
           aux(ir) = upf(nt)%rho_at(ir) * sin(gx*rgrid(nt)%r(ir)) / (rgrid(nt)%r(ir)*gx)
-        endif
-      enddo
-      call simpson( msh(nt), aux, rgrid(nt)%rab, rhocgnt(ig) )
-    enddo
-
-    do na = 1, nat
-      if( nt .eq. ityp(na) ) then
+        ENDIF 
+      ENDDO 
+      CALL simpson( msh(nt), aux, rgrid(nt)%rab, rhocgnt(ig) )
+    ENDDO 
+    ! sum over atoms
+    DO na = 1, nat
+      IF( nt == ityp(na) ) THEN 
         forcescc(1:3, na) = 0.0_DP
-        do ig = gstart, ngm
+        ! sum over G-vectors
+        DO ig = gstart, ngm
           arg = ( g(1,ig) * tau(1,na) + g(2,ig) * tau(2,na) + g(3,ig) * tau(3,na) ) * tpi
-          forcescc (1:3, na) = forcescc (1:3, na) + fact * &
-                  rhocgnt (igtongl(ig) ) * CMPLX(sin(arg),cos(arg),kind=DP) * &
+          forcescc(1:3,na) = forcescc(1:3,na) + fact * &
+                  rhocgnt(igtongl(ig) ) * CMPLX(sin(arg),cos(arg),kind=DP) * &
                   g(1:3,ig) * tpiba * CONJG(psic(dfftp%nl(ig)))
-        enddo
-      endif
-    enddo
+        ENDDO 
+      ENDIF 
+    ENDDO 
     !
-  enddo
+  ENDDO
 
-  call mp_sum( forcescc, intra_bgrp_comm )
+  CALL mp_sum( forcescc, intra_bgrp_comm )
   
-  deallocate( aux )
-  deallocate( rhocgnt )
+  DEALLOCATE( aux )
+  DEALLOCATE( rhocgnt )
 
-  return
+  RETURN 
 
-end subroutine my_force_corr
+END SUBROUTINE my_force_corr
 

@@ -98,18 +98,19 @@ SUBROUTINE my_force_us( forcenl )
   CALL deallocate_bec_type( dbecp )
   CALL deallocate_bec_type( becp )
   !
-  ! ... collect contributions across pools from all k-points
+  ! collect contributions across pools from all k-points
   !
   CALL mp_sum( forcenl, inter_pool_comm )
   !
-  ! ... The total D matrix depends on the ionic position via the
-  ! ... augmentation part \int V_eff Q dr, the term deriving from the 
-  ! ... derivative of Q is added in the routine addusforce
+  ! The total D matrix depends on the ionic position via the
+  ! augmentation part \int V_eff Q dr, the term deriving from the 
+  ! derivative of Q is added in the routine addusforce
   !
+  ! ffr: Can be ignored when not using USPP
   CALL my_addusforce( forcenl )
   !
-  ! ... Since our summation over k points was only on the irreducible 
-  ! ... BZ we have to symmetrize the forces.
+  ! Since our summation over k points was only on the irreducible 
+  ! BZ we have to symmetrize the forces.
   !
   CALL symvector( nat, forcenl )
   !
@@ -175,8 +176,7 @@ SUBROUTINE my_force_us_gamma( forcenl )
   !
 END SUBROUTINE my_force_us_gamma
 !
-!
-!     
+
 !-----------------------------------------------------------------------
 SUBROUTINE my_force_us_k( forcenl )
 !-----------------------------------------------------------------------
@@ -212,21 +212,19 @@ SUBROUTINE my_force_us_k( forcenl )
                    DBLE( CONJG(dbecp%k(ikb,ibnd)) * becp%k(ikb,ibnd) )
           ENDDO
           !
-          IF ( upf(nt)%tvanp .OR. upf(nt)%is_multiproj ) THEN
-             DO ih = 1, nh(nt)
-                ikb = ijkb0 + ih
-                ! in US case there is a contribution for jh<>ih. 
-                ! We use here the symmetry in the interchange 
-                ! of ih and jh
-                DO jh = ( ih + 1 ), nh(nt)
-                  jkb = ijkb0 + jh
-                  forcenl(ipol,na) = forcenl(ipol,na) -     &
-                       2.D0 * fac * deff(ih,jh,na) *        &
-                       DBLE( CONJG( dbecp%k(ikb,ibnd) ) *   &
-                       becp%k(jkb,ibnd) + dbecp%k(jkb,ibnd) &
-                       * CONJG( becp%k(ikb,ibnd) ) )
-                ENDDO !jh
-             ENDDO !ih
+          IF( upf(nt)%tvanp .OR. upf(nt)%is_multiproj ) THEN
+            DO ih = 1, nh(nt)
+              ikb = ijkb0 + ih
+              ! in US case there is a contribution for jh<>ih. 
+              ! We use here the symmetry in the interchange 
+              ! of ih and jh
+              DO jh = ( ih + 1 ), nh(nt)
+                jkb = ijkb0 + jh
+                forcenl(ipol,na) = forcenl(ipol,na) - 2.D0*fac*deff(ih,jh,na) * &
+                     DBLE( CONJG(dbecp%k(ikb,ibnd)) * becp%k(jkb,ibnd) + &
+                           dbecp%k(jkb,ibnd) * CONJG(becp%k(ikb,ibnd)) )
+              ENDDO !jh
+            ENDDO !ih
           ENDIF ! tvanp
           !
         ENDIF ! ityp(na) == nt
@@ -236,6 +234,5 @@ SUBROUTINE my_force_us_k( forcenl )
   !
   !
 END SUBROUTINE my_force_us_k
-     !
-     !
+
 END SUBROUTINE my_force_us

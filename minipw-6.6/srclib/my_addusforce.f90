@@ -20,7 +20,7 @@ SUBROUTINE my_addusforce( forcenl )
   ENDIF
   !
 END SUBROUTINE my_addusforce
-!
+
 !
 !! This routine computes the contribution to atomic forces due
 !! to the dependence of the Q function on the atomic position.
@@ -64,7 +64,7 @@ SUBROUTINE my_addusforce_g( forcenl )
   COMPLEX(DP), ALLOCATABLE :: aux(:), aux1(:,:,:), vg(:,:), qgm(:,:)
   REAL(DP),    ALLOCATABLE :: ddeeq(:,:,:,:), qmod(:), ylmk0(:,:), forceq(:,:)
   !
-  IF (.NOT.okvan) RETURN
+  IF(.NOT. okvan) RETURN
   !
   ALLOCATE( forceq(3,nat) )
   forceq(:,:) = 0.0_dp
