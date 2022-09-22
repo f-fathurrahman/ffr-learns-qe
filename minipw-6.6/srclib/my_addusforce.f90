@@ -66,7 +66,7 @@ SUBROUTINE my_addusforce_g( forcenl )
   !
   IF(.NOT. okvan) RETURN
   !
-  ALLOCATE( forceq(3,nat) )
+  ALLOCATE( forceq(3,nat) ) ! main quantity of interest
   forceq(:,:) = 0.0_dp
   IF ( gamma_only ) THEN
      fact = 2.d0*omega
@@ -89,7 +89,7 @@ SUBROUTINE my_addusforce_g( forcenl )
     vg(:,is) = aux(dfftp%nl(:)) * tpiba * (0.d0, -1.d0)
   ENDDO
   DEALLOCATE( aux )
-  ! Finish calculation V_eff(G)
+  ! Finish calculation -im*V_eff(G)
 
 
   ! Parallelization over G is disabled
@@ -137,9 +137,7 @@ SUBROUTINE my_addusforce_g( forcenl )
             !
             DO ig = 1, ngm
               cfac = vg(ig, is) * &
-                   CONJG(eigts1(mill(1,ig),na) * &
-                         eigts2(mill(2,ig),na) * &
-                         eigts3(mill(3,ig),na) )
+                   CONJG(eigts1(mill(1,ig),na) * eigts2(mill(2,ig),na) * eigts3(mill(3,ig),na) )
               aux1(ig,nb,1) = g(1,ig) * cfac
               aux1(ig,nb,2) = g(2,ig) * cfac
               aux1(ig,nb,3) = g(3,ig) * cfac
@@ -179,6 +177,8 @@ SUBROUTINE my_addusforce_g( forcenl )
   ENDDO
   !
   10 CONTINUE
+  !
+  ! Not required for serial calculation
   CALL mp_sum( forceq, inter_pool_comm )
   CALL mp_sum( forceq, intra_bgrp_comm )
   !
