@@ -175,10 +175,9 @@ SUBROUTINE my_forces()
       ENDDO
     ENDIF
   ENDIF
-  !
-  ! ... here we sum all the contributions and compute the total force acting
-  ! ... on the crystal
-  !
+
+  ! here we sum all the contributions and compute the total force acting
+  ! on the crystal
   DO ipol = 1, 3
     !
     sumfor = 0.D0
@@ -212,7 +211,7 @@ SUBROUTINE my_forces()
     !
     IF ( (do_comp_esm .AND. ( esm_bc /= 'pbc' )).OR.(gate.AND.relaxz) ) THEN
       !
-      ! ... impose total force along xy = 0
+      ! impose total force along xy = 0
       !
       DO na = 1, nat
          IF ( ipol /= 3) force(ipol,na) = force(ipol,na)  &
@@ -221,22 +220,25 @@ SUBROUTINE my_forces()
       !
     ELSEIF ( qmmm_mode < 0 ) THEN
       !
-      ! ... impose total force = 0 except in a QM-MM calculation
+      ! impose total force = 0 except in a QM-MM calculation
       !
+      write(*,*) 'Imposing total force = 0 (done for each x, y, and z directions)'
       DO na = 1, nat
-         force(ipol,na) = force(ipol,na) - sumfor / DBLE( nat ) 
+        force(ipol,na) = force(ipol,na) - sumfor / DBLE( nat ) 
       ENDDO
       !
     ENDIF
     !
   ENDDO
-  !
-  ! ... resymmetrize (should not be needed, but ...)
-  !
+
+
+  ! Resymmetrize (should not be needed, but ...)
   CALL symvector( nat, force )
-  !
-  IF ( remove_rigid_rot ) &
-     CALL remove_tot_torque( nat, tau, amass(ityp(:)), force  )
+
+  IF (remove_rigid_rot ) then
+    write(*,*) 'my_forces: remove rigid rotation'
+    CALL remove_tot_torque( nat, tau, amass(ityp(:)), force )
+  ENDIF
   !
   IF( textfor ) force(:,:) = force(:,:) + extfor(:,:)
   !
@@ -257,84 +259,85 @@ SUBROUTINE my_forces()
   forcescc(:,:) = forcescc(:,:) * DBLE( if_pos )
   !
   IF ( iverbosity > 0 ) THEN
-     IF ( do_comp_mt ) THEN
-        WRITE( stdout, '(5x,"The Martyna-Tuckerman correction term to forces")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), ( force_mt(ipol,na), ipol = 1, 3 )
-        ENDDO
-     END IF
-     !
-     WRITE( stdout, '(5x,"The non-local contrib.  to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forcenl(ipol,na), ipol = 1, 3 )
-     ENDDO
-     WRITE( stdout, '(5x,"The ionic contribution  to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forceion(ipol,na), ipol = 1, 3 )
-     ENDDO
-     WRITE( stdout, '(5x,"The local contribution  to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forcelc(ipol,na), ipol = 1, 3 )
-     ENDDO
-     WRITE( stdout, '(5x,"The core correction contribution to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forcecc(ipol,na), ipol = 1, 3 )
-     ENDDO
-     WRITE( stdout, '(5x,"The Hubbard contrib.    to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forceh(ipol,na), ipol = 1, 3 )
-     ENDDO
-     WRITE( stdout, '(5x,"The SCF correction term to forces")')
-     DO na = 1, nat
-        WRITE( stdout, 9035) na, ityp(na), ( forcescc(ipol,na), ipol = 1, 3 )
-     ENDDO
-     !
-     IF ( llondon) THEN
-        WRITE( stdout, '(/,5x,"Dispersion contribution to forces:")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), (force_disp(ipol,na), ipol = 1, 3)
-        ENDDO
-     END IF
-     !
-     IF ( ldftd3 ) THEN
-        WRITE( stdout, '(/,5x,"DFT-D3 dispersion contribution to forces:")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), (force_d3(ipol,na), ipol = 1, 3)
-        ENDDO
-     END IF
-     !
-     IF (lxdm) THEN
-        WRITE( stdout, '(/,5x,"XDM contribution to forces:")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), (force_disp_xdm(ipol,na), ipol = 1, 3)
-        ENDDO
-     END IF
-     !
-     IF ( ts_vdw) THEN
-        WRITE( stdout, '(/,5x,"TS-VDW contribution to forces:")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), (2.0d0*FtsvdW(ipol,na), ipol=1,3)
-        ENDDO
-     END IF
-     !
-     ! TB gate forces
-     IF ( gate ) THEN
-        WRITE( stdout, '(/,5x,"Gate contribution to forces:")')
-        DO na = 1, nat
-           WRITE( stdout, 9035) na, ityp(na), (forcegate(ipol,na), ipol = 1, 3)
-        ENDDO
-     END IF
-     !
-  END IF
+    IF ( do_comp_mt ) THEN
+       WRITE( stdout, '(5x,"The Martyna-Tuckerman correction term to forces")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), ( force_mt(ipol,na), ipol = 1, 3 )
+       ENDDO
+    END IF
+    !
+    WRITE( stdout, '(5x,"The non-local contrib.  to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forcenl(ipol,na), ipol = 1, 3 )
+    ENDDO
+    WRITE( stdout, '(5x,"The ionic contribution  to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forceion(ipol,na), ipol = 1, 3 )
+    ENDDO
+    WRITE( stdout, '(5x,"The local contribution  to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forcelc(ipol,na), ipol = 1, 3 )
+    ENDDO
+    WRITE( stdout, '(5x,"The core correction contribution to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forcecc(ipol,na), ipol = 1, 3 )
+    ENDDO
+    WRITE( stdout, '(5x,"The Hubbard contrib.    to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forceh(ipol,na), ipol = 1, 3 )
+    ENDDO
+    WRITE( stdout, '(5x,"The SCF correction term to forces")')
+    DO na = 1, nat
+       WRITE( stdout, 9035) na, ityp(na), ( forcescc(ipol,na), ipol = 1, 3 )
+    ENDDO
+    !
+    IF ( llondon) THEN
+       WRITE( stdout, '(/,5x,"Dispersion contribution to forces:")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), (force_disp(ipol,na), ipol = 1, 3)
+       ENDDO
+    END IF
+    !
+    IF ( ldftd3 ) THEN
+       WRITE( stdout, '(/,5x,"DFT-D3 dispersion contribution to forces:")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), (force_d3(ipol,na), ipol = 1, 3)
+       ENDDO
+    END IF
+    !
+    IF (lxdm) THEN
+       WRITE( stdout, '(/,5x,"XDM contribution to forces:")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), (force_disp_xdm(ipol,na), ipol = 1, 3)
+       ENDDO
+    END IF
+    !
+    IF ( ts_vdw) THEN
+       WRITE( stdout, '(/,5x,"TS-VDW contribution to forces:")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), (2.0d0*FtsvdW(ipol,na), ipol=1,3)
+       ENDDO
+    END IF
+    !
+    ! TB gate forces
+    IF ( gate ) THEN
+       WRITE( stdout, '(/,5x,"Gate contribution to forces:")')
+       DO na = 1, nat
+          WRITE( stdout, 9035) na, ityp(na), (forcegate(ipol,na), ipol = 1, 3)
+       ENDDO
+    ENDIF
+    !
+  ENDIF
   !
   sumfor = 0.D0
   sumscf = 0.D0
   !
+  ! Print out total force and total SCF correction
   DO na = 1, nat
-     !
-     sumfor = sumfor + force(1,na)**2 + force(2,na)**2 + force(3,na)**2
-     sumscf = sumscf + forcescc(1,na)**2 + forcescc(2,na)**2+ forcescc(3,na)**2
-     !
+    !
+    sumfor = sumfor + force(1,na)**2 + force(2,na)**2 + force(3,na)**2
+    sumscf = sumscf + forcescc(1,na)**2 + forcescc(2,na)**2+ forcescc(3,na)**2
+    !
   ENDDO
   !
   sumfor = SQRT( sumfor )
