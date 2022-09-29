@@ -143,7 +143,7 @@ SUBROUTINE my_forces()
   !
   ! ... The SCF contribution
   !
-  CALL force_corr( forcescc )
+  CALL my_force_corr( forcescc )
   !
   IF (do_comp_mt) THEN
     !

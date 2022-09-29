@@ -42,11 +42,17 @@ SUBROUTINE my_force_corr(forcescc)
     isdw = 2
     psic(:) = ( vnew%of_r(:, isup) + vnew%of_r(:, isdw) ) * 0.5d0
   ENDIF
+
+  write(*,*) 'avg psic (R space) = ', sum(abs(psic))/size(psic)
+
   !
   ndm = MAXVAL( msh(1:ntyp) )
   ALLOCATE( rhocgnt(ngl) )
 
   CALL fwfft('Rho', psic, dfftp)
+
+  write(*,*) 'avg psic (G space) = ', sum(abs(psic))/size(psic)
+  write(*,*) 'size psic = ', size(psic)
 
   IF( gamma_only ) THEN 
     fact = 2.d0
@@ -62,10 +68,10 @@ SUBROUTINE my_force_corr(forcescc)
     ! Here we compute the G /= 0 term
     !
     DO ig = gstart, ngl
-      gx = sqrt (gl (ig) ) * tpiba
+      gx = sqrt(gl(ig)) * tpiba
       DO ir = 1, msh (nt)
         IF( rgrid(nt)%r(ir) .lt. 1.0d-8 ) THEN 
-          aux(ir) = upf(nt)%rho_at (ir)
+          aux(ir) = upf(nt)%rho_at(ir)
         ELSE 
           aux(ir) = upf(nt)%rho_at(ir) * sin(gx*rgrid(nt)%r(ir)) / (rgrid(nt)%r(ir)*gx)
         ENDIF 
