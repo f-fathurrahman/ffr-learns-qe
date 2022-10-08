@@ -270,31 +270,33 @@ SUBROUTINE PAW_init_onecenter()
     ! only allocate radial grid integrator for atomic species
     ! that are actually present on this parallel node:
     DO ia = ia_s, ia_e
-       IF (ityp(ia) == nt ) THEN
-          IF (upf(nt)%lmax_rho == 0) THEN
-             ! no need for more than one direction, when it is spherical!
-             lmax_safe = 0
-             lmax_add  = 0
+      IF (ityp(ia) == nt ) THEN
+        
+        write(*,*) 'PAW_init_onecenter: upf(nt)%lmax_rho = ', upf(nt)%lmax_rho
+        IF (upf(nt)%lmax_rho == 0) THEN
+          ! no need for more than one direction, when it is spherical!
+          lmax_safe = 0
+          lmax_add  = 0
+        ELSE
+          ! 
+          IF ( dft_is_gradient() ) THEN
+            ! Integrate up to a higher maximum lm if using gradient
+            ! correction check expression for d(y_lm)/d\theta for details
+            lmax_safe = lm_fact_x*upf(nt)%lmax_rho
+            lmax_add  = xlm
           ELSE
-              ! 
-              IF ( dft_is_gradient() ) THEN
-                 ! Integrate up to a higher maximum lm if using gradient
-                 ! correction check expression for d(y_lm)/d\theta for details
-                 lmax_safe = lm_fact_x*upf(nt)%lmax_rho
-                 lmax_add  = xlm
-              ELSE
-                 ! no gradient correction:
-                 lmax_safe = lm_fact*upf(nt)%lmax_rho
-                 lmax_add  = 0 
-              ENDIF
+            ! no gradient correction:
+            lmax_safe = lm_fact*upf(nt)%lmax_rho
+            lmax_add  = 0 
           ENDIF
-          !
-          CALL PAW_rad_init( lmax_safe, lmax_add, rad(nt) )
-          max_mesh = MAX( max_mesh, g(nt)%mesh )
-          max_nx = MAX( max_nx, rad(nt)%nx )
-          !
-          CYCLE types
-       ENDIF
+        ENDIF
+        !
+        CALL PAW_rad_init( lmax_safe, lmax_add, rad(nt) )
+        max_mesh = MAX( max_mesh, g(nt)%mesh )
+        max_nx = MAX( max_nx, rad(nt)%nx )
+        !
+        CYCLE types
+      ENDIF
     ENDDO
   ENDDO types
   !
