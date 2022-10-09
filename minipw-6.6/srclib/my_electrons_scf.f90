@@ -227,7 +227,9 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
       IF ( first ) tr2_min = ethr*MAX( 1.D0, nelec ) 
 
+      !
       ! diagonalization of the KS hamiltonian
+      !
       IF ( lelfield ) THEN
         CALL c_bands_efield( iter )
       ELSE
@@ -258,8 +260,17 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
       ! the Harris-Weinert-Foulkes energy is computed here using only
       ! quantities obtained from the input density
+      write(*,*) 'BEGIN: Calculating hwf_energy terms: '
       hwf_energy = eband + deband_hwf + (etxc - etxcc) + ewld + ehart + demet
+      write(*,*) 'eband = ', eband
+      write(*,*) 'deband_hwf = ', deband_hwf
+      write(*,*) 'etxc = ', etxc
       write(*,*) 'etxcc = ', etxcc ! ffr
+      write(*,*) 'ewld = ', ewld
+      write(*,*) 'ehart = ', ehart
+      write(*,*) 'demet = ', demet
+      write(*,*) 'END: Calculating hwf_energy terms: '
+
 
       IF( okpaw ) hwf_energy = hwf_energy + epaw
 
@@ -334,24 +345,24 @@ SUBROUTINE my_electrons_scf( printout, exxen )
            CALL PAW_symmetrize_ddd( ddd_paw )
         ENDIF
         !
-        ! ... estimate correction needed to have variational energy:
-        ! ... T + E_ion (eband + deband) are calculated in sum_band
-        ! ... and delta_e using the output charge density rho;
-        ! ... E_H (ehart) and E_xc (etxc) are calculated in v_of_rho
-        ! ... above, using the mixed charge density rhoin%of_r.
-        ! ... delta_escf corrects for this difference at first order
+        ! estimate correction needed to have variational energy:
+        ! T + E_ion (eband + deband) are calculated in sum_band
+        ! and delta_e using the output charge density rho;
+        ! E_H (ehart) and E_xc (etxc) are calculated in v_of_rho
+        ! above, using the mixed charge density rhoin%of_r.
+        ! delta_escf corrects for this difference at first order
         !
         descf = my_delta_escf( rhoin, rho )
         !
-        ! ... now copy the mixed charge density in R- and G-space in rho
+        ! now copy the mixed charge density in R- and G-space in rho
         !
         CALL scf_type_COPY( rhoin, rho )
         !
       ELSE 
         !
-        ! ... convergence reached:
-        ! ... 1) the output HXC-potential is saved in v
-        ! ... 2) vnew contains V(out)-V(in) ( used to correct the forces ).
+        ! convergence reached:
+        ! 1) the output HXC-potential is saved in v
+        ! 2) vnew contains V(out)-V(in) ( used to correct the forces ).
         !
         vnew%of_r(:,:) = v%of_r(:,:)
 
@@ -391,11 +402,10 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     !
     CALL interpolate_vrs( dfftp%nnr, nspin, doublegrid, kedtau, v%kin_r, vrs )
     !
-    ! ... in the US case we have to recompute the self-consistent
-    ! ... term in the nonlocal potential
-    ! ... PAW: newd contains PAW updates of NL coefficients
+    ! in the US case we have to recompute the self-consistent
+    ! term in the nonlocal potential
+    ! PAW: newd contains PAW updates of NL coefficients
     !
-    !CALL newd()
     call my_newd()
     !
     IF( lelfield ) en_el =  my_calc_pol( )

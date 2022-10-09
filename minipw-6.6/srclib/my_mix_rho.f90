@@ -121,7 +121,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   call assign_scf_to_mix_type(rhoin, rhoin_m)
   call assign_scf_to_mix_type(input_rhout, rhout_m)
 
-  call mix_type_AXPY ( -1.d0, rhoin_m, rhout_m )
+  call mix_type_AXPY( -1.d0, rhoin_m, rhout_m )
   !
   dr2 = rho_ddot( rhout_m, rhout_m, ngms )  !!!! this used to be ngm NOT ngms
 
@@ -129,6 +129,9 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   IF (dr2 < 0.0_DP) CALL errore('mix_rho','negative dr2',1)
   !
   conv = ( dr2 < tr2 )
+  write(*,'(1x,A,2ES18.10)') 'my_mix_rho: dr2, tr2, conv = ', dr2, tr2
+  write(*,*) 'my_mix_rho: conv = ', conv
+
   !
   IF( conv .OR. dr2 < tr2_min ) THEN
      !
@@ -286,15 +289,18 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   ENDIF
 
   !
-  ! ... set new trial density
+  ! set new trial density
   !
+  ! rhoin_m <- alphamix*rhout_m + rhoin_m
   call mix_type_AXPY( alphamix, rhout_m, rhoin_m )
 
   ! simple mixing for high_frequencies (and set to zero the smooth ones)
+  ! rhoin <- input_rhout
   call high_frequency_mixing( rhoin, input_rhout, alphamix )
 
-  ! ... add the mixed rho for the smooth frequencies
-  call assign_mix_to_scf_type(rhoin_m,rhoin)
+  ! add the mixed rho for the smooth frequencies
+  ! rhoin_m ->  rhoin
+  call assign_mix_to_scf_type(rhoin_m, rhoin)
   !
   call destroy_mix_type(rhout_m)
   call destroy_mix_type(rhoin_m)
