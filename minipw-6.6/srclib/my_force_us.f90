@@ -48,15 +48,16 @@ SUBROUTINE my_force_us( forcenl )
   !
   IF(noncolin) THEN
     ALLOCATE( deff_nc(nhm,nhm,nat,nspin) )
-  ELSEIF (.NOT. gamma_only ) THEN
+  ELSEIF( .NOT. gamma_only ) THEN
     ALLOCATE( deff(nhm,nhm,nat) )
   ENDIF
 
   ! The forces are a sum over the K points and over the bands
   DO ik = 1, nks
     !
-    IF( lsda ) current_spin = isk(ik)
-    npw = ngk (ik)
+    ! Get current spin index
+    IF(lsda) current_spin = isk(ik)
+    npw = ngk(ik)
     IF( nks > 1 ) THEN
       CALL get_buffer( evc, nwordwfc, iunwfc, ik )
       IF ( nkb > 0 ) CALL init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
@@ -83,14 +84,14 @@ SUBROUTINE my_force_us( forcenl )
     ENDDO
   ENDDO
   !
-  ! ... if sums over bands are parallelized over the band group
+  ! if sums over bands are parallelized over the band group
   !
   IF ( becp%comm /= mp_get_comm_null() ) CALL mp_sum( forcenl, becp%comm )
   !
   IF (noncolin) THEN
-     DEALLOCATE( deff_nc )
-  ELSEIF ( .NOT. GAMMA_ONLY) THEN
-     DEALLOCATE( deff )
+    DEALLOCATE( deff_nc )
+  ELSEIF( .NOT. GAMMA_ONLY) THEN
+    DEALLOCATE( deff )
   ENDIF
   !
   DEALLOCATE( vkb1 )
@@ -177,6 +178,7 @@ SUBROUTINE my_force_us_gamma( forcenl )
 END SUBROUTINE my_force_us_gamma
 !
 
+! Inner subroutine
 !-----------------------------------------------------------------------
 SUBROUTINE my_force_us_k( forcenl )
 !-----------------------------------------------------------------------

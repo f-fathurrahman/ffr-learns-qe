@@ -25,18 +25,18 @@ SUBROUTINE my_compute_deff( deff, et )
   !
   deff(:,:,:) = deeq(:,:,:,current_spin)
   !
-  IF (okvan) THEN
-     !
-     DO nt = 1, nsp
-        DO na = 1, nat
-           !
-           IF ( ityp(na) == nt ) THEN
-              deff(:,:,na) = deff(:,:,na) - et*qq_at(:,:,na)
-           ENDIF
-           !
-        ENDDO
-     ENDDO
-     !
+  IF(okvan) THEN
+    !
+    DO nt = 1, nsp
+      DO na = 1, nat
+        !
+        IF( ityp(na) == nt ) THEN
+          deff(:,:,na) = deff(:,:,na) - et*qq_at(:,:,na)
+        ENDIF
+        !
+      ENDDO
+    ENDDO
+    !
   ENDIF
   !
   !
