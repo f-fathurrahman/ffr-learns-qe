@@ -79,7 +79,7 @@ SUBROUTINE my_init_run()
   !
   CALL allocate_nlpot()
   IF( okpaw ) THEN
-    CALL allocate_paw_internals()
+    CALL allocate_paw_internals() ! ddd_paw
     CALL paw_init_onecenter()
   ENDIF
   CALL allocate_locpot()

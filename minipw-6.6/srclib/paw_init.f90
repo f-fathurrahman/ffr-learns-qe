@@ -351,7 +351,12 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   REAL(DP), ALLOCATABLE :: aux(:,:)  ! workspace
   REAL(DP) :: vth(3), vph(3)         !versors for theta and phi
   
-  write(*,*) 'Calling PAW_rad_init'
+  write(*,*) '------------------'
+  write(*,*) 'Enter PAW_rad_init'
+  write(*,*) 'l = ', l
+  write(*,*) 'ls = ', ls
+  write(*,*) '------------------'
+
 
   IF (TIMING) CALL start_clock( 'PAW_rad_init' )
   !
@@ -471,6 +476,11 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   DEALLOCATE( r, r2, ath, aph )
   !
   IF (TIMING) CALL stop_clock( 'PAW_rad_init' )
+  
+  write(*,*) '------------------'
+  write(*,*) 'Exit PAW_rad_init'
+  write(*,*) '------------------'
+
   !
 CONTAINS
 
