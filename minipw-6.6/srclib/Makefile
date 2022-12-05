@@ -53,7 +53,7 @@ $(SRC:.f90=.o) $(SRC:.f=.o)
 # Targets
 #
 libdyn:	$(OBJ)
-	gfortran -shared -o libqemain.so $(OBJ) -lblas -llapack -L$(LIBXC_HOME)/lib -lxcf90 -lxcf03 -lxc
+	gfortran -shared -o libqemain.so $(OBJ) -lblas -llapack -Wl,-rpath $(LIBXC_HOME)/lib -L$(LIBXC_HOME)/lib -lxcf03 -lxc
 
 clean:
 	rm -rf *.o *.mod libqemain.so *.x
