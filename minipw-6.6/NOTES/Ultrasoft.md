@@ -5,7 +5,7 @@ Variables:
 - dvan
 - ddeq
 
-Many of these variables as allocated in allocate_nlpot
+Many of these variables are allocated in allocate_nlpot
 
 initialization: init_us_1:
 
@@ -42,4 +42,8 @@ In code:
 ```fortran
 Y_limi(r) * Y_ljmj(r) = \sum_LM  ap(LM,limi,ljmj)  Y_LM(r)
 ```
+
+Calculating electron density:
+
+addusdens_g <- addusdens <-  sum_bands <- electrons
 
