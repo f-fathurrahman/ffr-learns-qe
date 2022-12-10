@@ -3,60 +3,68 @@ PROGRAM main
   IMPLICIT NONE 
 
   CALL prepare_all()
-  !CALL test_paw_variables()
-  call test_uspp_paw()
-
-END PROGRAM 
-
+  CALL test_paw_variables()
+  CALL test_uspp_paw()
+  
+END PROGRAM main
 
 
 SUBROUTINE test_uspp_paw()
   USE uspp_param, ONLY: upf
-  use us, only: spline_ps, qrad
+  USE us, ONLY: spline_ps, qrad
   ! local variables
   INTEGER :: Nupf, isp, i, Ni, j, Nj
 
+  WRITE(*,*)
+  WRITE(*,*) '----------------------------------------'
+  WRITE(*,*) 'Some fields of UPF (per atomic species):'
+  WRITE(*,*) '----------------------------------------'
+  
   Nupf = size(upf,1)
   WRITE(*,*) 'Nupf = ', Nupf
 
-  do isp = 1,Nupf
-    write(*,*)
-    write(*,*) 'isp = ', isp
-    write(*,*) 'typ = ', upf(isp)%typ
-    write(*,*) 'ecutwfc = ', upf(isp)%ecutwfc
-    write(*,*) 'ecutrho = ', upf(isp)%ecutrho
-    write(*,*) 'tvanp = ', upf(isp)%tvanp
-    write(*,*) 'is_multiproj = ', upf(isp)%is_multiproj
-    write(*,*) 'nbeta = ', upf(isp)%nbeta
-    write(*,*) 'lll = ', upf(isp)%lll
-    write(*,*) 'shape dion = ', shape(upf(isp)%dion)
-    Ni = size(upf(isp)%dion,1)
-    Nj = size(upf(isp)%dion,2)
-    write(*,*) 'dion = '
-    do i = 1,Ni
-      do j = 1,Nj
+  DO isp = 1,Nupf
+    WRITE(*,*)
+    WRITE(*,*) 'isp = ', isp
+    WRITE(*,*) 'typ = ', upf(isp)%typ
+    WRITE(*,*) 'ecutwfc = ', upf(isp)%ecutwfc
+    WRITE(*,*) 'ecutrho = ', upf(isp)%ecutrho
+    WRITE(*,*) 'tvanp = ', upf(isp)%tvanp
+    WRITE(*,*) 'is_multiproj = ', upf(isp)%is_multiproj
+    WRITE(*,*) 'nbeta = ', upf(isp)%nbeta
+    WRITE(*,*) 'lll = ', upf(isp)%lll
+    WRITE(*,*) 'shape dion = ', SHAPE(upf(isp)%dion)
+    Ni = SIZE(upf(isp)%dion,1)
+    Nj = SIZE(upf(isp)%dion,2)
+    WRITE(*,*) 'dion = '
+    DO i = 1,Ni
+      DO j = 1,Nj
         !write(*,'(1x,F18.5)',advance='no') upf(isp)%dion(i,j)
-        write(*,'(1x,ES18.10)',advance='no') upf(isp)%dion(i,j)
-      enddo
-      write(*,*)
-    enddo
-  enddo
+        WRITE(*,'(1x,ES18.10)',advance='no') upf(isp)%dion(i,j)
+      ENDDO
+      WRITE(*,*)
+    ENDDO  
+  ENDDO
 
-  write(*,*) 'spline_ps = ', spline_ps
+  WRITE(*,*) 'spline_ps = ', spline_ps
+  WRITE(*,*) 'shape qrad: ', SHAPE(qrad)
+  WRITE(*,*) 'qrad: ', qrad(1,1,1,1)
 
-  write(*,*) 'shape qrad: ', shape(qrad)
-  write(*,*) 'qrad: ', qrad(1,1,1,1)
-
-END SUBROUTINE
-
+END SUBROUTINE test_uspp_paw
 
 
 SUBROUTINE test_paw_variables()
   USE paw_variables, ONLY: total_core_energy, okpaw
   USE uspp, ONLY: okvan
 
+  WRITE(*,*)
+  WRITE(*,*) '---------------------------------------'
+  WRITE(*,*) 'Some variables in paw_variables module:'
+  WRITE(*,*) '---------------------------------------'
+  
   WRITE(*,*) 'okpaw = ', okpaw
   WRITE(*,*) 'okvan = ', okvan
   WRITE(*,*) 'total_core_energy = ', total_core_energy
 
-END SUBROUTINE
+END SUBROUTINE test_paw_variables
+
