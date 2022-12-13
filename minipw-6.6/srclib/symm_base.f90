@@ -30,67 +30,72 @@ MODULE symm_base
             no_t_rev, time_reversal, irt, invs, invsym, d1, d2, d3, &
             allfrac, nofrac, nosym, nosym_evc, fft_fact, spacegroup
   !
-  INTEGER :: s(3,3,48)
-  !! symmetry matrices, in crystal axis
-  INTEGER :: invs(48)
-  !! index of inverse operation: S^{-1}_i=S(invs(i))
-  INTEGER :: fft_fact(3) = 1
-  !! FFT dimensions must be multiple of fft_fact
-  INTEGER :: nrot
-  !! number of bravais lattice symmetries
-  INTEGER :: spacegroup = 0
-  !! space group index, as read from input
-  INTEGER :: nsym = 1
-  !! total number of crystal symmetries
-  INTEGER :: nsym_ns = 0
-  !! nonsymmorphic (fractional translation) symms
+  INTEGER :: s(3,3,48)  !! symmetry matrices, in crystal axis
+
+  INTEGER :: invs(48)  !! index of inverse operation: S^{-1}_i=S(invs(i))
+
+  INTEGER :: fft_fact(3) = 1  !! FFT dimensions must be multiple of fft_fact
+
+  INTEGER :: nrot !! number of bravais lattice symmetries
+
+  INTEGER :: spacegroup = 0 !! space group index, as read from input
+
+  INTEGER :: nsym = 1 !! total number of crystal symmetries
+  INTEGER :: nsym_ns = 0 !! nonsymmorphic (fractional translation) symms
+
   INTEGER :: nsym_na = 0 
   !! excluded nonsymmorphic symmetries because
   !! fract. transl. is noncommensurate with FFT grid
-  REAL(DP) :: ft (3,48)
-  !! fractional translations, in crystal axis
-  REAL(DP) :: sr (3,3,48)
-  !! symmetry matrices, in cartesian axis
+
+  REAL(DP) :: ft(3,48)  !! fractional translations, in crystal axis
+
+  REAL(DP) :: sr(3,3,48)  !! symmetry matrices, in cartesian axis
+
   REAL(DP) :: accep = 1.0d-5
   !! initial value of the acceptance threshold
   !! for position comparison by eqvect in checksym
+
   !
-  CHARACTER(LEN=45) :: sname(48)
-  !! name of the symmetries
-  INTEGER :: t_rev(48) = 0 
-  !! time reversal flag, for noncolinear magnetism
-  INTEGER, ALLOCATABLE :: irt(:,:)
-  !! symmetric atom for each atom and sym.op.
-  LOGICAL :: time_reversal = .TRUE.
-  !! if .TRUE. the system has time reversal symmetry
-  LOGICAL :: invsym
-  !! if .TRUE. the system has inversion symmetry
-  LOGICAL :: nofrac = .FALSE.
-  !! if .TRUE. fract. translations are not allowed
+  CHARACTER(LEN=45) :: sname(48) !! name of the symmetries
+
+  INTEGER :: t_rev(48) = 0 !! time reversal flag, for noncolinear magnetism
+
+  INTEGER, ALLOCATABLE :: irt(:,:) !! symmetric atom for each atom and sym.op.
+
+  LOGICAL :: time_reversal = .TRUE.  !! if .TRUE. the system has time reversal symmetry
+
+  LOGICAL :: invsym !! if .TRUE. the system has inversion symmetry
+
+  LOGICAL :: nofrac = .FALSE.  !! if .TRUE. fract. translations are not allowed
+
   LOGICAL :: allfrac = .FALSE.
   !! if .TRUE. all fractionary translations allowed,
   !! even those not commensurate with FFT grid
-  LOGICAL :: nosym = .FALSE.
-  !! if .TRUE. no symmetry is used
+
+  LOGICAL :: nosym = .FALSE. !! if .TRUE. no symmetry is used
+
   LOGICAL :: nosym_evc = .FALSE.
   !! if .TRUE. symmetry is used only to symmetrize
   !! k points
+  
   LOGICAL :: no_t_rev = .FALSE.
   !! if .TRUE. remove the symmetries that
   !! require time reversal
-  REAL(DP), TARGET :: d1(3,3,48)
-  !! matrix d1 for rotation of spherical harmonics (d1 for l=1, ...)
-  REAL(DP), TARGET :: d2(5,5,48)
-  !! matrix d2 for rotation of spherical harmonics
-  REAL(DP), TARGET :: d3(7,7,48)
-  !! matrix d3 for rotation of spherical harmonics
+
+  REAL(DP), TARGET :: d1(3,3,48) !! matrix d1 for rotation of spherical harmonics (d1 for l=1, ...)
+  REAL(DP), TARGET :: d2(5,5,48)  !! matrix d2 for rotation of spherical harmonics
+  REAL(DP), TARGET :: d3(7,7,48)  !! matrix d3 for rotation of spherical harmonics
+
   !
   ! ... Exported routines
   !
   PUBLIC ::  find_sym, inverse_s, copy_sym, checkallsym, &
              s_axis_to_cart, set_sym, set_sym_bl, check_grid_sym 
+
   PUBLIC ::  find_sym_ifc ! FIXME: should be merged with find_sym
+
   PUBLIC ::  remove_sym   ! FIXME: is this still useful?
+
   !
 CONTAINS
    !

@@ -220,7 +220,6 @@ SUBROUTINE PAW_init_onecenter()
 
   write(*,*) 
   write(*,*) '>>> *** Enter PAW_init_onecenter'
-  write(*,*)
 
   IF ( paw_is_init ) THEN
     CALL errore( 'PAW_init_onecenter', 'Already initialized!', 1 )
@@ -271,8 +270,10 @@ SUBROUTINE PAW_init_onecenter()
     ! that are actually present on this parallel node:
     DO ia = ia_s, ia_e
       IF (ityp(ia) == nt ) THEN
+
+        WRITE(*,*)
+        WRITE(*,*) 'PAW_init_onecenter: upf(nt)%lmax_rho = ', upf(nt)%lmax_rho
         
-        write(*,*) 'PAW_init_onecenter: upf(nt)%lmax_rho = ', upf(nt)%lmax_rho
         IF (upf(nt)%lmax_rho == 0) THEN
           ! no need for more than one direction, when it is spherical!
           lmax_safe = 0
