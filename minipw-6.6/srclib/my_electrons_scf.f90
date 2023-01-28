@@ -83,7 +83,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
   REAL(DP),INTENT (IN) :: exxen !! current estimate of the exchange energy
 
-  ! ... local variables
+  ! local variables
   REAL(DP) :: dr2 !! the norm of the diffence between potential
   REAL(DP) :: charge !! the total charge
   REAL(DP) :: deband_hwf !! deband for the Harris-Weinert-Foulkes functional
@@ -106,7 +106,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   TYPE(scf_type) :: rhoin
 
   !
-  ! ... external functions
+  ! external functions
   !
   REAL(DP), EXTERNAL :: ewald, my_delta_e, my_delta_escf, my_calc_pol
   REAL(DP) :: etot_cmp_paw(nat,2,2)
@@ -291,7 +291,6 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       !
       CALL my_mix_rho( rho, rhoin, mixing_beta, dr2, tr2_min, iter, nmix, &
                        iunmix, conv_elec )
-        
 
       ! Results are broadcast from pool 0 to others to prevent trouble
       ! on machines unable to yield the same results for the same 
@@ -303,18 +302,18 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       IF (.NOT. scf_must_converge .AND. idum == niter) conv_elec = .TRUE.
 
 
-      ! ... if convergence is achieved or if the self-consistency error
-      ! ... (dr2) is smaller than the estimated error due to diagonalization
-      ! ... (tr2_min), rhoin and rho are unchanged: rhoin contains the input
-      ! ... density and rho contains the output density.
-      ! ... In all other cases, rhoin contains the mixed charge density 
-      ! ... (the new input density) while rho is unchanged
+      ! if convergence is achieved or if the self-consistency error
+      ! (dr2) is smaller than the estimated error due to diagonalization
+      ! (tr2_min), rhoin and rho are unchanged: rhoin contains the input
+      ! density and rho contains the output density.
+      ! In all other cases, rhoin contains the mixed charge density 
+      ! (the new input density) while rho is unchanged
       !
       IF( first .and. nat > 0) THEN
         !
-        ! ... first scf iteration: check if the threshold on diagonalization
-        ! ... (ethr) was small enough wrt the error in self-consistency (dr2)
-        ! ... if not, perform a new diagonalization with reduced threshold
+        ! first scf iteration: check if the threshold on diagonalization
+        ! (ethr) was small enough wrt the error in self-consistency (dr2)
+        ! if not, perform a new diagonalization with reduced threshold
         !
         first = .FALSE.
         !
@@ -334,8 +333,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       !
       IF( .NOT. conv_elec ) THEN
         !
-        ! ... no convergence yet: calculate new potential from mixed
-        ! ... charge density (i.e. the new estimate)
+        ! no convergence yet: calculate new potential from mixed
+        ! charge density (i.e. the new estimate)
         !
         CALL v_of_rho( rhoin, rho_core, rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
@@ -375,14 +374,14 @@ SUBROUTINE my_electrons_scf( printout, exxen )
           CALL PAW_symmetrize_ddd( ddd_paw )
         ENDIF
         !
-        ! ... note that rho is here the output, not mixed, charge density
-        ! ... so correction for variational energy is no longer needed
+        ! note that rho is here the output, not mixed, charge density
+        ! so correction for variational energy is no longer needed
         !
         descf = 0._dp
         !
       ENDIF 
       !
-      ! ... if we didn't cycle before we can exit the do-loop
+      ! if we didn't cycle before we can exit the do-loop
       !
       EXIT scf_step
       !
@@ -394,11 +393,11 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     !
     CALL plugin_scf_potential(rhoin,conv_elec,dr2,vltot)
     !
-    ! ... define the total local potential (external + scf)
+    ! define the total local potential (external + scf)
     !
     CALL sum_vrs( dfftp%nnr, nspin, vltot, v%of_r, vrs )
     !
-    ! ... interpolate the total local potential
+    ! interpolate the total local potential
     !
     CALL interpolate_vrs( dfftp%nnr, nspin, doublegrid, kedtau, v%kin_r, vrs )
     !
@@ -496,7 +495,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         hwf_energy = hwf_energy + ef * tot_charge
      ENDIF
      !
-     ! ... adds possible external contribution from plugins to the energy
+     ! adds possible external contribution from plugins to the energy
      !
      etot = etot + plugin_etot 
      !
@@ -504,25 +503,25 @@ SUBROUTINE my_electrons_scf( printout, exxen )
      !
      IF ( conv_elec ) THEN
         !
-        ! ... if system is charged add a Makov-Payne correction to the energy
-        ! ... (not in case of hybrid functionals: it is added at the end)
+        ! if system is charged add a Makov-Payne correction to the energy
+        ! (not in case of hybrid functionals: it is added at the end)
         !
         IF ( do_makov_payne .AND. printout/= 0 ) CALL makov_payne( etot )
         !
-        ! ... print out ESM potentials if desired
+        ! print out ESM potentials if desired
         !
         IF ( do_comp_esm ) CALL esm_printpot( rho%of_g )
         !
         WRITE( stdout, 9110 ) iter
         !
-        ! ... jump to the end
+        ! jump to the end
         !
         GO TO 10
         !
      ENDIF
      !
-     ! ... uncomment the following line if you wish to monitor the evolution
-     ! ... of the force calculation during self-consistency
+     ! uncomment the following line if you wish to monitor the evolution
+     ! of the force calculation during self-consistency
      !
      !CALL forces()
      
@@ -536,12 +535,12 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   !
 10  FLUSH( stdout )
   !
-  ! ... exiting: write (unless disabled) the charge density to file
-  ! ... (also write ldaU ns coefficients and PAW becsum)
+  ! exiting: write (unless disabled) the charge density to file
+  ! (also write ldaU ns coefficients and PAW becsum)
   !
   IF ( io_level > -1 ) CALL write_scf( rho, nspin )
   !
-  ! ... delete mixing info if converged, keep it if not
+  ! delete mixing info if converged, keep it if not
   !
   IF ( conv_elec ) THEN
      CALL close_mix_file( iunmix, 'delete' )
@@ -554,7 +553,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   !
   RETURN
   !
-  ! ... formats
+  ! formats
   !
 
 9001 FORMAT(/'     per-process dynamical memory: ',f7.1,' Mb' )
@@ -620,13 +619,13 @@ SUBROUTINE print_energies ( printout )
        ENDIF
      ENDIF
      !
-     ! ... With Fermi-Dirac population factor, etot is the electronic
-     ! ... free energy F = E - TS , demet is the -TS contribution
+     ! With Fermi-Dirac population factor, etot is the electronic
+     ! free energy F = E - TS , demet is the -TS contribution
      !
      !
-     ! ... With Fictitious charge particle (FCP), etot is the grand
-     ! ... potential energy Omega = E - muN, -muN is the potentiostat
-     ! ... contribution.
+     ! With Fictitious charge particle (FCP), etot is the grand
+     ! potential energy Omega = E - muN, -muN is the potentiostat
+     ! contribution.
      !
      IF ( lfcpopt .OR. lfcpdyn ) WRITE( stdout, 9072 ) ef*tot_charge
      !
