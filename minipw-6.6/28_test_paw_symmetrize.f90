@@ -36,11 +36,11 @@ SUBROUTINE test_PAW_symmetrize()
 
   WRITE(*,*)
   WRITE(*,*) 'Before PAW_symmetrize: sum(becsum) = ', SUM(becsum)
-  DO i = 1,dim1
+  DO i = 1,5
     WRITE(*,'(1x,A,F18.10)') 'becsum(i,1,1) = ', becsum(i,1,1)
   ENDDO
   WRITE(*,*)
-  DO i = 1,dim1
+  DO i = 1,5
     WRITE(*,'(1x,A,F18.10)') 'becsum(i,2,1) = ', becsum(i,2,1)
   ENDDO
   
@@ -49,11 +49,11 @@ SUBROUTINE test_PAW_symmetrize()
   WRITE(*,*)
   WRITE(*,*) 'After PAW_symmetrize: sum(becsum) = ', SUM(becsum)  
  
-  DO i = 1,dim1
+  DO i = 1,5
     WRITE(*,'(1x,A,F18.10)') 'becsum(i,1,1) = ', becsum(i,1,1)
   ENDDO
   WRITE(*,*)
-  DO i = 1,dim1
+  DO i = 1,5
     WRITE(*,'(1x,A,F18.10)') 'becsum(i,2,1) = ', becsum(i,2,1)
   ENDDO
 
