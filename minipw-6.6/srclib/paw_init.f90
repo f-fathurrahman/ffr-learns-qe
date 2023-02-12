@@ -127,6 +127,12 @@ SUBROUTINE PAW_atomic_becsum()
   IF ( starting_wfc=='atomic+random') noise = 0.05_DP
   IF ( starting_wfc=='random')        noise = 0.10_DP
   !
+
+  !noise = 0.d0
+  !if(noise > 0.d0) then
+  !  write(*,*) 'PAW_atomic_becsum: Random component will be added to becsum'
+  !endif
+
   becsum = 0.0_DP
   na_loop: DO na = 1, nat
     nt = ityp(na)
@@ -183,8 +189,21 @@ SUBROUTINE PAW_atomic_becsum()
   !
   ! ... copy becsum in scf structure and symmetrize it
   rho%bec(:,:,:) = becsum(:,:,:)
-  !
+
+  write(*,*) 'PAW_atomic_becsum: sum(becsum) before PAW_symmetrize = ', sum(becsum)
+  write(*,*) 'becsum(1,1,1) before = ', becsum(1,1,1)
+  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+  
+  write(101,*) becsum
+
   CALL PAW_symmetrize( rho%bec )
+
+  write(102,*) rho%bec
+
+  write(*,*) 'PAW_atomic_becsum: sum(becsum) after PAW_symmetrize = ', sum(rho%bec)
+  write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
+  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+
   !
 END SUBROUTINE PAW_atomic_becsum
 
@@ -244,6 +263,9 @@ SUBROUTINE PAW_init_onecenter()
     IF( upf(ityp(na))%tpawp ) &
     total_core_energy = total_core_energy + upf(ityp(na))%paw%core_energy
   ENDDO
+
+  write(*,*) 'PAW_init_onecenter: total_core_energy = ', total_core_energy
+
   !
   ! initialize for integration on angular momentum and gradient, integrating
   ! up to 2*lmaxq (twice the maximum angular momentum of rho) is enough for
@@ -278,6 +300,7 @@ SUBROUTINE PAW_init_onecenter()
           ! no need for more than one direction, when it is spherical!
           lmax_safe = 0
           lmax_add  = 0
+          write(*,*) 'It is spherical'
         ELSE
           ! 
           IF ( dft_is_gradient() ) THEN
@@ -291,10 +314,22 @@ SUBROUTINE PAW_init_onecenter()
             lmax_add  = 0 
           ENDIF
         ENDIF
+
+        write(*,*) 'lmax_safe = ', lmax_safe
+        write(*,*) 'lmax_add  = ', lmax_add
+
         !
         CALL PAW_rad_init( lmax_safe, lmax_add, rad(nt) )
+        !
         max_mesh = MAX( max_mesh, g(nt)%mesh )
         max_nx = MAX( max_nx, rad(nt)%nx )
+
+        write(*,*) 'radial grid: rgrid%mesh = ', g(nt)%mesh
+        write(*,*) 'rad(nt)%nx = ', rad(nt)%nx
+        write(*,*) 'max_mesh = ', max_mesh
+        write(*,*) 'max_nx = ', max_nx
+        write(*,*) 'upf(nt)%mesh (should be equal to rgrid%mesh) = ', upf(nt)%mesh
+
         !
         CYCLE types
       ENDIF
@@ -361,22 +396,28 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
 
   IF (TIMING) CALL start_clock( 'PAW_rad_init' )
   !
+  
   ! maximum value of l correctly integrated
   rad%lmax = l+ls
   rad%ladd = ls
+  
   ! volume element for angle phi
   nphi = rad%lmax + 1 + MOD(rad%lmax,2)
   dphi = 2._DP*pi/nphi !(rad%lmax+1)
+  
   ! number of samples for theta angle
   n = (rad%lmax+2)/2
   !
   ALLOCATE( x(n), w(n) )
+  
   ! compute weights for theta integration
   CALL gauss_weights( x, w, n )
+  
   !
   ! number of integration directions
   rad%nx = n*nphi !(rad%lmax+1)
   !write(*,*) "paw --> directions",rad%nx," lmax:",rad%lmax
+  
   !
   ALLOCATE( r(3,rad%nx), r2(rad%nx), rad%ww(rad%nx), ath(rad%nx), aph(rad%nx) )
   !
