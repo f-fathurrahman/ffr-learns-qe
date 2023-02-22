@@ -194,11 +194,13 @@ SUBROUTINE PAW_atomic_becsum()
   write(*,*) 'becsum(1,1,1) before = ', becsum(1,1,1)
   write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
   
-  write(101,*) becsum
+  ! Write for comparison
+  !write(101,*) becsum
 
   CALL PAW_symmetrize( rho%bec )
 
-  write(102,*) rho%bec
+  ! For comparison
+  !write(102,*) rho%bec
 
   write(*,*) 'PAW_atomic_becsum: sum(becsum) after PAW_symmetrize = ', sum(rho%bec)
   write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
@@ -329,6 +331,8 @@ SUBROUTINE PAW_init_onecenter()
         write(*,*) 'max_mesh = ', max_mesh
         write(*,*) 'max_nx = ', max_nx
         write(*,*) 'upf(nt)%mesh (should be equal to rgrid%mesh) = ', upf(nt)%mesh
+        ! ffr: max_mesh and max_nx are used to allocate memory for vs_rad
+        ! ffr: vs_rad is used for noncolinear case.
 
         !
         CYCLE types
