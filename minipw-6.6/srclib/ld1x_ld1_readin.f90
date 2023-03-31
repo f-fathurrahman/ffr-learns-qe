@@ -182,35 +182,35 @@ subroutine ld1_readin(input_file)
   zed   = 0.0_dp
   xmin  = 0.0_dp
   dx    = 0.0_dp
-  rmax  =100.0_dp
+  rmax  = 100.0_dp
 
   beta  =  0.2_dp
   tr2   = 1.0e-14_dp
-  iswitch=1
+  iswitch = 1
 
-  rpwe=0.0_dp
-  rlderiv=4.0_dp
-  eminld=-3.0_dp
-  emaxld=3.0_dp
-  nld=0
-  deld=0.03_dp
+  rpwe = 0.0_dp
+  rlderiv = 4.0_dp
+  eminld = -3.0_dp
+  emaxld = 3.0_dp
+  nld = 0
+  deld = 0.03_dp
 
-  rytoev_fact=rytoev
-  cau_fact=c_au
+  rytoev_fact = rytoev
+  cau_fact = c_au
   rel = 5 
   lsd = 0
-  lsmall=.false.
+  lsmall = .false.
   dft = 'LDA'
-  rel_dist='energy'
-  isic= 0
-  latt= 0
+  rel_dist = 'energy'
+  isic = 0
+  latt = 0
   title = ' '
-  config= ' '
-  max_out_wfc=7
+  config = ' '
+  max_out_wfc =7
 
-  verbosity='low'
+  verbosity = 'low'
   lpaw = .false.
-  author='anonymous'
+  author = 'anonymous'
 
   vdw  = .false.
   noscf = .false.
@@ -228,192 +228,264 @@ subroutine ld1_readin(input_file)
   call mp_bcast(ios, ionode_id, world_comm)
   If ( ios > 0 ) call errore('ld1_readin','opening input file ',abs(ios))
 
-  ! read the namelist input
+  write(*,*)
+  write(*,*) 'Before reading namelist input: '
+  write(*,*)
+  write(*,*) 'rmax = ', rmax
+  write(*,*) 'xmin = ', xmin
+  write(*,*) 'dx   = ', dx
+  write(*,*)
 
+  !
+  ! read the namelist input
+  !
   if (ionode) read(qestdin,input,err=100,iostat=ios) 
 100  call mp_bcast(ios, ionode_id, world_comm)
   call errore('ld1_readin','reading input namelist ',abs(ios))
+
+  write(*,*)
+  write(*,*) 'After reading namelist input: '
+  write(*,*)
+  write(*,*) 'rmax = ', rmax
+  write(*,*) 'xmin = ', xmin
+  write(*,*) 'dx   = ', dx
+  write(*,*)
+
+
 
   call bcast_input()
   call mp_bcast( xmin, ionode_id, world_comm )
   call mp_bcast( dx, ionode_id, world_comm )
   call mp_bcast( rmax, ionode_id, world_comm )
-  call mp_bcast(atom, ionode_id, world_comm )
-  call mp_bcast(config, ionode_id, world_comm )
-  call mp_bcast(dft, ionode_id, world_comm )
-  call mp_bcast(rel_dist, ionode_id, world_comm )
-!
-  IF (iswitch /= 2 ) call set_dft_from_name(dft)
+  call mp_bcast( atom, ionode_id, world_comm )
+  call mp_bcast( config, ionode_id, world_comm )
+  call mp_bcast( dft, ionode_id, world_comm )
+  call mp_bcast( rel_dist, ionode_id, world_comm )
 
-  if (zed == 0.0_dp .and. atom /= ' ') then
-     zed = DBLE(atomic_number(atom))
-  else if (zed /= 0.0_dp .and. atom == ' ') then
-     if (zed <=0.0_dp .or. zed > 103._dp) then
-        write(zdum_,'(f6.2)') zed
-        call errore('ld1_readin','wrong nuclear charge zed: '//zdum_,1)
-     end if
-     atom = atom_name(nint(zed))
+  IF( iswitch /= 2 ) call set_dft_from_name(dft)
+
+  IF( zed == 0.0_dp .and. atom /= ' ' ) then
+    !
+    zed = DBLE(atomic_number(atom))
+    !
+  elseif( zed /= 0.0_dp .and. atom == ' ' ) then
+    !
+    if(zed <= 0.0_dp .or. zed > 103._dp) then
+      write(zdum_,'(f6.2)') zed
+      call errore('ld1_readin','wrong nuclear charge zed: '//zdum_,1)
+    end if
+    atom = atom_name(nint(zed))
+    !
   else
-     zdum = DBLE(atomic_number(atom))
-     if (nint(zdum) /= nint(zed)) call errore &
-          ('ld1_readin','inconsistent Z/atom specification',nint(zdum))
-  end if
+    !
+    zdum = DBLE(atomic_number(atom))
+    if( nint(zdum) /= nint(zed) ) then
+      call errore('ld1_readin','inconsistent Z/atom specification',nint(zdum))
+    endif
+    !
+  endif
+
   ! with LDA-1/2 now iswitch <=4
-  if (iswitch < 1 .or. iswitch > 4) &
-       call errore('ld1_readin','wrong iswitch',1)
-  if (eminld > emaxld) &
-       call errore('ld1_readin','eminld or emaxld wrong',1)
-  if (deld < 0.0_dp) &
-       call errore('ld1_readin','negative deld',1)
-  if (nld > nwfsx) &
-       call errore('ld1_readin','too many nld',1)
-
-  if (nld>0 .and. rpwe==0.0_DP) rpwe=rlderiv
-
-  if ( noscf .and. iswitch /= 1) call errore('ld1_readin',&
-      'hydrogenic levels available only with iswitch=1',1)
-  if ( noscf .and. lsd == 1 ) call errore('ld1_readin',&
-      'hydrogenic levels available only with lsd=0',1)
-
-  if (isic == 1 .and. latt == 1) call errore('ld1_readin', &
-       &    'isic and latter correction not allowed',1)
-  if (isic == 1 .and. iswitch .ne. 1 ) call errore('ld1_readin', &
-       &    'SIC available with all-electron only', 1)
-
-  if ( relpert ) then
-     if (iswitch.gt.1 .or. rel.gt.0) call errore('ld1_readin',&
-      'perturbative SO-splitting for AE calculations with rel=0 only',1)
-     if (lsd.ne.0) call errore('ld1_readin',&
-      'spin-polarized perturbative corrections not available',1)
+  if(iswitch < 1 .or. iswitch > 4) then
+    call errore('ld1_readin','wrong iswitch',1)
   endif
 
-  if (rel == 5 ) then
-     if (zed < 19.0_dp) then
-        rel=0
-     else
-        rel=1
-     endif
+  if( eminld > emaxld ) then
+    call errore('ld1_readin','eminld or emaxld wrong',1)
   endif
-  if (rel < 0 .or. rel > 2) call errore('ld1_readin','wrong rel',1)
+
+  if( deld < 0.0_dp ) then
+    call errore('ld1_readin','negative deld',1)
+  endif
+
+  if( nld > nwfsx ) then
+    call errore('ld1_readin','too many nld',1)
+  endif
+
+  if( nld > 0 .and. rpwe == 0.0_DP) then
+    rpwe = rlderiv
+  endif
+
+  if( noscf .and. iswitch /= 1) then
+    call errore('ld1_readin', 'hydrogenic levels available only with iswitch=1', 1)
+  endif
+
+  if( noscf .and. lsd == 1 ) then
+    call errore('ld1_readin', 'hydrogenic levels available only with lsd=0', 1)
+  endif
+
+  if( isic == 1 .and. latt == 1 ) then
+    call errore('ld1_readin', 'isic and latter correction not allowed', 1)
+  endif
+
+  if (isic == 1 .and. iswitch .ne. 1 ) then
+    call errore('ld1_readin', 'SIC available with all-electron only', 1)
+  endif
+
+  if( relpert ) then
+    !
+    if( iswitch > 1 .or. rel > 0) then
+      call errore('ld1_readin', 'perturbative SO-splitting for AE calculations with rel=0 only', 1)
+    endif
+    !
+    if( lsd /= 0) then
+      call errore('ld1_readin', 'spin-polarized perturbative corrections not available', 1)
+    endif
+    !
+  endif
+
+  if( rel == 5 ) then
+    if( zed < 19.0_dp ) then
+      rel = 0
+    else
+      rel = 1
+    endif
+  endif
+  
+  if( rel < 0 .or. rel > 2 ) then
+    call errore('ld1_readin', 'wrong rel', 1)
+  endif
+
+
   !
-  !     No lsda with pseudopotential generation
+  ! No lsda with pseudopotential generation
   !
-  if (iswitch > 2) lsd = 0
-  if (iswitch==2) tm=.true.
-  if (lsd == 0) then
-     nspin = 1
-  else if(lsd == 1) then
-     nspin = 2
-     if (rel == 2) call errore('ld1_readin', &
-       &    'local spin density and spin-orbit not allowed',1)
+  if( iswitch > 2 ) lsd = 0
+  if( iswitch == 2 ) tm = .true.
+  if( lsd == 0 ) then
+    nspin = 1
+  elseif( lsd == 1 ) then
+    nspin = 2
+    if( rel == 2 ) call errore('ld1_readin', 'local spin density and spin-orbit not allowed',1)
   else
-     call errore('ld1_readin','lsd not correct',1)
+    call errore('ld1_readin', 'lsd not correct', 1)
   endif
 
  
-  if (config == 'default') CALL default_conf(zed,config)
+  if( config == 'default' ) CALL default_conf(zed, config)
 
-  if (config == ' ') then
-     if (ionode) call read_config (rel, lsd, nwf, el, nn, ll, oc, isw, jj)
-     call bcast_config()
+  if( config == ' ' ) then
+    if (ionode) call read_config(rel, lsd, nwf, el, nn, ll, oc, isw, jj)
+    call bcast_config()
   else
-     call el_config (config, rel, lsd, .true., nwf, el, nn, ll, oc, isw, jj)
-  end if
+    call el_config(config, rel, lsd, .true., nwf, el, nn, ll, oc, isw, jj)
+  endif
+
   !
-  !  In the spin polarized or relativistic case adjust the occupations
+  ! In the spin polarized or relativistic case adjust the occupations
   !
-  if (lsd == 1.and.iswitch==1) then
-     call occ_spin(nwf,nwfx,el,nn,ll,oc,isw)
-  else if (rel == 2) then
-     call occ_spinorb(nwf,nwfx,el,nn,ll,jj,oc,isw,rel_dist)
+  if( lsd == 1 .and. iswitch == 1 ) then
+    call occ_spin(nwf, nwfx, el, nn, ll, oc, isw)
+  elseif( rel == 2 ) then
+    call occ_spinorb(nwf, nwfx, el, nn, ll, jj, oc, isw, rel_dist)
   endif
-  if (xmin==0.0_DP) then
-     if (iswitch==1.and..not.vdw.and.rel>0) then
-        xmin=-8.0_DP
-     else
-        xmin=-7.0_DP
-     endif
+  
+  !
+  ! Determine xmin
+  !
+  if( xmin == 0.0_DP ) then
+    if( iswitch == 1 .and. .not. vdw .and. rel > 0) then
+      xmin = -8.0_DP
+    else
+      xmin = -7.0_DP
+    endif
   endif
-  if (dx==0.0_DP) then
-     if (iswitch==1.and..not.vdw) then
-        dx=0.008_DP
-     else
-        dx=0.0125_DP
-     endif
+
+  !
+  ! Determine dx
+  !
+  if( dx == 0.0_DP ) then
+    if( iswitch == 1 .and. .not. vdw) then
+      dx = 0.008_DP
+    else
+      dx = 0.0125_DP
+    endif
   endif
-  if (xmin > -2.0_dp) call errore('ld1_readin','wrong xmin',1)
-  if (dx <=0.0_dp) call errore('ld1_readin','wrong dx',1)
+  
+  if( xmin > -2.0_dp ) call errore('ld1_readin','wrong xmin',1)
+  
+  if( dx <= 0.0_dp ) call errore('ld1_readin','wrong dx',1)
+  
   !
   ! generate the radial grid - note that if iswitch = 2 or 4
   ! the radial grid is not generated but read from the pseudopotential file
   !
-  IF (iswitch == 1 .OR. iswitch == 3 ) THEN
-     write(*,*)
-     write(*,*) 'Generating radial grid:'
-     write(*,*) 'rmax = ', rmax
-     write(*,*) 'zed = ', zed, ''
-     write(*,*) 'xmin = ', xmin
-     write(*,*) 'dx = ', dx
-     CALL do_mesh(rmax,zed,xmin,dx,0,grid)
-     write(*,*) 'xmin after = ', xmin
-     write(*,*) 'grid%mesh = ', grid%mesh
-     write(*,'(1x,A,F18.10)') 'grid%r = ', grid%r(10)
-     rhoc=0.0_dp
+  IF( iswitch == 1 .OR. iswitch == 3 ) THEN
+    
+    write(*,*)
+    write(*,*) 'Generating radial grid:'
+
+    write(*,*) 'zed  = ', zed   ! atomic number
+
+    write(*,*) 'rmax = ', rmax
+    write(*,*) 'xmin = ', xmin
+    write(*,*) 'dx   = ', dx
+    
+    CALL do_mesh(rmax, zed, xmin, dx, 0, grid)
+    ! do_mesh is defined in radial_grids module
+
+    write(*,*) 'xmin after = ', xmin
+    ! xmin might be modified if ibound=1
+
+    write(*,*) 'grid%mesh  = ', grid%mesh
+    write(*,'(1x,A,F18.10)') 'grid%r = ', grid%r(10)
+    rhoc = 0.0_dp
+
   ENDIF
   !stop
 
   !
   which_augfun = 'DEFAULT'
-  if (iswitch == 1) then
-     !
-     !    no more data needed for AE calculations
-     !    (input unit can be safely closed)
-     !
-     ios = close_input_file ( )
-     frozen_core=.false.
-     return
-     !     
-  else if (iswitch == 3) then
-     !
-     !    reading input for PP generation
-     !    (do not yet close the input unit: will be needed later)
-     !
-     zval=0.0_dp
-     lloc=-1
-     rcloc=-1_dp
-     nlcc=.false.
-     new_core_ps=.false.
-     rcore=0.0_dp
-     rho0=0.0_dp
-     tm  = .false.
-     pseudotype=0
-     jjs=0.0_dp
-     !    paw defaults:
-     lnc2paw = .false.
-     rmatch_augfun=-1.0_dp   ! force a crash
-     rmatch_augfun_nc =.false.
-     lgipaw_reconstruction = .false.
-     use_paw_as_gipaw = .false. 
+  if( iswitch == 1 ) then
+    !
+    ! no more data needed for AE calculations
+    ! (input unit can be safely closed)
+    !
+    ios = close_input_file ( )
+    frozen_core=.false.
+    return
+    !     
+  elseif( iswitch == 3 ) then
+    !
+    ! reading input for PP generation
+    ! (do not yet close the input unit: will be needed later)
+    !
+    zval = 0.0_dp
+    lloc = -1
+    rcloc = -1_dp
+    nlcc = .false.
+    new_core_ps = .false.
+    rcore = 0.0_dp
+    rho0 = 0.0_dp
+    tm = .false.
+    pseudotype = 0
+    jjs = 0.0_dp
+    ! paw defaults:
+    lnc2paw = .false.
+    rmatch_augfun = -1.0_dp   ! force a crash
+    rmatch_augfun_nc = .false.
+    lgipaw_reconstruction = .false.
+    use_paw_as_gipaw = .false. 
 
-     if (ionode) read(qestdin,inputp,err=500,iostat=ios)
+    if (ionode) read(qestdin,inputp,err=500,iostat=ios)
 500  call mp_bcast(ios, ionode_id, world_comm)
-     call errore('ld1_readin','reading inputp',abs(ios))
+    call errore('ld1_readin','reading inputp',abs(ios))
 
-     call bcast_inputp()
+    call bcast_inputp()
 
-     if(which_augfun=='DEFAULT') then
-        if( (lpaw .and. lnc2paw) .or. (.not. lpaw) ) then
-            which_augfun='AE'
-        else
-            which_augfun='BESSEL'
-        endif
-     endif
+    if(which_augfun == 'DEFAULT') then
+      if( (lpaw .and. lnc2paw) .or. (.not. lpaw) ) then
+        which_augfun = 'AE'
+      else
+        which_augfun = 'BESSEL'
+      endif
+    endif
 
-     if (lloc < 0 .and. rcloc <=0.0_dp) &
-          call errore('ld1_readin','rcloc must be positive',1)
-     if (pseudotype < 1.or.pseudotype > 3) &
-          call errore('ld1_readin','specify correct pseudotype',1)
-     if (rel==2 .and. pseudotype==1 ) &
+    if (lloc < 0 .and. rcloc <=0.0_dp) &
+         call errore('ld1_readin','rcloc must be positive',1)
+    if (pseudotype < 1.or.pseudotype > 3) &
+         call errore('ld1_readin','specify correct pseudotype',1)
+    if (rel==2 .and. pseudotype==1 ) &
           call errore('ld1_readin','Generation of a FR PP with'// & 
                   &     ' pseudotype=1 not allowed',1)
 !
@@ -495,13 +567,15 @@ subroutine ld1_readin(input_file)
 
   ! read test namelist, if present
 
-  if (ionode) read(qestdin,test,end=300,err=300,iostat=ios)
+  if( ionode ) read(qestdin, test, end=300, err=300, iostat=ios)
 300  call mp_bcast(ios, ionode_id, world_comm)
 
-  if(iswitch==4.and.rcutv<0.0) call errore('ld1_readin','inconsistent rcutv',1)
-  if (iswitch==2.or.iswitch==4) call errore('ld1_readin','reading test',abs(ios))
+  if( iswitch == 4 .and. rcutv < 0.0) call errore('ld1_readin', 'inconsistent rcutv', 1)
+  if( iswitch == 2 .or. iswitch == 4) call errore('ld1_readin', 'reading test', abs(ios))
+  
   ! for LDA-1/2
-  if(iswitch==4) nconf = 2
+  if( iswitch == 4 ) nconf = 2
+  
   !
   call bcast_test()
   call mp_bcast(configts, ionode_id, world_comm)
@@ -590,29 +664,31 @@ subroutine ld1_readin(input_file)
   endif
 
   zdum = zed
-  do n=1,nwf
-     if ( oc(n) > 0.0_dp) zdum = zdum - oc(n)
-  end do
-     !
-  do ns=1,nwftsc(1)
-     if ( octsc(ns,1) > 0.0_dp) zdum = zdum + octsc(ns,1)
-  end do
-     !
-  if (zval == 0.0_DP) then
-     zval = zdum
-     if ( abs(nint(zdum)-zdum) > 1.d-8 .and. iswitch==3 ) then
-         write(zdum_,'(f6.2)') zdum
-         call errore ('ld1_readin', 'found noninteger valence ' &
-              &//zdum_//', if you want this specify zval in inputp',1)
-     end if
-  else if ( abs(zval-zdum) > 1.d-8 ) then
-     write(zdum_,'(f6.2)') zdum
-     write(zval_,'(f6.2)') zval
-     call errore ('ld1_readin','supplied ('//zval_//') and calculated (' &
-                               //zdum_//') valence charge do not match',1)
-  end if
+  do n = 1,nwf
+    if( oc(n) > 0.0_dp ) zdum = zdum - oc(n)
+  enddo
+  
   !
-  !    PP testing: reading the pseudopotential
+  do ns = 1,nwftsc(1)
+    if ( octsc(ns,1) > 0.0_dp) zdum = zdum + octsc(ns,1)
+  enddo
+  
+  !
+  if (zval == 0.0_DP) then
+    zval = zdum
+    if( abs(nint(zdum)-zdum) > 1.d-8 .and. iswitch==3 ) then
+      write(zdum_, '(F6.2)') zdum
+      call errore('ld1_readin', 'found noninteger valence ' // zdum_ // ', if you want this specify zval in inputp', 1)
+    end if
+  elseif( abs(zval-zdum) > 1.d-8 ) then
+    write(zdum_,'(f6.2)') zdum
+    write(zval_,'(f6.2)') zval
+    call errore ('ld1_readin','supplied ('//zval_//') and calculated (' &
+                              //zdum_//') valence charge do not match',1)
+  endif
+  
+  !
+  ! PP testing: reading the pseudopotential
   !
   if (iswitch ==2.or.iswitch==4) then
      !
@@ -687,7 +763,11 @@ subroutine ld1_readin(input_file)
 
   return
 
+
 end subroutine ld1_readin
+
+
+
 
 subroutine bcast_input()
   USE io_global,  ONLY : ionode_id

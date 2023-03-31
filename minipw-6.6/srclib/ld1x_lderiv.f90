@@ -51,15 +51,17 @@ SUBROUTINE lderiv
   CHARACTER(len=256) :: flld
 
   IF (nld == 0 .or. file_logder == ' ') RETURN
-  IF (nld > nwfsx) CALL errore('lderiv','nld is too large',1)
+  IF (nld > nwfsx) CALL errore('lderiv', 'nld is too large', 1)
 
-  ze2=-zed*2.0_dp
+  ze2 = -zed*2.0_dp
 
   DO n=1,grid%mesh
-     IF (grid%r(n) > rlderiv) GOTO 10
+    IF (grid%r(n) > rlderiv) GOTO 10
   ENDDO
+
   CALL errore('lderiv','wrong rlderiv?',1)
 10 ikrld = n-1
+
   WRITE(stdout,'(5x,''Computing logarithmic derivative in'',f10.5)') &
        (grid%r(ikrld)+grid%r(ikrld+1))*0.5_dp
 
@@ -111,7 +113,7 @@ SUBROUTINE lderiv
         flld = trim(file_logder)
      ENDIF
 
-     CALL write_efun(flld,dlchi,ene,npte,nld)
+     CALL write_efun(flld, dlchi, ene, npte, nld)
      !
   ENDDO
 

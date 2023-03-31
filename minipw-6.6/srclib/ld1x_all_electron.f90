@@ -68,7 +68,7 @@ SUBROUTINE all_electron(ild,ic)
 
   write(*,*) 'nrmesh = ', grid%mesh
 
-  call starting_potential (ndmx, grid%mesh, zval, zed, nwf, oc, nn, ll,&
+  call starting_potential( ndmx, grid%mesh, zval, zed, nwf, oc, nn, ll,&
                            grid%r, enl, v0, vxt, vpot, enne, nspin )
   
   write(*,*) 'After starting_potential: (Ha unit)'
@@ -92,18 +92,20 @@ SUBROUTINE all_electron(ild,ic)
   !stop ! ffr
   
   !
-  !     solve the eigenvalue self-consistent equation
+  ! solve the eigenvalue self-consistent equation
   !
-  call scf(ic)
+  !call scf(ic)
+  call ld1x_my_scf(ic)
+
   !
   !   compute relativistic corrections to the eigenvalues
   !
-  IF ( relpert ) call compute_relpert(evel,edar,eso)
+  IF( relpert ) call compute_relpert( evel, edar, eso )
   !
   !  compute total energy
   !
-  call elsd (zed,grid,rho,vxt,vh,vxc,exc,excgga,nwf,nspin,enl,oc,    &
-             etot,ekin,encl,ehrt,ecxc,evxt)
+  call elsd(zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf, nspin, enl, oc,    &
+            etot, ekin, encl, ehrt, ecxc, evxt)
   !
   IF (verbosity=='high') call elsd_highv(ic)
   !
@@ -117,17 +119,17 @@ SUBROUTINE all_electron(ild,ic)
   !
   !  compute logarithmic derivative
   !
-  IF (deld > 0.0_DP .and. ild) call lderiv()
+  IF( deld > 0.0_DP .and. ild ) call lderiv()
   !
   ! compute C6 coefficient if required
   !
   IF (vdw) THEN
-     call c6_tfvw ( grid%mesh, zed, grid, rho(1,1) )
-     call c6_dft  ( grid%mesh, zed, grid )
+    call c6_tfvw( grid%mesh, zed, grid, rho(1,1) )
+    call c6_dft( grid%mesh, zed, grid )
   ENDIF
   !
   IF (isic /= 0) THEN
-     DEALLOCATE(egc, vhn1, vsicnew, vsic)
+    DEALLOCATE(egc, vhn1, vsicnew, vsic)
   ENDIF
   !
 
