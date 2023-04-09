@@ -151,10 +151,24 @@ SUBROUTINE my_interpolate_vrs( nrxx, nspin, doublegrid, kedtau, kedtaur, vrs )
   ! interpolate it on the smooth mesh if necessary
   write(*,*) 'my_interpolate_vrs: sum vrs before interpolate: ', sum(vrs)*0.5d0
 
+  if( dft_is_meta() ) then
+    write(*,*)
+    write(*,*) 'Before fft_interpolate'
+    write(*,*) 'sum(kedtau) = ', sum(kedtau)
+    write(*,*) 'sum(kedtaur) = ', sum(kedtaur)
+  endif
+
   DO is = 1, nspin
     IF( doublegrid ) CALL fft_interpolate( dfftp, vrs(:, is), dffts, vrs(:,is) )
     IF( dft_is_meta() ) CALL fft_interpolate( dfftp, kedtaur(:,is), dffts, kedtau(:,is) )
   ENDDO
+
+  if( dft_is_meta() ) then
+    write(*,*)
+    write(*,*) 'After fft_interpolate'
+    write(*,*) 'sum(kedtau) = ', sum(kedtau)
+    write(*,*) 'sum(kedtaur) = ', sum(kedtaur)
+  endif
 
   write(*,*) 'my_interpolate_vrs: sum vrs after interpolate: ', sum(vrs)*0.5d0
 
