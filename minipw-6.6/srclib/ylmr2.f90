@@ -20,34 +20,37 @@ subroutine ylmr2 (lmax2, ng, g, gg, ylm)
   !
   IMPLICIT NONE
   !
-  integer, intent(in) :: lmax2, ng
-  real(DP), intent(in) :: g (3, ng), gg (ng)
+  INTEGER, INTENT(in) :: lmax2, ng
+  REAL(DP), INTENT(in) :: g (3, ng), gg (ng)
   !
   ! BEWARE: gg = g(1)^2 + g(2)^2 +g(3)^2  is not checked on input
   !         incorrect results will ensue if the above does not hold
   !
-  real(DP), intent(out) :: ylm (ng,lmax2)
+  REAL(DP), INTENT(out) :: ylm (ng,lmax2)
   !
   ! local variables
   !
-  real(DP), parameter :: eps = 1.0d-9
-  real(DP), allocatable ::  Q(:,:,:)
-  real(DP) :: cost , sent, phi 
-  real(DP) :: c, gmod
-  integer :: lmax, ig, l, m, lm
+  REAL(DP), PARAMETER :: eps = 1.0d-9
+  REAL(DP), ALLOCATABLE ::  Q(:,:,:)
+  REAL(DP) :: cost , sent, phi 
+  REAL(DP) :: c, gmod
+  INTEGER :: lmax, ig, l, m, lm
   !
   if (ng < 1 .or. lmax2 < 1) return
   do lmax = 0, 25
      if ((lmax+1)**2 == lmax2) go to 10
   end do
-  call errore (' ylmr', 'l > 25 or wrong number of Ylm required',lmax2)
-10 continue
+
+  CALL errore (' ylmr', 'l > 25 or wrong number of Ylm required',lmax2)
+
+10 CONTINUE
 
   !
-  if (lmax == 0) then
-     ylm(:,1) =  sqrt (1.d0 / fpi)
-     return
-  end if
+  IF (lmax == 0) THEN
+    ylm(:,1) =  sqrt (1.d0 / fpi)
+    RETURN
+  END IF
+   
   !
   !  theta and phi are polar angles, cost = cos(theta)
   !
