@@ -7,7 +7,7 @@
 !
 !
 !----------------------------------------------------------------------------
-subroutine nodeno(snlo,jj1,jj2,nodes,idim1)
+SUBROUTINE nodeno(snlo,jj1,jj2,nodes,idim1)
   !----------------------------------------------------------------------------
   !
   !   routine counts the number of nodes of the wavefunction snlo

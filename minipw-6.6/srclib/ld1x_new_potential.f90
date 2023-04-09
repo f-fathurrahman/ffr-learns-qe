@@ -7,7 +7,7 @@
 !
 !
 !---------------------------------------------------------------
-subroutine new_potential &
+SUBROUTINE new_potential &
      (ndm,mesh,grid,zed,vxt,lsd,nlcc,latt,enne,rhoc,rho,vh,vnew,iflag)
   !---------------------------------------------------------------
   !   set up the selfconsistent atomic potential 
@@ -22,8 +22,8 @@ subroutine new_potential &
   implicit none
   type(radial_grid_type),intent(in):: grid
   integer, intent(in) :: iflag
-  logical :: nlcc, gga, oep, meta, kli_
-  integer :: ndm,mesh,lsd,latt,i,is,nu, nspin, ierr
+  LOGICAL :: nlcc, gga, oep, meta, kli_
+  INTEGER :: ndm,mesh,lsd,latt,i,is,nu, nspin, ierr
   real(DP):: rho(ndm,2),vxcp(2),vnew(ndm,2),vxt(ndm),vh(ndm), rhoc(ndm)
   real(DP):: zed,enne,rh(2),rhc, excp
   real(DP),allocatable:: vgc(:,:), egc(:), rhotot(:)
@@ -70,25 +70,25 @@ subroutine new_potential &
      do is = 1, nspin
         rh(is) = rho(i,is)/grid%r2(i)/fpi
      enddo
-     if (nlcc) rhc = rhoc(i)/grid%r2(i)/fpi
-     if (meta) then
+     IF( nlcc ) rhc = rhoc(i)/grid%r2(i)/fpi
+     IF( meta ) THEN
         !
         ! Workaround: the meta-GGA XC functional already contains the LDA part
         !
         vxcp(:)=0.0_dp
         exc(i) =0.0_dp
         !print *, "meta gga"
-     else
+     ELSE
         vxcp = 0
         call vxc_t(lsd,rh,rhc,excp,vxcp)
         exc(i) = excp
-     endif
+     ENDIF
      
      do is =1, nspin
         vxc(i, is) = vxcp(is)
         vnew(i,is)= - zed*e2/grid%r(i)+vxt(i) + vh(i) + vxcp(is)
      enddo
-  end do
+  end DO
 
   !
   ! add exchange and correlation potential: GGA only
@@ -112,44 +112,40 @@ subroutine new_potential &
      deallocate(vgc)
   else
      excgga = 0.0_DP
-  end if
+  endIF
+  
   !
   ! add OEP exchange 
   !
-  if (oep) then
-!     write (*,*) ndm, nwf
-     allocate(dchi0(ndm,nwf))
-    
-     do nu=1,nwf ! num wave functions
-        call dvex(nu,dchi0(1,nu))
-     end do
+  IF( oep ) THEN
+    ! write (*,*) ndm, nwf
+    ALLOCATE(dchi0(ndm,nwf))
+    DO nu=1,nwf ! num wave functions
+      CALL dvex(nu,dchi0(1,nu))
+    ENDDO 
+    CALL dfx_new(dchi0, vx)
+    ! vx contains the oep term
+    ! ADD OEP VX
+    vnew(:,1:nspin) = vnew(:,1:nspin)  + vx(:,1:nspin)
+    DEALLOCATE( dchi0 )
+  ENDIF 
 
-     
-     call dfx_new(dchi0, vx)
-     ! vx contains the oep term
-     ! ADD OEP VX
-     vnew(:,1:nspin)= vnew(:,1:nspin)  + vx(:,1:nspin)
-    
-     deallocate(dchi0)
-  end if 
-
-  if(kli_) then
-      
-      call compute_kli_potential(grid%mesh,vx)
-      vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
-  endif
-
+  IF(kli_) THEN
+    CALL compute_kli_potential(grid%mesh,vx)
+    vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
+  ENDIF
 
   !
   ! latter correction
   !
-  if (latt.ne.0) then
-     do is=1,nspin
-        do i=1,mesh
-           vnew(i,is)= min(vnew(i,is),-e2*(zed-enne+1.0_DP)/grid%r(i))
-        enddo
-     enddo
-  end if
+  IF( latt /= 0) THEN
+    DO is = 1,nspin
+      DO i = 1,mesh
+        vnew(i,is) = min(vnew(i,is),-e2*(zed-enne+1.0_DP)/grid%r(i))
+      ENDDO 
+    ENDDO 
+  ENDIF 
 
-  return
-end subroutine new_potential
+  RETURN 
+END SUBROUTINE new_potential
+

@@ -27,14 +27,14 @@ MODULE ld1inc
   CHARACTER(len=2) ::&
        el(nwfx)        !  the label of the states
 
-  real(DP) ::   &
+  REAL(DP) ::   &
        jj(nwfx),     & ! the total angular momentum
        oc(nwfx),     & ! the occupations of the all-electron atom
        zed,          & ! the ionic charge
        enne,         & ! the number of electrons
        sl3(0:lmx2,0:lmx2,0:lmx2) ! what is this, documented somewhere?
 
-  real(DP)::          &
+  REAL(DP)::          &
        enl(nwfx),          & ! the energies of the all-electron atom
        psi(ndmx,2,nwfx),    & ! the all-electron (dirac) wavefunctions
                              ! psi(:,1,n) = major component for state n

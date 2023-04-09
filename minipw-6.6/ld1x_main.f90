@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------
-program ld1
+PROGRAM ld1
   !---------------------------------------------------------------
   !
   !     atomic self-consistent local-density program
@@ -22,58 +22,58 @@ program ld1
   USE radial_grids,      ONLY : deallocate_radial_grid
   USE command_line_options, ONLY: input_file_
   !
-  implicit none
-  CHARACTER (LEN=9) :: code = 'LD1'
+  IMPLICIT NONE
+  CHARACTER(LEN=9) :: code = 'LD1'
   !
   !   write initialization information
   !
-  call mp_startup( )
-  call environment_start ( code )
+  CALL mp_startup()
+  CALL environment_start(code)
   !
   !    read input, possible pseudopotential and set the main variables
   !
-  call ld1_readin (input_file_)
-  call ld1_setup ( )
+  CALL ld1_readin(input_file_)
+  CALL ld1_setup()
   !
   !   four possible working mode:
   !
-  if (iswitch.eq.1) then
-     !
-     !   all-electron calculation
-     !
-     call all_electron(.true.,1)
-     if ( write_coulomb ) call write_ae_pseudo ( )
-     !
-  elseif (iswitch.eq.2) then
+  IF( iswitch == 1 ) THEN
+    !
+    !   all-electron calculation
+    !
+    CALL all_electron(.true., 1)
+    IF( write_coulomb ) CALL write_ae_pseudo ( )
+    !
+  ELSEIF( iswitch == 2 ) THEN
      !
      !   pseudopotential test
      !
-     call run_test ( )
-     call ld1_writeout ( )
+     CALL run_test()
+     CALL ld1_writeout()
      !
-  elseif (iswitch.eq.3) then
+  ELSEIF( iswitch == 3 ) THEN
      !
      !  pseudopotential generation and test
      !
-     call all_electron(.false.,1)
-     call gener_pseudo ( )
+     CALL all_electron(.FALSE., 1)
+     CALL gener_pseudo()
      !if(.not. lgipaw_reconstruction) 
-     call run_test ( )
-     call ld1_writeout ( )
+     CALL run_test()
+     CALL ld1_writeout()
      !
-  elseif (iswitch.eq.4) then
+  ELSEIF( iswitch == 4 ) THEN
      !
      ! LDA-1/2 correction to the input pseudopotential 
      !
-     call run_lda_half ( )
-     call ld1_writeout ( )
+     CALL run_lda_half( )
+     CALL ld1_writeout( )
      !
-  else
-     call errore('ld1','iswitch not implemented',1)
-  endif
-  call deallocate_radial_grid( grid )
+  ELSE 
+     CALL errore('ld1', 'iswitch not implemented',1)
+  ENDIF 
+  CALL deallocate_radial_grid( grid )
 
-  call mp_global_end()
+  CALL mp_global_end()
 
-end program ld1
-!
+END PROGRAM ld1
+

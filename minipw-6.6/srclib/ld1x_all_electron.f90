@@ -25,17 +25,17 @@ SUBROUTINE all_electron(ild,ic)
 
   INTEGER, INTENT(in) :: ic   ! counter on configurations
   LOGICAL :: ild    ! if true compute log der
-  integer :: i
+  INTEGER :: i
 
-  write(*,*)
-  write(*,*) 'Enter all_electron'
-  write(*,*)
+  WRITE(*,*)
+  WRITE(*,*) 'Enter all_electron'
+  WRITE(*,*)
 
-  write(*,*) 'ndmx = ', ndmx
-  write(*,*) 'zed = ', zed, ''
-  write(*,*) 'zval = ', zval
-  write(*,*) 'nwfx = ', size(oc)
-  write(*,*) 'nwf = ', nwf
+  WRITE(*,*) 'ndmx = ', ndmx
+  WRITE(*,*) 'zed = ', zed, ''
+  WRITE(*,*) 'zval = ', zval
+  WRITE(*,*) 'nwfx = ', size(oc)
+  WRITE(*,*) 'nwf = ', nwf
   do i = 1,nwf
     write(*,*)
     write(*,'(1x,A,A)') 'el = ', el(i)
@@ -58,7 +58,7 @@ SUBROUTINE all_electron(ild,ic)
 
 
   !
-  !    compute an initial estimate of the potential
+  ! Compute an initial estimate of the potential
   !
   write(*,*) 'Before starting_potential:'
   write(*,*) 'v0   = ', v0(1:2)
@@ -82,12 +82,12 @@ SUBROUTINE all_electron(ild,ic)
   !
   ! allocate variables for SIC, if needed
   !
-  IF (isic /= 0) THEN
-     write(*,*) 'Using SIC'
-     ALLOCATE(vsic(ndmx,nwf), vsicnew(ndmx), vhn1(ndmx), egc(ndmx))
-     vsic=0.0_dp
+  IF( isic /= 0 ) THEN
+    WRITE(*,*) 'Using SIC'
+    ALLOCATE( vsic(ndmx,nwf), vsicnew(ndmx), vhn1(ndmx), egc(ndmx) )
+    vsic = 0.0_dp
   ENDIF
-  write(*,*) 'ic = ', ic
+  WRITE(*,*) 'ic = ', ic
 
   !stop ! ffr
   
@@ -98,20 +98,20 @@ SUBROUTINE all_electron(ild,ic)
   call ld1x_my_scf(ic)
 
   !
-  !   compute relativistic corrections to the eigenvalues
+  ! compute relativistic corrections to the eigenvalues
   !
   IF( relpert ) call compute_relpert( evel, edar, eso )
   !
-  !  compute total energy
+  ! compute total energy
   !
-  call elsd(zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf, nspin, enl, oc,    &
+  CALL elsd(zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf, nspin, enl, oc,    &
             etot, ekin, encl, ehrt, ecxc, evxt)
   !
-  IF (verbosity=='high') call elsd_highv(ic)
+  IF( verbosity=='high' ) call elsd_highv(ic)
   !
-  !   add sic correction if needed
+  ! add sic correction if needed
   !
-  IF(isic /= 0) call esic()
+  IF( isic /= 0 ) call esic()
   !
   !   print results
   !

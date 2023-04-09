@@ -26,18 +26,24 @@ SUBROUTINE ld1x_my_scf(ic)
 
   LOGICAL:: meta, conv
   INTEGER:: nerr, nstop, n, i, is, id, nin
-  real(DP) ::  vnew(ndmx,2), vtaunew(ndmx), rhoc1(ndmx), ze2
+  REAL(DP) ::  vnew(ndmx,2), vtaunew(ndmx), rhoc1(ndmx), ze2
   INTEGER, PARAMETER :: maxter=200
-  real(DP), PARAMETER :: thresh=1.0e-10_dp
-  integer :: ii
+  REAL(DP), PARAMETER :: thresh=1.0e-10_dp
+  INTEGER :: ii
   
   meta = dft_is_meta()
   ze2 = -zed * e2
   rhoc1 = 0.0_dp
   
-  IF (.not. frozen_core .or. ic == 1) psi = 0.0_dp
+  IF(.not. frozen_core .or. ic == 1) psi = 0.0_dp
   
   DO iter = 1,maxter
+
+    WRITE(*,*)
+    WRITE(*,*) '------------------------------------'
+    WRITE(*,*) 'Begin iterSCF = ', iter
+    WRITE(*,*) '------------------------------------'
+
     !
     nerr = 0
     vnew = vpot
@@ -45,15 +51,19 @@ SUBROUTINE ld1x_my_scf(ic)
     !
     DO n = 1,nwf
       
+      !
+      ! Solve one-particle equation (Schroedinger or Dirac)
+      !
+      
       IF( oc(n) >= 0.0_dp ) THEN
         
         IF( ic==1 .or. .not. frozen_core .or. .not. core_state(n) ) THEN
           !
-          is = isw(n)
+          is = isw(n) ! spin index
           !
-          IF( isic /= 0 .and. iter > 1 ) then
+          IF( isic /= 0 .and. iter > 1 ) THEN
             vnew(:,is) = vpot(:,is) - vsic(:,n)
-          endif
+          ENDIF 
           !    
           IF( rel == 0 ) THEN
             !
@@ -69,27 +79,20 @@ SUBROUTINE ld1x_my_scf(ic)
               !
               ! Non meta-GGA
               !
-              write(*,*) 'Solving nonrelativistic nonmeta equation'
-              write(*,*) 'nn      = ', nn(n)
-              write(*,*) 'll      = ', ll(n)
-              write(*,*) 'vnew(1) = ', vnew(1,is)
-              write(*,*) 'ze2     = ', ze2
-              write(*,*) 'thresh  = ', thresh
-              write(*,*) 'enl     = ', enl(n)
-                    
+              ! This is the "normal" case
               CALL ascheq( nn(n), ll(n), enl(n), grid%mesh, grid, vnew(:,is), & ! potential
-                      ze2, thresh, psi(:,:,n), nstop )
+                    &  ze2, thresh, psi(:,:,n), nstop )
                     
-              if( n == nwf ) then
-                write(*,*) 'Energy eigenvalues (in Ha): '
-                do ii = 1,nwf
-                  write(*,'(1x,A,F18.10)') 'enl = ', enl(ii)/2
+              IF( n == nwf ) THEN 
+                WRITE(*,*) 'Energy eigenvalues (in Ha): '
+                DO ii = 1,nwf
+                  WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(ii)/2
                   !write(*,*) 'psi1 = ', psi(:,:,ii)
-                enddo
+                ENDDO
                 !
-                stop 'ffr scf line 65'
+                !STOP 'ffr scf line 65'
                 !
-              endif
+              ENDIF 
                  
             ENDIF ! meta
             !
@@ -118,7 +121,7 @@ SUBROUTINE ld1x_my_scf(ic)
           ENDIF
           !      write(6,*) nn(n),ll(n),enl(n)
           ! if (nstop /= 0) write(6,'(4i6)') iter,nn(n),ll(n),nstop
-          nerr=nerr+nstop
+          nerr = nerr + nstop
         ENDIF
         !  
       ELSE
@@ -132,70 +135,76 @@ SUBROUTINE ld1x_my_scf(ic)
     
     ENDDO ! loop over Nwf
 
-     !
-     ! calculate charge density (spherical approximation)
-     !
-     rho=0.0_dp
+    !
+    ! calculate charge density (spherical approximation)
+    !
+    rho = 0.0_dp
+    IF( noscf ) GOTO 500
+    DO n = 1,nwf
+      rho(1:grid%mesh,isw(n)) = rho(1:grid%mesh,isw(n)) + &
+        & oc(n)*( psi(1:grid%mesh,1,n)**2 + psi(1:grid%mesh,2,n)**2 )
+    ENDDO
 
-     IF (noscf) GOTO 500
-     DO n=1,nwf
-        rho(1:grid%mesh,isw(n))=rho(1:grid%mesh,isw(n)) + &
-        oc(n)*(psi(1:grid%mesh,1,n)**2+psi(1:grid%mesh,2,n)**2)
-     ENDDO
 
-
-     !
-     ! calculate kinetc energy density (spherical approximation)
-     !
-     IF ( meta ) CALL kin_e_density (ndmx, grid%mesh, nwf, &
-         ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
-     !
-     ! calculate new potential
-     !
-
-     CALL new_potential ( ndmx, grid%mesh, grid, zed, vxt, &
+    !
+    ! Calculate kinetc energy density (spherical approximation) if neede
+    !
+    IF( meta ) CALL kin_e_density (ndmx, grid%mesh, nwf, &
+      & ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
+    
+    !
+    ! calculate new potential
+    !
+    CALL new_potential ( ndmx, grid%mesh, grid, zed, vxt, &
           lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
-     !
-     ! calculate SIC correction potential (if present)
-     !
-     IF (isic /= 0) THEN
-        DO n=1,nwf
-           IF (oc(n) >= 0.0_dp) THEN
-              is=isw(n)
-              CALL sic_correction(n,vhn1,vsicnew,egc)
-              !
-              ! use simple mixing for SIC correction
-              !
-              vsic(:,n) = (1.0_dp-beta)*vsic(:,n)+beta*vsicnew(:)
-           ENDIF
-        ENDDO
-     ENDIF
-     !
-     ! mix old and new potential
-     !
-     id = 3
-     IF (isic /= 0 .and. relpert)  id=1
-     !
-     CALL vpack(grid%mesh,ndmx,nspin,vnew,vpot,1)
-     CALL dmixp(grid%mesh*nspin,vnew,vpot,beta,tr2,iter,id,eps0,conv,maxter)
-     CALL vpack(grid%mesh,ndmx,nspin,vnew,vpot,-1)
-     
-     write(*,'(1x,I5,ES18.10)') iter, eps0
-     
-     !
-     ! mix old and new metaGGA potential - use simple mixing
-     !
-     IF ( meta ) vtau(:) = (1.0_dp-beta)*vtaunew(:)+beta*vtau(:)
-     !
-500  IF (noscf) THEN
-        conv=.true.
-        eps0 = 0.0_DP
-     ENDIF
-     IF (conv) THEN
-        IF (nerr /= 0) CALL infomsg ('scf','warning: at least one error in KS equations')
-        EXIT ! exit cycle
-     ENDIF
+    
+    !
+    ! calculate SIC correction potential (if present)
+    !
+    IF (isic /= 0) THEN
+      DO n=1,nwf
+        IF (oc(n) >= 0.0_dp) THEN
+          is=isw(n)
+          CALL sic_correction(n,vhn1,vsicnew,egc)
+          !
+          ! use simple mixing for SIC correction
+          !
+          vsic(:,n) = (1.0_dp - beta)*vsic(:,n)+beta*vsicnew(:)
+        ENDIF
+      ENDDO
+    ENDIF
+
+    !
+    ! mix old and new potential
+    !
+    id = 3
+    IF( isic /= 0 .and. relpert )  id=1
+    !
+    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot,1)
+    CALL dmixp(grid%mesh*nspin, vnew, vpot, beta, tr2, iter, id, eps0, conv, maxter)
+    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot, -1)
+    
+    WRITE(*,'(1x,I5,ES18.10)') iter, eps0
+    
+    !
+    ! mix old and new metaGGA potential - use simple mixing
+    !
+    IF( meta ) vtau(:) = (1.0_dp-beta)*vtaunew(:)+beta*vtau(:)
+
+
+
+500 IF( noscf ) THEN
+      conv = .true.
+      eps0 = 0.0_DP
+    ENDIF
+
+    IF( conv ) THEN
+      IF (nerr /= 0) CALL infomsg ('scf','warning: at least one error in KS equations')
+      EXIT ! exit cycle
+    ENDIF
   ENDDO
-  IF ( .not. conv ) CALL infomsg('scf','warning: convergence not achieved')
+  
+  IF( .not. conv ) CALL infomsg('scf','warning: convergence not achieved')
 
 END SUBROUTINE ld1x_my_scf
+

@@ -26,16 +26,16 @@ SUBROUTINE scf(ic)
 
   LOGICAL:: meta, conv
   INTEGER:: nerr, nstop, n, i, is, id, nin
-  real(DP) ::  vnew(ndmx,2), vtaunew(ndmx), rhoc1(ndmx), ze2
+  REAL(DP) ::  vnew(ndmx,2), vtaunew(ndmx), rhoc1(ndmx), ze2
   INTEGER, PARAMETER :: maxter=200
-  real(DP), PARAMETER :: thresh=1.0e-10_dp
-  integer :: ii
+  REAL(DP), PARAMETER :: thresh=1.0e-10_dp
+  INTEGER :: ii
   !
   !
   meta = dft_is_meta()
   ze2 = - zed * e2
   rhoc1=0.0_dp
-  IF (.not.frozen_core.or.ic==1) psi=0.0_dp
+  IF(.not. frozen_core .or. ic==1) psi=0.0_dp
   DO iter = 1,maxter
      nerr=0
      vnew=vpot
@@ -72,7 +72,7 @@ SUBROUTINE scf(ic)
                             write(*,*) 'psi1 = ', psi(1,1,ii)
                         enddo
                         !stop 'ffr scf line 65'
-                    endif
+                    ENDIF
                  
                  END IF
 
@@ -117,7 +117,7 @@ SUBROUTINE scf(ic)
      !
      ! calculate kinetc energy density (spherical approximation)
      !
-     IF ( meta ) CALL kin_e_density (ndmx, grid%mesh, nwf, &
+     IF( meta ) CALL kin_e_density (ndmx, grid%mesh, nwf, &
          ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
      !
      ! calculate new potential
@@ -169,3 +169,5 @@ SUBROUTINE scf(ic)
   IF ( .not. conv ) CALL infomsg('scf','warning: convergence not achieved')
 
 END SUBROUTINE scf
+
+

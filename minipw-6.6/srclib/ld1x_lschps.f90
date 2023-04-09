@@ -48,21 +48,21 @@ SUBROUTINE lschps (mode, z, eps, grid, nin, n, l, e, v, u, nstop)
   ! I/O variables
   !
   INTEGER, INTENT (in) :: mode, n, l
-  real(DP), INTENT(in) :: z, eps
+  REAL(DP), INTENT(in) :: z, eps
   TYPE (radial_grid_type), INTENT(in) :: grid
-  real(DP), INTENT(in) :: v(grid%mesh)
+  REAL(DP), INTENT(in) :: v(grid%mesh)
   INTEGER, INTENT(inout) :: nin
-  real(DP), INTENT(inout) :: e
+  REAL(DP), INTENT(inout) :: e
   INTEGER, INTENT(out) :: nstop
-  real (DP), INTENT(out) :: u(grid%mesh)
+  REAL(DP), INTENT(out) :: u(grid%mesh)
   !
   ! local variables
   !
   INTEGER, PARAMETER :: maxter=60
-  real(DP), EXTERNAL:: aei, aeo, aii, aio
+  REAL(DP), EXTERNAL:: aei, aeo, aii, aio
   ! arrays  used as work space
-  real(DP),ALLOCATABLE :: up(:),upp(:),cf(:),dv(:),fr(:),frp(:)
-  real(DP):: al, als, cn
+  REAL(DP),ALLOCATABLE :: up(:),upp(:),cf(:),dv(:),fr(:),frp(:)
+  REAL(DP):: al, als, cn
   real(DP):: de, emax, emin
   real(DP):: fss, gamma, ro, sc
   real(DP):: sls, sn, uld, uout,  upin, upout
