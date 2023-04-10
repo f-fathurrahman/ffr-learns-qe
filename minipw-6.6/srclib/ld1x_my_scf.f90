@@ -30,7 +30,8 @@ SUBROUTINE ld1x_my_scf(ic)
   INTEGER, PARAMETER :: maxter=200
   REAL(DP), PARAMETER :: thresh=1.0e-10_dp
   INTEGER :: ii
-  
+  REAL(DP) :: integRho
+
   meta = dft_is_meta()
   ze2 = -zed * e2
   rhoc1 = 0.0_dp
@@ -82,18 +83,7 @@ SUBROUTINE ld1x_my_scf(ic)
               ! This is the "normal" case
               CALL ascheq( nn(n), ll(n), enl(n), grid%mesh, grid, vnew(:,is), & ! potential
                     &  ze2, thresh, psi(:,:,n), nstop )
-                    
-              IF( n == nwf ) THEN 
-                WRITE(*,*) 'Energy eigenvalues (in Ha): '
-                DO ii = 1,nwf
-                  WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(ii)/2
-                  !write(*,*) 'psi1 = ', psi(:,:,ii)
-                ENDDO
-                !
-                !STOP 'ffr scf line 65'
-                !
-              ENDIF 
-                 
+               
             ENDIF ! meta
             !
           ELSEIF( rel == 1 ) THEN
@@ -135,6 +125,13 @@ SUBROUTINE ld1x_my_scf(ic)
     
     ENDDO ! loop over Nwf
 
+    WRITE(*,*)
+    WRITE(*,*) 'Energy eigenvalues (in Ha): '
+    DO ii = 1,nwf
+      WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(ii)/2
+      !write(*,*) 'psi1 = ', psi(:,:,ii)
+    ENDDO
+
     !
     ! calculate charge density (spherical approximation)
     !
@@ -144,6 +141,9 @@ SUBROUTINE ld1x_my_scf(ic)
       rho(1:grid%mesh,isw(n)) = rho(1:grid%mesh,isw(n)) + &
         & oc(n)*( psi(1:grid%mesh,1,n)**2 + psi(1:grid%mesh,2,n)**2 )
     ENDDO
+    CALL simpson(grid%mesh, rho(1:grid%mesh,1), grid%rab, integRho) 
+    WRITE(*,*)
+    WRITE(*,*) 'SCF: integrated rho = ', integRho
 
 
     !
@@ -155,7 +155,7 @@ SUBROUTINE ld1x_my_scf(ic)
     !
     ! calculate new potential
     !
-    CALL new_potential ( ndmx, grid%mesh, grid, zed, vxt, &
+    CALL new_potential( ndmx, grid%mesh, grid, zed, vxt, &
           lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
     
     !
@@ -180,11 +180,11 @@ SUBROUTINE ld1x_my_scf(ic)
     id = 3
     IF( isic /= 0 .and. relpert )  id=1
     !
-    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot,1)
+    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot, 1)
     CALL dmixp(grid%mesh*nspin, vnew, vpot, beta, tr2, iter, id, eps0, conv, maxter)
     CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot, -1)
     
-    WRITE(*,'(1x,I5,ES18.10)') iter, eps0
+    WRITE(*,'(1x,A,I5,ES18.10)') 'SCF iter ', iter, eps0
     
     !
     ! mix old and new metaGGA potential - use simple mixing

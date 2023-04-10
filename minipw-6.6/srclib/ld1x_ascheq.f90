@@ -92,16 +92,14 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   
   CALL series(y, grid%r, grid%r2, b)
 
-  WRITE(*,*)
-  WRITE(*,*) 'Near origin: r, vpot, yi, b (in Ha)'
-  WRITE(*,*)
-  DO i = 1,4
-    WRITE(*,'(1x,4ES18.10)') grid%r(i), vpot(i)/2.d0, y(i)/2.d0, b(i-1)/2.d0
+  !WRITE(*,*)
+  !WRITE(*,*) 'Near origin: r, vpot, yi, b (in Ha)'
+  !WRITE(*,*)
+  !DO i = 1,4
+  !  WRITE(*,'(1x,4ES18.10)') grid%r(i), vpot(i)/2.d0, y(i)/2.d0, b(i-1)/2.d0
     ! Note that b has shape of (0:3)
-  ENDDO
+  !ENDDO
   
-  !stop 'ffr ascheq line 66'
-
   !
   ! Loop starts here
   !
@@ -109,11 +107,6 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
 300 CONTINUE
 
   iter = iter + 1
-
-  
-  WRITE(*,*) '***** ======================='
-  WRITE(*,*) '***** Starting iterSch = ', iter
-  WRITE(*,*) '***** ======================='
 
   nstop = 300
   IF( iter > maxter ) GOTO 900
@@ -168,20 +161,19 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   !
   CALL start_scheq( lam, e, b, grid, ze2, y )
 
-  write(*,*)
-  WRITE(*,*) 'Two initial points from series development:'
-  WRITE(*,'(1x,A,F18.10)') 'y(1) = ', y(1) !*0.5d0
-  WRITE(*,'(1x,A,F18.10)') 'y(2) = ', y(2) !*0.5d0
-  !stop 'ffr ascheq line 110'
+  !write(*,*)
+  !WRITE(*,*) 'Two initial points from series development:'
+  !WRITE(*,'(1x,A,F18.10)') 'y(1) = ', y(1) !*0.5d0
+  !WRITE(*,'(1x,A,F18.10)') 'y(2) = ', y(2) !*0.5d0
 
   !
   !  start outward integration and count number of crossings
   !
   ncross = 0
   ymx = 0.0_dp
-  WRITE(*,*)
-  WRITE(*,*) 'Begin outward integration'
-  WRITE(*,*) 'until ik = ', ik
+  !WRITE(*,*)
+  !WRITE(*,*) 'Begin outward integration'
+  !WRITE(*,*) 'until ik = ', ik
   !WRITE(*,*) 'f = ', f(1:4)
   DO n = 2,ik-1
     y(n+1) = ( (12.0_dp - 10.0_dp*f(n) )*y(n) - f(n-1)*y(n-1))/f(n+1)
@@ -191,8 +183,8 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     ymx = MAX(ymx, ABS(y(n+1)))
   ENDDO
   
-  WRITE(*,'(1x,A,F18.10)') 'ymx = ', ymx
-  WRITE(*,*) 'ncross = ', ncross
+  !WRITE(*,'(1x,A,F18.10)') 'ymx = ', ymx
+  !WRITE(*,*) 'ncross = ', ncross
   !stop 'ffr ascheq line 130'
 
 
@@ -209,7 +201,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     IF(e < elw) THEN
       e = 0.9_dp*elw + 0.1_dp*eup
     ENDIF
-    WRITE(*,*) 'Too many crossings. e is increased to ', e
+    !WRITE(*,*) 'Too many crossings. e is increased to ', e
     GOTO 300
 
   ELSEIF( ndcr > ncross ) THEN
@@ -222,7 +214,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     IF(e > eup) THEN
       e = 0.9_dp*eup + 0.1_dp*elw
     ENDIF
-    WRITE(*,*) 'Too few crossings. e is decreased to ', e
+    !WRITE(*,*) 'Too few crossings. e is decreased to ', e
     GOTO 300
   ENDIF
 
@@ -246,8 +238,8 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     nstart = 2*nstart + 1
   ENDIF
 
-  WRITE(*,*)
-  WRITE(*,*) 'Inward integration from nstart = ', nstart
+  !WRITE(*,*)
+  !WRITE(*,*) 'Inward integration from nstart = ', nstart
   !stop 'ffr ascheq 201'
 
   !
@@ -263,8 +255,8 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     c(n) = -c(n-1)*f(n-1)/el(n-1)
   ENDDO
 
-  WRITE(*,*) 'el(nstart) = ', el(nstart)
-  WRITE(*,*) 'c(nstart) = ', c(nstart)
+  !WRITE(*,*) 'el(nstart) = ', el(nstart)
+  !WRITE(*,*) 'c(nstart) = ', c(nstart)
   !stop 'ffr ascheq 201'
 
 
@@ -279,8 +271,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     y(n) = ( c(n) - f(n+1)*y(n+1) )/el(n)
   ENDDO
   
-  WRITE(*,'(1x,A,F18.10)') 'y = ', y(ik+1)
-  !stop 'ffr ascheq 231'
+  !WRITE(*,'(1x,A,F18.10)') 'y = ', y(ik+1)
 
 
   !
@@ -288,8 +279,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   ! procedure. jw cooley math of comp 15,363(1961)
   !
   fe = ( 12.0_dp - 10.0_dp*f(ik) ) * y(ik) - f(ik-1)*y(ik-1) - f(ik+1)*y(ik+1)
-  WRITE(*,'(1x,A,F18.10)') 'fe = ', fe
-  !stop 'ffr ascheq 240'
+  !WRITE(*,'(1x,A,F18.10)') 'fe = ', fe
   
 
   !
@@ -302,9 +292,9 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   ENDIF
   
 
-  WRITE(*,'(1x,A,F18.10)') 'ymx = ', ymx
-  WRITE(*,'(1x,A,F18.10)') 'y[1] = ', y(1)
-  WRITE(*,'(1x,A,F18.10)') 'y[Nrmesh] = ', y(mesh)
+  !WRITE(*,'(1x,A,F18.10)') 'ymx = ', ymx
+  !WRITE(*,'(1x,A,F18.10)') 'y[1] = ', y(1)
+  !WRITE(*,'(1x,A,F18.10)') 'y[Nrmesh] = ', y(mesh)
   !stop 'ffr ascheq 252'
 
 
@@ -322,7 +312,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
     ss = ss + f0 + f2 + 4.0_DP*f1
   ENDDO
    
-  write(*,'(1x,A,F18.10)') 'ss = ', ss
+  !WRITE(*,'(1x,A,F18.10)') 'ss = ', ss
   !stop 'ffr ascheq 269'
 
   ss = sum0 + grid%dx*ss/3.0_dp
@@ -330,64 +320,59 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   de = -fe*dfe
   eps = abs(de/e)
 
-  WRITE(*,'(1x,A,F18.10)') 'ss = ', ss
-  WRITE(*,'(1x,A,F18.10)') 'de = ', de*0.5
-  !if(iter == 4) then
-  !  stop 'ffr ascheq 277'
-  !ENDIF
-
-
-  write(*,*) 'iter = ', iter, ' e = ', e/2, ' de = ', abs(de)/2
-  if(abs(de).lt.thresh) then
-    write(*,*) 'GOTO 600 here ......'
-    go to 600
+  !WRITE(*,'(1x,A,F18.10)') 'ss = ', ss
+  !WRITE(*,'(1x,A,F18.10)') 'de = ', de*0.5
+  
+  WRITE(*,*) 'iterSch = ', iter, ' e = ', e/2, ' de = ', abs(de)/2
+  IF( abs(de) < thresh) THEN 
+    WRITE(*,*) 'CONVERGENCE in ascheq'
+    GOTO 600
   ENDIF
   
-  if(eps .gt. 0.25_dp) then
-    write(*,*) 'de is updated here 295 ...'
-    de=0.25_dp*de/eps
+  IF( eps > 0.25_dp ) THEN 
+    !WRITE(*,*) 'de is updated here 295 ...'
+    de = 0.25_dp*de/eps
   ENDIF
   
-  if(de.gt.0.0_dp) then
-    write(*,*) 'elw is updated here 300 ...'
-    elw=e
+  IF( de > 0.0_dp ) THEN 
+    !WRITE(*,*) 'elw is updated here 300 ...'
+    elw = e
   ENDIF
   
-  if(de.lt.0.0_dp) then
-    write(*,*) 'eup is updated here 305 ...'
-    eup=e
+  IF( de < 0.0_dp ) THEN 
+    !write(*,*) 'eup is updated here 305 ...'
+    eup = e
   ENDIF
 
   e = e + de
-  write(*,*) 'de = ', de/2
-  write(*,*) 'e = ', e/2
+  !write(*,*) 'de = ', de/2
+  !write(*,*) 'e = ', e/2
 
   if(e .gt. eup) then
-    write(*,*) 'e is updated here 312 ...'
+    !write(*,*) 'e is updated here 312 ...'
     e = 0.9_dp*eup+0.1_dp*elw
   ENDIF
   
   IF(e < elw) THEN
-    WRITE(*,*) 'e is updated here 317 ...'
+    !WRITE(*,*) 'e is updated here 317 ...'
     e = 0.9_dp*elw + 0.1_dp*eup
   ENDIF
 
-  write(*,*) 'New data'
-  write(*,'(1x,A,F18.10)') 'e = ', e/2
-  write(*,'(1x,A,F18.10)') 'eup = ', eup/2
-
-  WRITE(*,'(1x,A,F18.10)') 'elw = ', elw/2
+  !write(*,*) 'New data'
+  !write(*,'(1x,A,F18.10)') 'e = ', e/2
+  !write(*,'(1x,A,F18.10)') 'eup = ', eup/2
+  !WRITE(*,'(1x,A,F18.10)') 'elw = ', elw/2
   
-  IF( iter < maxter) GOTO 300
+  IF( iter < maxter) GOTO 300 ! Next iteration 
   
-  nstop=50
+  nstop = 50
 
 600 CONTINUE
 
-  write(*,*)
-  write(*,*) 'exit loop'
-  write(*,*) 'iter = ', iter
-  write(*,*) 'e = ', e/2
+  !write(*,*)
+  !write(*,*) 'exit loop'
+  !write(*,*) 'iter = ', iter
+  !write(*,*) 'e = ', e/2
 
   !stop 'ffr ascheq 281'
 
@@ -417,13 +402,13 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
 
   ss = ss + grid%dx*sum1/3.0_dp
   ss = SQRT(ss)
-  WRITE(*,*) 'ss for normalization = ', ss
+  !WRITE(*,*) 'ss for normalization = ', ss
 
   DO n=1,mesh
     y(n) = grid%sqr(n)*y(n)/ss
   ENDDO
   
-  IF(nstop .LT. 100) GOTO 900
+  IF( nstop < 100 ) GOTO 900
 
   nstop = 0
 
