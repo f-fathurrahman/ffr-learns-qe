@@ -37,6 +37,12 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
 
   INTEGER :: i
 
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'ENTER my_set_vrs'
+  write(*,*) '------------------------------------------------------------'
+
+  write(*,*)
   write(*,*) 'my_set_vrs: nrxx = ', nrxx
   write(*,*) 'my_set_vrs: shape vltot = ', shape(vltot)
   write(*,*) 'my_set_vrs: shape vrs = ', shape(vrs)
@@ -59,6 +65,11 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
     write(*,'(1x,I5,2F18.10)') i, vr(i,1), vrs(i,1)
   enddo
 
+
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'EXIT my_set_vrs'
+  write(*,*) '------------------------------------------------------------'
 
   RETURN
   !

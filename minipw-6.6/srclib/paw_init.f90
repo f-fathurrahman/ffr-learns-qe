@@ -115,8 +115,9 @@ SUBROUTINE PAW_atomic_becsum()
   REAL(DP) :: noise = 0._DP
   !
   write(*,*)
-  write(*,*) '*** Calling PAW_atomic_becsum'
-  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'ENTER PAW_atomic_becsum'
+  write(*,*) '------------------------------------------------------------'
   !
   !
   IF (.NOT. okpaw) RETURN
@@ -128,7 +129,7 @@ SUBROUTINE PAW_atomic_becsum()
   IF ( starting_wfc=='random')        noise = 0.10_DP
   !
 
-  !noise = 0.d0
+  noise = 0.d0
   !if(noise > 0.d0) then
   !  write(*,*) 'PAW_atomic_becsum: Random component will be added to becsum'
   !endif
@@ -206,6 +207,12 @@ SUBROUTINE PAW_atomic_becsum()
   write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
   write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
 
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'EXIT PAW_atomic_becsum'
+  write(*,*) '------------------------------------------------------------'
+
+
   !
 END SUBROUTINE PAW_atomic_becsum
 
@@ -239,8 +246,10 @@ SUBROUTINE PAW_init_onecenter()
   CHARACTER(LEN=12) :: env='            '
   !
 
-  write(*,*) 
-  write(*,*) '>>> *** Enter PAW_init_onecenter'
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'ENTER PAW_init_onecenter'
+  write(*,*) '------------------------------------------------------------'
 
   IF ( paw_is_init ) THEN
     CALL errore( 'PAW_init_onecenter', 'Already initialized!', 1 )
@@ -296,6 +305,8 @@ SUBROUTINE PAW_init_onecenter()
       IF (ityp(ia) == nt ) THEN
 
         WRITE(*,*)
+        write(*,*) 'PAW_init_onecenter: nt = ', nt
+        write(*,*) 'PAW_init_onecenter: ia = ', ia
         WRITE(*,*) 'PAW_init_onecenter: upf(nt)%lmax_rho = ', upf(nt)%lmax_rho
         
         IF (upf(nt)%lmax_rho == 0) THEN
@@ -351,9 +362,10 @@ SUBROUTINE PAW_init_onecenter()
   !
   paw_is_init = .TRUE.
 
-  write(*,*) 
-  write(*,*) '>>> *** Exit PAW_init_onecenter'
   write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'EXIT PAW_init_onecenter'
+  write(*,*) '------------------------------------------------------------'
 
 END SUBROUTINE PAW_init_onecenter
 
@@ -398,11 +410,12 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   REAL(DP), ALLOCATABLE :: aux(:,:)  ! workspace
   REAL(DP) :: vth(3), vph(3)         !versors for theta and phi
   
-  write(*,*) '------------------'
+  write(*,*)
+  write(*,*) '--------------------------------------------------------'
   write(*,*) 'Enter PAW_rad_init'
+  write(*,*)
   write(*,*) 'l = ', l
   write(*,*) 'ls = ', ls
-  write(*,*) '------------------'
 
 
   IF (TIMING) CALL start_clock( 'PAW_rad_init' )
@@ -530,9 +543,11 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   !
   IF (TIMING) CALL stop_clock( 'PAW_rad_init' )
   
-  write(*,*) '------------------'
-  write(*,*) 'Exit PAW_rad_init'
-  write(*,*) '------------------'
+
+  write(*,*)
+  write(*,*) 'EXIT PAW_rad_init'
+  write(*,*) '--------------------------------------------------------'
+
 
   !
 CONTAINS

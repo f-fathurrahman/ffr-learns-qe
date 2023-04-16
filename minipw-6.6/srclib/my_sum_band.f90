@@ -52,8 +52,9 @@ SUBROUTINE my_sum_band()
   !
 
   write(*,*)
-  write(*,*) 'Enter my_sum_band'
-  write(*,*)
+  write(*,*) '---------------------------------------------------'
+  write(*,*) 'ENTER my_sum_band'
+  write(*,*) '---------------------------------------------------'
 
   !
   becsum(:,:,:) = 0.D0
@@ -198,7 +199,13 @@ SUBROUTINE my_sum_band()
   ! ... (up+dw,up-dw) format.
   !
   IF ( nspin == 2 ) CALL rhoz_or_updw( rho, 'r_and_g', '->rhoz' )
-  !
+
+
+  write(*,*)
+  write(*,*) '---------------------------------------------------'
+  write(*,*) 'EXIT my_sum_band'
+  write(*,*) '---------------------------------------------------'
+
   RETURN
 
 

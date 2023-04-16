@@ -33,6 +33,13 @@ SUBROUTINE hinit1()
   USE dfunct,              ONLY : newd
   !
   IMPLICIT NONE
+
+  write(*,*)
+  write(*,*) '---------------------------------------------------------'
+  write(*,*) 'ENTER hinit1'
+  write(*,*) '---------------------------------------------------------'
+
+
   !
   ! these routines can be used to patch quantities that are dependent
   ! on the ions and cell parameters
@@ -82,7 +89,12 @@ SUBROUTINE hinit1()
   IF ( lda_plus_u  ) CALL orthoUwfc() 
   !IF ( use_wannier ) CALL orthoatwfc( .TRUE. ) ! ffr
   !
-  !
+
+  write(*,*)
+  write(*,*) '---------------------------------------------------------'
+  write(*,*) 'EXIT hinit1'
+  write(*,*) '---------------------------------------------------------'
+
   RETURN
   !
 END SUBROUTINE hinit1

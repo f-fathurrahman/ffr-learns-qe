@@ -65,6 +65,12 @@ SUBROUTINE my_potinit()
   LOGICAL               :: exst 
   CHARACTER(LEN=320)    :: filename
 
+  write(*,*)
+  write(*,*) '============================================================'
+  write(*,*) 'ENTER my_potinit'
+  write(*,*) '============================================================'
+
+
   !
   filename = TRIM (restart_dir( )) // 'charge-density'
   exst     =  check_file_exist( TRIM(filename) // '.dat' )
@@ -180,7 +186,13 @@ SUBROUTINE my_potinit()
   !
   IF( report /= 0 .AND. &
       noncolin .AND. domag .AND. lscf ) CALL report_mag()
-  !
+
+  write(*,*)
+  write(*,*) '============================================================'
+  write(*,*) 'EXIT my_potinit'
+  write(*,*) '============================================================'
+
+
   RETURN
   !
 END SUBROUTINE my_potinit

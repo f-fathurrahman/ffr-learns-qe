@@ -260,6 +260,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
       ! the Harris-Weinert-Foulkes energy is computed here using only
       ! quantities obtained from the input density
+      write(*,*)
       write(*,*) 'BEGIN: Calculating hwf_energy terms: '
       hwf_energy = eband + deband_hwf + (etxc - etxcc) + ewld + ehart + demet
       write(*,*) 'eband = ', eband
@@ -336,7 +337,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         ! no convergence yet: calculate new potential from mixed
         ! charge density (i.e. the new estimate)
         !
-        CALL v_of_rho( rhoin, rho_core, rhog_core, &
+        CALL my_v_of_rho( rhoin, rho_core, rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
         !
         IF (okpaw) THEN
@@ -365,7 +366,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         !
         vnew%of_r(:,:) = v%of_r(:,:)
 
-        CALL v_of_rho( rho,rho_core,rhog_core, &
+        CALL my_v_of_rho( rho,rho_core,rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
         vnew%of_r(:,:) = v%of_r(:,:) - vnew%of_r(:,:)
         !

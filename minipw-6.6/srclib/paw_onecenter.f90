@@ -106,8 +106,11 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
   REAL(DP) :: sgn          ! +1 for AE -1 for PS
 
   write(*,*)
-  write(*,*) '>>>> Enter PAW_potential >>>>'
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'ENTER PAW_potential'
+  write(*,*) '------------------------------------------------------------'
   write(*,*)
+  write(*,*) 'sum becsum = ', sum(becsum)
 
   CALL start_clock( 'PAW_pot' )
   !
@@ -130,7 +133,14 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
   me_paw    = mp_rank( paw_comm )
   nproc_paw = mp_size( paw_comm )
   !
+  !write(*,*) 'ia_s = ', ia_s ! start index
+  !write(*,*) 'ia_e = ', ia_e ! end index
+  !
+  ! This is simply loop over atoms
   atoms: DO ia = ia_s, ia_e
+
+    write(*,*) 'ia = ', ia
+
     !
     i%a = ia                      ! atom's index
     i%t = ityp(ia)                ! type of atom ia
@@ -163,20 +173,23 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         i%ae = i_what
         NULLIFY( rho_core )
         !
-        IF (i_what == AE) THEN
+        IF( i_what == AE ) THEN
           ! Compute rho spherical harmonics expansion from becsum and pfunc
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc, rho_lm )
+          !
           with_small_so = upf(i%t)%has_so .AND. nspin_mag==4
           IF (with_small_so) THEN
             ALLOCATE( msmall_lm(i%m,l2,nspin) )
             ALLOCATE( g_lm(i%m,l2,nspin)      )
             CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc_rel, msmall_lm )
           ENDIF
+          !
           ! used later for xc potential:
           rho_core => upf(i%t)%paw%ae_rho_atc
           ! sign to sum up the enrgy
           sgn = +1._DP
         ELSE
+          !
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%ptfunc, rho_lm, upf(i%t)%qfuncl )
           !          optional argument for pseudo part (aug. charge) --> ^^^
           rho_core => upf(i%t)%rho_atc ! as before
@@ -203,9 +216,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         !
         ! Then the XC one:
         CALL PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
+        !
         !IF (PRESENT(energy)) write(*,*) 'X',i%a,i_what,sgn*energy
-        IF (PRESENT(energy) .AND. mykey == 0 ) energy_tot = energy_tot + sgn*energy
-        IF (PRESENT(e_cmp)  .AND. mykey == 0 ) e_cmp(ia, XC, i_what) = sgn*energy
+        IF( PRESENT(energy) .AND. mykey == 0 ) energy_tot = energy_tot + sgn*energy
+        IF( PRESENT(e_cmp)  .AND. mykey == 0 ) e_cmp(ia, XC, i_what) = sgn*energy
         savedv_lm(:,:,:) = savedv_lm(:,:,:) + v_lm(:,:,:)
         !
         spins: DO is = 1, nspin_mag
@@ -271,8 +285,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
   CALL stop_clock( 'PAW_pot' )
 
   write(*,*)
-  write(*,*) '>>>> Exit PAW_potential >>>>'
-  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'EXIT PAW_potential'
+  write(*,*) '------------------------------------------------------------'
+
 END SUBROUTINE PAW_potential
 
 

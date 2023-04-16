@@ -5,7 +5,7 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
+SUBROUTINE lschps_mode2( z, eps, grid, nin, n, l, e, v, u, nstop )
   !
   ! integrates radial pauli-type scalar-relativistic equation
   ! on a logarithmic grid
@@ -47,9 +47,9 @@ SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   !
   ! I/O variables
   !
-  INTEGER, INTENT (in) :: mode, n, l
+  INTEGER, INTENT(in) :: n, l
   REAL(DP), INTENT(in) :: z, eps
-  TYPE (radial_grid_type), INTENT(in) :: grid
+  TYPE(radial_grid_type), INTENT(in) :: grid
   REAL(DP), INTENT(in) :: v(grid%mesh)
   INTEGER, INTENT(inout) :: nin
   REAL(DP), INTENT(inout) :: e
@@ -81,30 +81,29 @@ SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   ALLOCATE(fr(mmax), stat=ierr)
   ALLOCATE(frp(mmax), stat=ierr)
 
-  uld=0.0_dp
+  uld = 0.0_dp
   !
   !
-  IF(mode == 1 .or. mode == 3) THEN
-     !     relativistic calculation
-     !     fss=(1.0_dp/137.036_dp)**2
-     fss=(1.0_dp/cau_fact)**2
-     IF(l == 0) THEN
-        gamma=sqrt(1.0_dp-fss*z**2)
-     ELSE
-        gamma=(l*sqrt(l**2-fss*z**2) + &
-             (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
-     ENDIF
-  ELSE
-     !     non-relativistic calculation
-     fss=1.0e-20_dp
-     gamma=l+1
-  ENDIF
+  !IF(mode == 1 .or. mode == 3) THEN
+  !   ! relativistic calculation
+  !   ! fss=(1.0_dp/137.036_dp)**2
+  !   fss = (1.0_dp/cau_fact)**2
+  !   IF(l == 0) THEN
+  !      gamma = sqrt(1.0_dp-fss*z**2)
+  !   ELSE
+  !      gamma = (l*sqrt(l**2-fss*z**2) + (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
+  !   ENDIF
+  !ELSE
+     ! non-relativistic calculation
+     fss = 1.0e-20_dp
+     gamma = l + 1
+  !ENDIF
   !
-  sls=l*(l+1)
+  sls = l*(l + 1)
   !
   ! emin, emax = estimated bounds for e
   !
-  IF(mode == 1 .or. mode == 2) THEN
+  !IF(mode == 1 .or. mode == 2) THEN
      emax=v(mmax)+sls/grid%r(mmax)**2
      emin=0.0_dp
      DO i=1,mmax
@@ -113,21 +112,21 @@ SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
      IF(e > emax) e=1.25_dp*emax
      IF(e < emin) e=0.75_dp*emin
      IF(e > emax) e=0.5_dp*(emax+emin)
-  ELSEIF(mode == 4) THEN
-     emax=e + 10.0_dp
-     emin=e - 10.0_dp
-  ENDIF
+  !ELSEIF(mode == 4) THEN
+  !   emax=e + 10.0_dp
+  !   emin=e - 10.0_dp
+  !ENDIF
   !
   DO i=1,4
-     u(i)=0.0_dp
-     up(i)=0.0_dp
-     upp(i)=0.0_dp
+     u(i) = 0.0_dp
+     up(i) = 0.0_dp
+     upp(i) = 0.0_dp
   ENDDO
-  als=al**2
+  als = al**2
   !
   ! calculate dv/dr for darwin correction
   !
-  CALL derv (mmax, al, grid%r, v, dv )
+  CALL derv(mmax, al, grid%r, v, dv )
   !
   !     starting of loop on energy for bound state
   !
@@ -157,6 +156,7 @@ SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
      ELSE
         mch=nin
      ENDIF
+     
 40   CONTINUE
 
      !  relativistic coefficient arrays for u (fr) and up (frp).
@@ -310,11 +310,12 @@ SUBROUTINE lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   RETURN
 
 END SUBROUTINE lschps
-!
+
+
 !----------------------------------------------------------------
-SUBROUTINE lschps_meta (mode, z, eps, grid, nin, n, l, e, v, vtau, &
+SUBROUTINE lschps_meta(mode, z, eps, grid, nin, n, l, e, v, vtau, &
                         u, nstop)
-  !----------------------------------------------------------------
+!----------------------------------------------------------------
   !
   ! Meta-GGA version of lschps
   ! vtau is the meta-GGA potential

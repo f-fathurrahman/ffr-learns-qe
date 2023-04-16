@@ -110,7 +110,7 @@ subroutine gener_pseudo
   !
   !   compute the local potential from the all-electron potential
   !
-  call pseudovloc ( )
+  call pseudovloc()
   !
   !   initialize total potential for PAW generation
   if (lpaw) then
@@ -124,10 +124,11 @@ subroutine gener_pseudo
   !   if nlcc is true compute here the core charge
   !   the core charge is needed also for the PAW dataset
   !
-  if (nlcc .or. lpaw) call set_rho_core
+  if( nlcc .or. lpaw ) call set_rho_core()
+  
   !
-  !   set the appropriate energies and the correspondence all-electron
-  !   pseudo
+  ! set the appropriate energies and the correspondence all-electron
+  ! pseudo
   !
   do n=1,nwfs
      if (enls(n) == 0.0_dp) enls(n)=enl(nstoae(n))
@@ -230,13 +231,13 @@ subroutine gener_pseudo
         occ=ocs(ns)
      endif
      !
-     !   save the all-electron function for the PAW setup
+     ! save the all-electron function for the PAW setup
      !
      psi_in(1:grid%mesh) = psipaw(1:grid%mesh,ns) 
      !
-     !  compute the phi functions
+     ! compute the phi functions
      !
-     if (lpaw.and.lnc2paw) then
+     if( lpaw .and. lnc2paw ) then
         ! first compute possibly harder NC pseudowfcs to be
         ! used as AE reference for PAW generation
         nnode=0

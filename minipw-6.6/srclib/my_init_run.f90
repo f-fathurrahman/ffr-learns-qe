@@ -26,8 +26,10 @@ SUBROUTINE my_init_run()
   IMPLICIT NONE
 
   write(*,*)
-  write(*,*) '************************* Enter init_run *************************'
-  write(*,*)
+  write(*,*) '******************************************************************'
+  write(*,*) '                          ENTER init_run                          '
+  write(*,*) '******************************************************************'
+
 
   !
   ! ... calculate limits of some indices, used in subsequent allocations
@@ -114,8 +116,9 @@ SUBROUTINE my_init_run()
   IF ( lmd ) CALL allocate_dyn_vars()
 
   write(*,*)
-  write(*,*) '************************* Exit my_init_run *************************'
-  write(*,*)
+  write(*,*) '******************************************************************'
+  write(*,*) '                          EXIT init_run                          '
+  write(*,*) '******************************************************************'
 
   !
   RETURN

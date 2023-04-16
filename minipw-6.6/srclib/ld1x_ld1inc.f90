@@ -60,7 +60,7 @@ MODULE ld1inc
        nld,  &  ! computes the log der of the last nld wavefunctions
        npte     ! number of energy points
 
-  real(DP) :: &
+  REAL(DP) :: &
        rlderiv,    & ! the radius of logarithmic derivatives
        eminld,     & ! the minimum energy
        emaxld,     & ! the maximum energy
@@ -128,7 +128,7 @@ MODULE ld1inc
   CHARACTER(len=2) ::  &
        eltsc(nwfsx,ncmax1)     !  the labels for each configuration
 
-  real(DP) ::              &
+  REAL(DP) ::              &
        rcuttsc(nwfsx,ncmax1),   & ! the cut-off radius of each configuration
        rcutustsc(nwfsx,ncmax1), & ! cut-off radius for us
        jjtsc(nwfsx,ncmax1),     & ! the j of a configuration
@@ -144,7 +144,7 @@ MODULE ld1inc
        nstoaets(nwfsx), & ! for each test wavefunction the all-electron
        nwfts             ! the number of pseudo wavefunctions
 
-  real(DP) ::        &
+  REAL(DP) ::        &
        enlts(nwfsx),       & ! the energies for the test configuration
        phits(ndmx,nwfsx),   & ! the pseudo wavefunctions
        rcutts(nwfsx),      & ! cut-off radius for test wavefunction
@@ -188,12 +188,12 @@ MODULE ld1inc
        verbosity     ! if 'high' writes more information on output
 
 
-  real(DP) :: &
+  REAL(DP) :: &
        beta,       &   ! the mixing parameter
        tr2,        &   ! the required precision of the scf
        eps0            ! the reached precision of the scf
   !
-  !    parameters for the old type pseudopotential
+  ! parameters for the old type pseudopotential
   !
   INTEGER ::   &
        lmin,   &  ! the minimum angular momentum
@@ -201,15 +201,15 @@ MODULE ld1inc
        nlc,    &  ! number of core functions
        nnl        ! number of angular momentum functions
 
-  real(DP) ::     &
+  REAL(DP) ::     &
        cc(2),          & ! the coeffients of the core part
        alpc(2),        & ! the alpha parameters of the core
        alc(6,0:3),     & ! the coefficients of the pseudopotential
        alps(3,0:3)       ! the alpha parameters
   !
-  !   the energy parameters
+  ! the energy parameters
   !
-  real(DP) :: &
+  REAL(DP) :: &
        etot,       &    ! total energy
        etot0,      &    ! saved value of the total energy
        ekin,       &    ! kinetic energy
@@ -232,7 +232,7 @@ MODULE ld1inc
        etots,      &    ! total pseudopotential energy
        etots0           ! saved value of the total pseudopotential energy
   !
-  !  variable for nlcc
+  ! variable for nlcc
   !
   real(DP) :: &
        rcore,      &  ! the points where core charge is smooth
@@ -242,9 +242,9 @@ MODULE ld1inc
        new_core_ps, & ! if true pseudize the core charge with bessel functions
        nlcc    ! if true nlcc pseudopotential
   !
-  !  the potential for the scf
+  ! the potential for the scf
   !
-  real(DP) ::   &
+  REAL(DP) ::   &
        v0(ndmx),      & ! the coulomb potential
        vpot(ndmx,2),  & ! the all-electron scf potential
        vxt(ndmx),     & ! the external potential
@@ -259,10 +259,10 @@ MODULE ld1inc
        vpsloc(ndmx)  ,& ! the local pseudopotential
        vx(ndmx,2)    ,& ! the OEP-X potential (when needed)
        enzero(2)
-  real(DP) ::  &
+  REAL(DP) ::  &
        tau(ndmx,2),   & ! kinetic energy density for metaGGA
        vtau(ndmx)       ! potential for metaGGA
-  real(DP), ALLOCATABLE ::  &
+  REAL(DP), ALLOCATABLE ::  &
        vsic(:,:), vsicnew(:), vhn1(:), egc(:) ! potentials for SIC
   !
   LOGICAL :: lsave_wfc  ! if true, wfcs (AE and PS) are saved to the UFP file
@@ -277,7 +277,7 @@ MODULE ld1inc
        use_paw_as_gipaw ! if true, PAW data will be used for GIPAW
   TYPE(paw_t) :: &
        pawsetup    ! the PAW dataset
-  real(DP) ::       &
+  REAL(DP) ::       &
        rmatch_augfun,     & ! define the matching radius for paw aug.fun.
        psipaw(ndmx,nwfsx),& ! the all-electron wavefunctions for any beta
        psipaw_rel(ndmx,nwfsx),& ! the all-electron wfc small component
@@ -285,25 +285,25 @@ MODULE ld1inc
        psccharge(ndmx),   & ! smoothened core charge for PAW
        paw_energy(5,3)
 
-   CHARACTER(len=20) ::&
+  CHARACTER(len=20) ::&
        which_augfun     ! choose shape of paw fun. (GAUSS, BESSEL..)
   !
   ! conversion factor
   !
-  real(DP) :: &
+  REAL(DP) :: &
              rytoev_fact    ! Conversion from Ry and eV. A value
                             ! different from default can be used
                             ! to reproduce results of old papers.
-  real(DP) :: &
+  REAL(DP) :: &
              cau_fact       ! speed of light in atomic units.
   !
-  !  Auxiliary quantities for verbose output
+  ! Auxiliary quantities for verbose output
   !
-  real(DP) ::       &
+  REAL(DP) ::       &
        aevcharge(ndmx,2)     ! the all-electron valence charge
 
   !
-  !  file names
+  ! file names
   !
   CHARACTER(len=75)  :: title  ! the title of the run
   CHARACTER(len=75)  :: author ! the author of the pseudopotential
@@ -338,13 +338,13 @@ MODULE ld1inc
   !
   LOGICAL :: vdw        ! optional variable
   !
-  real(DP) :: um,     & ! maximum frequency
+  REAL(DP) :: um,     & ! maximum frequency
               du,     & ! step of frequency
               tr_s    ! threshold for scf solution of modified Sternheimer equation
   !
   ! test on ghosts and convergences with spherical Bessel functions
   !
-  real(DP) :: ecutmin, & ! min kinetic energy cutoff for j_l(qr)
+  REAL(DP) :: ecutmin, & ! min kinetic energy cutoff for j_l(qr)
               ecutmax, & ! max energy cutoff
               decut,   & ! step: ecut = ecutmin, ecutmin+decut, ... , ecutmax
               rm         ! radius of the box
@@ -352,8 +352,8 @@ MODULE ld1inc
   ! (GI)PAW reconstruction
   !
   LOGICAL :: lgipaw_reconstruction
-  REAL ( dp ) :: wfc_ae_recon(ndmx,nwfx)
-  REAL ( dp ) :: wfc_ps_recon(ndmx,nwfsx)
-  REAL ( dp ) :: wfc_us_recon(ndmx,nwfsx)
+  REAL(dp) :: wfc_ae_recon(ndmx,nwfx)
+  REAL(dp) :: wfc_ps_recon(ndmx,nwfsx)
+  REAL(dp) :: wfc_us_recon(ndmx,nwfsx)
   !
 END MODULE ld1inc

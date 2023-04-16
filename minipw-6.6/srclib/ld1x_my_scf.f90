@@ -149,7 +149,7 @@ SUBROUTINE ld1x_my_scf(ic)
     !
     ! Calculate kinetc energy density (spherical approximation) if neede
     !
-    IF( meta ) CALL kin_e_density (ndmx, grid%mesh, nwf, &
+    IF( meta ) CALL kin_e_density(ndmx, grid%mesh, nwf, &
       & ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
     
     !

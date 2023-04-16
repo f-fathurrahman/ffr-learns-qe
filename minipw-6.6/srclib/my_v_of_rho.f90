@@ -51,6 +51,11 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
   !
   INTEGER :: is, ir
 
+  write(*,*)
+  write(*,*) '************************************************************'
+  write(*,*) 'ENTER my_v_of_rho'
+  write(*,*) '************************************************************'
+
 
   ! calculate exchange-correlation potential
   IF (dft_is_meta()) then
@@ -96,7 +101,12 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
         END DO
      END DO
   END IF
-  !
+
+  write(*,*)
+  write(*,*) '************************************************************'
+  write(*,*) 'EXIT my_v_of_rho'
+  write(*,*) '************************************************************'
+
   RETURN
   !
 END SUBROUTINE my_v_of_rho

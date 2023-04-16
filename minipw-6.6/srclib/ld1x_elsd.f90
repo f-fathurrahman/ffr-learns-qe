@@ -95,18 +95,19 @@ subroutine elsd ( zed, grid, rho, vxt, vh, vxc, exc, excgga, nwf,&
 !  The kinetic energy is the sum of the eigenvalues plus the f5 integral
 !
   ekin = int_0_inf_dr(f5,grid,grid%mesh,1)
-  do n=1,nwf
-     if (oc(n)>0.0_DP) ekin=ekin+oc(n)*enl(n)
-  enddo
+  DO n=1,nwf
+     IF( oc(n) > 0.0_DP ) ekin=ekin+oc(n)*enl(n)
+  ENDDO
 
-  if (oep .or. kli) call add_exchange (ecxc)
+  IF( oep .or. kli ) call add_exchange (ecxc)
 
   etot= ekin + encl + ehrt + ecxc + evxt
 
-  deallocate(f5)
-  deallocate(f4)
-  deallocate(f3)
-  deallocate(f2)
-  deallocate(f1)
+  DEALLOCATE(f5)
+  DEALLOCATE(f4)
+  DEALLOCATE(f3)
+  DEALLOCATE(f2)
+  DEALLOCATE(f1)
 
-end subroutine elsd
+END SUBROUTINE elsd
+

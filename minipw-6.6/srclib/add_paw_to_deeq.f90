@@ -25,6 +25,10 @@ SUBROUTINE add_paw_to_deeq( deeq )
   ! ... local variables
   !
   INTEGER :: na, nt, ih, jh, ijh
+  
+  write(*,*)
+  write(*,*) '--------------- add_paw_to_deeq is called'
+
   !
   IF (okpaw) THEN
      DO na=1,nat

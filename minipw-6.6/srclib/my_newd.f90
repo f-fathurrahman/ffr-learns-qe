@@ -204,8 +204,9 @@ SUBROUTINE my_newd()
   !
   
   write(*,*)
-  write(*,*) 'my_newd is called'
-  write(*,*)
+  write(*,*) '---------------------------------------------------'
+  write(*,*) 'ENTER my_newd'
+  write(*,*) '---------------------------------------------------'
   
   ! For debugging
   !DO na = 1, nat
@@ -240,7 +241,7 @@ SUBROUTINE my_newd()
     CALL my_newq( v%of_r, deeq, .FALSE. )
   ENDIF
 
-  IF(noncolin) CALL add_paw_to_deeq( deeq )
+  IF( noncolin ) CALL add_paw_to_deeq( deeq )
 
   write(*,*) 'After newq: '
   write(*,*) 'sum Dvan = ', sum(dvan)
@@ -270,6 +271,13 @@ SUBROUTINE my_newd()
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
 
   write(*,*) 'sum Deeq = ', sum(deeq)
+
+
+  write(*,*)
+  write(*,*) '---------------------------------------------------'
+  write(*,*) 'EXIT my_newd'
+  write(*,*) '---------------------------------------------------'
+
 
   !
   RETURN

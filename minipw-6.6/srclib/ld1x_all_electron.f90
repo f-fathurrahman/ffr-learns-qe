@@ -66,17 +66,17 @@ SUBROUTINE all_electron(ild,ic)
   write(*,*) 'vpot1 = ', vpot(1:2,1)
   write(*,*) 'vpot2 = ', vpot(1:2,2)
 
-  write(*,*) 'nrmesh = ', grid%mesh
+  WRITE(*,*) 'nrmesh = ', grid%mesh
 
-  call starting_potential( ndmx, grid%mesh, zval, zed, nwf, oc, nn, ll,&
+  CALL starting_potential( ndmx, grid%mesh, zval, zed, nwf, oc, nn, ll,&
                            grid%r, enl, v0, vxt, vpot, enne, nspin )
   
-  write(*,*) 'After starting_potential: (Ha unit)'
-  write(*,*) 'v0   = ', v0(1:2)*0.5
-  write(*,*) 'vxt  = ', vxt(1:2)*0.5
-  write(*,*) 'vpot1 = ', vpot(1:2,1)*0.5
-  write(*,*) 'vpot2 = ', vpot(1:2,2)*0.5
-  write(*,*) 'enl = ', enl(1:nwf)*0.5
+  WRITE(*,*) 'After starting_potential: (Ha unit)'
+  WRITE(*,*) 'v0   = ', v0(1:2)*0.5
+  WRITE(*,*) 'vxt  = ', vxt(1:2)*0.5
+  WRITE(*,*) 'vpot1 = ', vpot(1:2,1)*0.5
+  WRITE(*,*) 'vpot2 = ', vpot(1:2,2)*0.5
+  WRITE(*,*) 'enl = ', enl(1:nwf)*0.5
 
 
   !
@@ -113,30 +113,31 @@ SUBROUTINE all_electron(ild,ic)
   !
   IF( isic /= 0 ) call esic()
   !
-  !   print results
+  ! print results
   !
-  call write_results()
+  CALL write_results()
   !
-  !  compute logarithmic derivative
+  ! compute logarithmic derivative
   !
   IF( deld > 0.0_DP .and. ild ) call lderiv()
   !
   ! compute C6 coefficient if required
   !
-  IF (vdw) THEN
-    call c6_tfvw( grid%mesh, zed, grid, rho(1,1) )
-    call c6_dft( grid%mesh, zed, grid )
+  IF( vdw ) THEN
+    CALL c6_tfvw( grid%mesh, zed, grid, rho(1,1) )
+    CALL c6_dft( grid%mesh, zed, grid )
   ENDIF
   !
-  IF (isic /= 0) THEN
+  IF( isic /= 0 ) THEN
     DEALLOCATE(egc, vhn1, vsicnew, vsic)
   ENDIF
   !
 
-  write(*,*)
-  write(*,*) 'Exit all_electron'
-  write(*,*)
+  WRITE(*,*)
+  WRITE(*,*) 'Exit all_electron'
+  WRITE(*,*)
 
   RETURN
   !
 END SUBROUTINE all_electron
+
