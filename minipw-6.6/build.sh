@@ -17,5 +17,7 @@ rm -vf $basn.x
 
 # FIXME: rpath for Libxc is not
 
+# -fbounds-check
+# -fsanitize=address (for checking leaked memory)
 gfortran -Wall $INC $1 $LIB_LIBXC $LIB -o $basn.x
 echo "Executable: $basn.x"
