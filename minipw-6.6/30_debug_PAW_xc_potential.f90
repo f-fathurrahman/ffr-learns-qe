@@ -62,7 +62,8 @@ SUBROUTINE debug_PAW_xc_potential()
   CALL PAW_atomic_becsum()
   write(*,*) 'sum rho%bec = ', sum(rho%bec)
 
-  ia = 3
+  ! Choose atom index and which partial waves to be used (AE or PS)
+  ia = 1
   i_what = AE
 
   i%a = ia   ! atom's index
@@ -196,7 +197,7 @@ SUBROUTINE my_PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
   !
   ALLOCATE( rho_rad(i%m,nspin_mag) ) 
   !
-  ALLOCATE( arho(i%m,2) ) !^^^
+  ALLOCATE( arho(i%m,nspin) ) ! XXX: ffr: change second dimension to 2
   ALLOCATE( ex(i%m) )
   ALLOCATE( ec(i%m) )
   ALLOCATE( vx(i%m,2) )
@@ -211,6 +212,7 @@ SUBROUTINE my_PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
   v_rad = 0.0_dp
   DO ix = 1, rad(i%t)%nx
     
+    write(*,*)
     write(*,*) 'ix = ', ix
 
     !
@@ -245,6 +247,7 @@ SUBROUTINE my_PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
       IF( lsd == 0 ) THEN
         !
         arho(:,1) = rho_loc(:,1) + rho_core
+        write(*,*) 'sum arho = ', sum(arho)
         !
         CALL xc( i%m, 1, 1, arho(:,1), ex, ec, vx(:,1), vc(:,1) )
         !
@@ -272,11 +275,12 @@ SUBROUTINE my_PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
       !
     ENDIF
     
-    write(*,*) 'sum abs v_rad(:,ix,1) in Ha = ', 0.5d0*sum(abs(v_rad(:,ix,1)))
-    write(*,*) 'sum abs e_rad in Ha = ', 0.5d0*sum(abs(e_rad))
+    write(*,*) 'sum v_rad(:,ix,1) in Ha = ', 0.5d0*sum(v_rad(:,ix,1))
+    write(*,*) 'sum e_rad in Ha = ', 0.5d0*sum(e_rad)
 
     ! Integrate to obtain the energy
     CALL simpson( i%m, e_rad, g(i%t)%rab, e )
+    write(*,*) 'integrated energy from ix (in Ha) = ', e*rad(i%t)%ww(ix)*0.5d0
     energy = energy + e * rad(i%t)%ww(ix)
   
   ENDDO
