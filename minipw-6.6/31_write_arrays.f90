@@ -12,16 +12,21 @@ subroutine do_write_arrays()
   use paw_variables, only : rad
   USE ions_base, ONLY : nat, nsp
   implicit none
+  integer :: isp
+  character(30) :: filename
 
-  if(nsp /= 2) then
-    stop 'nsp is hardcoded to 2'
+  if(nsp > 9) then
+    stop 'nsp is harcoded to be not larger than 9'
   endif
 
-  call write_array2_r8('wwylm1.dat', size(rad(1)%wwylm, 1), size(rad(1)%wwylm, 2), rad(1)%wwylm)
-  call write_array1_r8('ww1.dat', size(rad(1)%ww, 1), rad(1)%ww)
-
-  call write_array2_r8('wwylm2.dat', size(rad(2)%wwylm, 1), size(rad(2)%wwylm, 2), rad(2)%wwylm)
-  call write_array1_r8('ww2.dat', size(rad(2)%ww, 1), rad(2)%ww)
+  do isp = 1,nsp
+    ! wwylm
+    write(filename,"(A5,I1,A4)") 'wwylm', isp, '.dat'
+    call write_array2_r8(filename, size(rad(1)%wwylm, 1), size(rad(1)%wwylm, 2), rad(1)%wwylm)
+    !
+    write(filename,"(A2,I1,A4)") 'ww', isp, '.dat'
+    call write_array1_r8(filename, size(rad(1)%ww, 1), rad(1)%ww)
+  enddo
 
   return
 
