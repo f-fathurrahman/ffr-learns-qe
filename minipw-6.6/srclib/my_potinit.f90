@@ -171,8 +171,8 @@ SUBROUTINE my_potinit()
   CALL my_v_of_rho( rho, rho_core, rhog_core, &
                  ehart, etxc, vtxc, eth, etotefield, charge, v )
 
-  write(*,*) 'my_potinit: sum ddd_PAW before PAW_potential = ', sum(ddd_PAW)
   IF( okpaw ) then
+    write(*,*) 'my_potinit: sum ddd_PAW before PAW_potential = ', sum(ddd_PAW)
     CALL PAW_potential(rho%bec, ddd_PAW, epaw)
     write(*,*) 'my_potinit: sum rho%bec = ', sum(rho%bec)
     write(*,*) 'my_potinit: EHxc (in Ha) = ', 0.5d0*epaw
