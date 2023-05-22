@@ -104,11 +104,10 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   ec_out = 0.0_DP ; vc_out = 0.0_DP
   !
 #if defined(__LIBXC)
-  !
 
-  !write(*,*)
-  !write(*,*) '@@@@@@ Pass here 109 in xc_lda_lsda_drivers'
-  !write(*,*)
+   !write(*,*)
+   !write(*,*) 'XXXX Compiled with LibXC support XXXX'
+   !write(*,*)
 
   fkind_x = -1
   lengthxc = length
@@ -150,9 +149,9 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   ! ... EXCHANGE
 
-  IF ( is_libxc(1) ) THEN
-     write(*,*) 'using libxc: iexch = ', iexch
-     write(*,*) 'rho_threshold = ', rho_threshold
+  IF( is_libxc(1) ) THEN
+     !write(*,*) 'using libxc: iexch = ', iexch
+     !write(*,*) 'rho_threshold = ', rho_threshold
      CALL xc_f03_func_init( xc_func, iexch, sv_d )
        xc_info1 = xc_f03_func_get_info( xc_func )
        CALL xc_f03_func_set_dens_threshold( xc_func, rho_threshold )
@@ -163,8 +162,8 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   ! ... CORRELATION
   IF ( is_libxc(2) ) THEN
-     write(*,*) 'using libxc: icorr = ', icorr
-     write(*,*) 'rho_threshold = ', rho_threshold
+     !write(*,*) 'using libxc: icorr = ', icorr
+     !write(*,*) 'rho_threshold = ', rho_threshold
       CALL xc_f03_func_init( xc_func, icorr, sv_d )
       xc_info2 = xc_f03_func_get_info( xc_func )
       CALL xc_f03_func_set_dens_threshold( xc_func, rho_threshold )
@@ -175,6 +174,9 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   IF ( ((.NOT.is_libxc(1)) .OR. (.NOT.is_libxc(2))) &
         .AND. fkind_x/=XC_EXCHANGE_CORRELATION ) THEN
      !
+     write(*,*)
+     write(*,*) '!!!!!! LDA/LSDA: Not using LibXC !!!!!'
+     write(*,*)
      SELECT CASE( sr_d )
      CASE( 1 )
         !

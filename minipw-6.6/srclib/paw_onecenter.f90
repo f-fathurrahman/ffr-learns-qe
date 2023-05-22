@@ -33,6 +33,10 @@ MODULE paw_onecenter
   PUBLIC :: PAW_rho_lm      ! uses becsum to generate one-center charges
                             ! (all-electron and pseudo) on radial grid
   PUBLIC :: PAW_h_potential ! computes hartree potential, only used by paw_exx
+
+  ! ffr
+  !PUBLIC :: PAW_rad2lm, PAW_lm2rad
+
   !
   INTEGER, SAVE :: paw_comm, me_paw, nproc_paw
   !
@@ -139,8 +143,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
   ! This is simply loop over atoms
   atoms: DO ia = ia_s, ia_e
 
-    write(*,*)
-    write(*,*) 'Loop PAW_potential: ia = ', ia
+    !write(*,*)
+    !write(*,*) 'Loop PAW_potential: ia = ', ia
 
     !
     i%a = ia                      ! atom's index
@@ -161,12 +165,12 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
       ix_s   = gind_block( 1, rad(i%t)%nx, nproc_paw, me_paw )
       ix_e   = ix_s + nx_loc - 1
       !
+      !
       ! Arrays are allocated inside the cycle to allow reduced
       ! memory usage as different atoms have different meshes
       ALLOCATE( v_lm(i%m,l2,nspin)      )
       ALLOCATE( savedv_lm(i%m,l2,nspin) )
       ALLOCATE( rho_lm(i%m,l2,nspin)    )
-      write(*,*) 'size rho_lm = ', shape(rho_lm)
       !
       !
       whattodo: DO i_what = AE, PS
@@ -178,8 +182,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         IF( i_what == AE ) THEN
           ! Compute rho spherical harmonics expansion from becsum and pfunc
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc, rho_lm )
-          write(*,*)
-          write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
+          !write(*,*)
+          !write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
           !
           with_small_so = upf(i%t)%has_so .AND. nspin_mag==4
           IF (with_small_so) THEN
@@ -196,8 +200,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           !
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%ptfunc, rho_lm, upf(i%t)%qfuncl )
           !          optional argument for pseudo part (aug. charge) --> ^^^
-          write(*,*)
-          write(*,*) 'i_what == PS, sum rho_lm = ', sum(rho_lm)
+          !write(*,*)
+          !write(*,*) 'i_what == PS, sum rho_lm = ', sum(rho_lm)
           rho_core => upf(i%t)%rho_atc ! as before
           sgn = -1._DP                 ! as before
           with_small_so = .FALSE.
@@ -208,10 +212,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         
         !
         ! First compute the Hartree potential (it does not depend on spin...):
-        write(*,*) 'Before PAW_h_potential: sum(rho_lm) = ', sum(rho_lm)
+        !write(*,*) 'Before PAW_h_potential: sum(rho_lm) = ', sum(rho_lm)
         CALL PAW_h_potential( i, rho_lm, v_lm(:,:,1), energy )
-        write(*,*) 'After PAW_h_potential: energy (in Ha) = ', energy*0.5d0
-        write(*,*) 'After PAW_h_potential: sum(v_lm) (in Ha) = ', sum(v_lm(:,:,1))*0.5d0
         !
         ! NOTE: optional variables works recursively: e.g. if energy is not present here
         ! it will not be present in PAW_h_potential either!
@@ -221,7 +223,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         DO is = 1,nspin_lsda ! ... v_H has to be copied to all spin components
           savedv_lm(:,:,is) = v_lm(:,:,1)
         ENDDO
-             
+        
+        !write(*,*) 'sum v_lm after PAW_h_potential (in Ha): ', sum(v_lm)*0.5d0
+
+
         !
         ! Then the XC one:
         CALL PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
@@ -229,7 +234,17 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         !IF (PRESENT(energy)) write(*,*) 'X',i%a,i_what,sgn*energy
         IF( PRESENT(energy) .AND. mykey == 0 ) energy_tot = energy_tot + sgn*energy
         IF( PRESENT(e_cmp)  .AND. mykey == 0 ) e_cmp(ia, XC, i_what) = sgn*energy
+        
+        !write(*,*) 'sum v_lm after PAW_xc_potential (in Ha): ', sum(v_lm)*0.5d0
+
         savedv_lm(:,:,:) = savedv_lm(:,:,:) + v_lm(:,:,:)
+        
+        !write(*,*) 'sum savedv_lm: (in Ha) = ', sum(savedv_lm)*0.5d0
+
+        !write(*,*) '--------------------------'
+        !write(*,*) 'ENTER Calculating ddd_paw:'
+        !write(*,*) '--------------------------'
+
         !
         spins: DO is = 1, nspin_mag
           nmb = 0
@@ -247,6 +262,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
                 CALL PAW_rho_lm( i, becfake, upf(i%t)%paw%ptfunc, rho_lm, upf(i%t)%qfuncl )
                 !                  optional argument for pseudo part --> ^^^
               ENDIF
+              
+              !write(*,*)
+              !write(*,'(1x,A,I3,A,F18.10)') 'nmb = ', nmb, ' sum(rho_lm) = ', sum(rho_lm)
+              
               !
               ! Now I multiply the rho_lm and the potential, I can use
               ! rho_lm itself as workspace
@@ -254,9 +273,16 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
                 DO j = 1, imesh
                   rho_lm(j,lm,is) = rho_lm(j,lm,is) * savedv_lm(j,lm,is)
                 ENDDO
+                
+                !write(*,*) 'imesh = ', imesh
+                !write(*,'(1x,A,I10,A,F18.10)') 'kkbeta = ', kkbeta, ' sum integrand in Ha = ', 0.5d0*sum(rho_lm)
+                
                 ! Integrate!
-                CALL simpson( kkbeta, rho_lm(1,lm,is), g(i%t)%rab(1), integral )
+                CALL simpson( kkbeta, rho_lm(:,lm,is), g(i%t)%rab(:), integral )
                 d(nmb,i%a,is) = d(nmb,i%a,is) + sgn * integral
+                
+                !write(*,'(1x,A,I5,A,F18.10)') 'lm = ', lm, ' integ_simpson (in Ha) = ', sgn*0.5d0*integral
+                
                 !
                 IF ( is > 1 .AND. with_small_so .AND. i_what==AE ) THEN
                   DO j = 1, imesh
@@ -264,6 +290,7 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
                   ENDDO
                   CALL simpson( kkbeta, msmall_lm(1,lm,is), g(i%t)%rab(1), integral )
                   d(nmb,i%a,is) = d(nmb,i%a,is) + sgn * integral
+                  ! 0.5 factor added for debugging (convert to Ha unit)
                 ENDIF
               ENDDO
               ! restore becfake to zero
@@ -271,6 +298,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
             ENDDO ! mb
           ENDDO ! nb
         ENDDO spins
+
+        !write(*,*) '--------------------------'
+        !write(*,*) 'EXIT Calculating ddd_paw:'
+        !write(*,*) '--------------------------'
 
         IF( with_small_so ) THEN
           DEALLOCATE( msmall_lm )
@@ -587,6 +618,7 @@ SUBROUTINE PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
       !
       !
       IF( lsd == 0 ) THEN
+        ! No spin-polarization
         !
         arho(:,1) = rho_loc(:,1) + rho_core
         !
@@ -644,8 +676,14 @@ SUBROUTINE PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
      CALL mp_sum( energy, paw_comm )
   ENDIF
   !
+  !write(*,*) 'Before PAW_rad2lm: sum(v_rad) in Ha = ', sum(v_rad)*0.5d0
+  !write(*,*) 'Before PAW_rad2lm: sum(v_lm) in Ha = ', sum(v_lm)*0.5d0
+
   ! Recompose the sph. harm. expansion
   CALL PAW_rad2lm( i, v_rad, v_lm, i%l, nspin_mag )
+
+  !write(*,*) 'After PAW_rad2lm: sum(v_rad) in Ha = ', sum(v_rad)*0.5d0
+  !write(*,*) 'After PAW_rad2lm: sum(v_lm) in Ha = ', sum(v_lm)*0.5d0
   !
   IF( with_small_so ) THEN
     CALL PAW_rad2lm( i, g_rad, g_lm, i%l, nspin_mag )
@@ -1205,7 +1243,7 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
     DO k = 1, i%m
       aux(k) = pref * SUM(rho_lm(k,lm,1:nspin_lsda))
     ENDDO
-    write(*,*) 'sum aux (in Ha) = ', sum(aux)*0.5d0
+    !write(*,*) 'sum aux (in Ha) = ', sum(aux)*0.5d0
     !
     CALL hartree( l, 2*l+2, i%m, g(i%t), aux(:), v_lm(:,lm) )
   ENDDO
@@ -1395,9 +1433,10 @@ END SUBROUTINE PAW_lm2rad
     !
     IF (TIMING) CALL start_clock( 'PAW_rad2lm' )
     !
-!$omp parallel default(shared), private(ispin,lm,ix,j)
+    !write(*,*) 'PAW_lm2rad: ix_s = ', ix_s, ' ix_e = ', ix_e
+    !write(*,*) 'PAW_rad2lm: sum(rad(i%t))%wwylm = ', sum(rad(i%t)%wwylm)
+
     DO ispin = 1, nspin
-!$omp do
       DO lm = 1, lmax_loc**2
         F_lm(:,lm,ispin) = 0._dp
         DO ix = ix_s, ix_e
@@ -1406,9 +1445,7 @@ END SUBROUTINE PAW_lm2rad
           ENDDO
         ENDDO
       ENDDO
-!$omp end do
     ENDDO
-!$omp end parallel
     !
     ! This routine recollects the result within the paw communicator
     !

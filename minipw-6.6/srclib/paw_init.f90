@@ -458,12 +458,17 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
       r(2,ii) = rho*SIN(phi)
       r(3,ii) = z
       rad%ww(ii) = w(i)*2._dp*pi/nphi !(rad%lmax+1)
-      r2(ii) = r(1,ii)**2+r(2,ii)**2+r(3,ii)**2
+      r2(ii) = r(1,ii)**2 + r(2,ii)**2 + r(3,ii)**2
       ! these will be used later:
       ath(ii) = ACOS(z/SQRT(r2(ii)))
       aph(ii) = phi
     ENDDO
   ENDDO
+
+  write(111,*) r(1,:)
+  write(112,*) r(2,:)
+  write(113,*) r(3,:)
+
   ! cleanup
   DEALLOCATE( x, w )
   !
@@ -482,6 +487,7 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
       rad%wwylm(i,lm) = rad%ww(i) * rad%ylm(i,lm)
     ENDDO
   ENDDO
+
   !
   ALLOCATE( rad%cos_phi(rad%nx) )
   ALLOCATE( rad%sin_phi(rad%nx) )

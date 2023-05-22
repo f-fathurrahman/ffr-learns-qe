@@ -170,7 +170,16 @@ SUBROUTINE my_potinit()
   ! compute the potential and store it in v
   CALL my_v_of_rho( rho, rho_core, rhog_core, &
                  ehart, etxc, vtxc, eth, etotefield, charge, v )
-  IF( okpaw ) CALL PAW_potential(rho%bec, ddd_PAW, epaw)
+
+  write(*,*) 'my_potinit: sum ddd_PAW before PAW_potential = ', sum(ddd_PAW)
+  IF( okpaw ) then
+    CALL PAW_potential(rho%bec, ddd_PAW, epaw)
+    write(*,*) 'my_potinit: sum rho%bec = ', sum(rho%bec)
+    write(*,*) 'my_potinit: EHxc (in Ha) = ', 0.5d0*epaw
+    write(*,*) 'my_potinit: sum ddd_PAW after PAW_potential (in Ha) = ', 0.5d0*sum(ddd_PAW)
+    write(999,*) ddd_PAW
+    write(*,*) 'Wrote ddd_PAW to fort.999, shape ddd_PAW: ', shape(ddd_PAW)
+  endif
 
   ! define the total local potential (external+scf)
   CALL my_set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )

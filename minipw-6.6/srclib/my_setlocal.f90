@@ -95,10 +95,10 @@ SUBROUTINE my_setlocal
   !
   vltot(:) =  DBLE( aux(:) )
 
-  write(*,*) 'my_set_local: sum aux (in Ha) = ', sum(vltot)*0.5d0
-  write(*,*) 'my_set_local: sum vltot (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*) 'my_setlocal: sum aux (in Ha) = ', sum(vltot)*0.5d0
+  write(*,*) 'my_setlocal: sum vltot (in Ha) = ', sum(vltot)*0.5d0
   write(*,*)
-  write(*,*) 'my_set_local: Some vltot (in Ha)'
+  write(*,*) 'my_setlocal: Some vltot (in Ha)'
   do i = 1,10
     write(*,'(1x,I8, F18.10)') i, vltot(i)*0.5d0
   enddo

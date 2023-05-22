@@ -77,7 +77,9 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         psic(ig) = vltot(ig) + vr(ig,is)
       ENDDO
     ENDIF
-    !write(*,*) 'my_newq: sum(psic) Veff (in Ha) = ', sum(psic)*0.5d0
+    write(*,*) 'my_newq: sum(vltot) in Ha = ', sum(vltot)*0.5d0
+    write(*,*) 'my_newq: sum(vr) in Ha = ', sum(vr)*0.5d0
+    write(*,*) 'my_newq: sum(psic) Veff in Ha = ', sum(psic)*0.5d0
     !
     CALL fwfft( 'Rho', psic, dfftp )
     DO ig = 1, ngm
@@ -164,7 +166,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
   ENDDO ! over ntyp
   
 
-  write(*,*) '**** my_newq: sum(deeq) (in Ha) = ', sum(deeq)*0.5d0
+  write(*,*) '**** my_newq: sum(deeq) (in Ha) = ', sum(deeq)*2d0
 
   DEALLOCATE( qmod, ylmk0, vaux )
   
@@ -244,9 +246,11 @@ SUBROUTINE my_newd()
   IF( noncolin ) CALL add_paw_to_deeq( deeq )
 
   write(*,*) 'After newq: '
-  write(*,*) 'sum Dvan = ', sum(dvan)
+  write(*,*) 'sum Dvan (in Ha) = ', sum(dvan)*2d0
   !write(*,*) 'Some Deeq'
-  
+
+  write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*2d0
+
   atoms : &
   DO na = 1, nat
     nt  = ityp(na)
@@ -266,11 +270,13 @@ SUBROUTINE my_newd()
      ENDIF if_noncolin
   ENDDO atoms
 
+  write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*2d0
+
   IF(.NOT. noncolin) CALL add_paw_to_deeq(deeq)
 
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
 
-  write(*,*) 'sum Deeq = ', sum(deeq)
+  write(*,*) 'After adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*2d0
 
 
   write(*,*)
