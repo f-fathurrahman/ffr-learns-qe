@@ -28,8 +28,8 @@ END PROGRAM main
 
 
 subroutine export_atoms()
-  use cell_base
-  use ions_base
+  use cell_base, only: tpiba2, at, bg, omega
+  use ions_base, only: nsp, tau, ityp, atm
   use json_module
   !
   implicit none
@@ -62,7 +62,7 @@ subroutine export_atoms()
   call json%add(inp, 'tau', reshape(tau, [size(tau)]))
 
   call json%add(inp, 'ityp', ityp)
-  call json%add(inp, 'atm', atm)
+  call json%add(inp, 'atm', atm(1:nsp))
 
   nullify(inp)
 
@@ -94,43 +94,45 @@ subroutine export_pspot_upf()
   type(json_core) :: json
   type(json_value), pointer :: p, inp
 
-
-  isp = 1
-
-
   call json%initialize()
-  call json%create_object(p, '')
 
-  call json%create_object(inp, 'pseudo_upf')
-  call json%add(p, inp)
+  do isp = 1,nsp
 
-  call json%add(inp, 'dft', trim(upf(isp)%dft))
+    call json%create_object(p, '')
 
-  call json%add(inp, 'lmax', upf(isp)%lmax)
-  call json%add(inp, 'lmax_rho', upf(isp)%lmax_rho)
+    call json%create_object(inp, 'pseudo_upf')
+    call json%add(p, inp)
 
+    call json%add(inp, 'dft', trim(upf(isp)%dft))
 
-  call json%add(inp, 'shape_dion', shape(upf(isp)%dion))
-  call json%add(inp, 'dion', reshape(upf(isp)%dion, [size(upf(isp)%dion)]))
-
-  if(allocated(upf(isp)%qfuncl)) then
-    call json%add(inp, 'shape_qfuncl', shape(upf(isp)%qfuncl))
-    call json%add(inp, 'qfuncl', reshape(upf(isp)%qfuncl, [size(upf(isp)%qfuncl)]))
-  endif
-
-  if(allocated(upf(isp)%qfunc)) then
-    call json%add(inp, 'shape_qfunc', shape(upf(isp)%qfunc))
-    call json%add(inp, 'qfunc', reshape(upf(isp)%qfunc, [size(upf(isp)%qfunc)]))
-  endif
+    call json%add(inp, 'lmax', upf(isp)%lmax)
+    call json%add(inp, 'lmax_rho', upf(isp)%lmax_rho)
 
 
-  write(filename,"(A11,I1,A5)") 'pseudo_upf_', isp, '.json'
+    call json%add(inp, 'shape_dion', shape(upf(isp)%dion))
+    call json%add(inp, 'dion', reshape(upf(isp)%dion, [size(upf(isp)%dion)]))
 
-  ! write to file
-  call json%print(p, trim(filename))
+    if(allocated(upf(isp)%qfuncl)) then
+      call json%add(inp, 'shape_qfuncl', shape(upf(isp)%qfuncl))
+      call json%add(inp, 'qfuncl', reshape(upf(isp)%qfuncl, [size(upf(isp)%qfuncl)]))
+    endif
 
-  call json%destroy(p)
+    if(allocated(upf(isp)%qfunc)) then
+      call json%add(inp, 'shape_qfunc', shape(upf(isp)%qfunc))
+      call json%add(inp, 'qfunc', reshape(upf(isp)%qfunc, [size(upf(isp)%qfunc)]))
+    endif
 
-  if(json%failed()) stop 'Failed destroying JSON object' 
+    write(filename,"(A11,I1,A5)") 'pseudo_upf_', isp, '.json'
+
+    ! write to file
+    call json%print(p, trim(filename))
+
+    call json%destroy(p)
+
+    if(json%failed()) stop 'Failed destroying JSON object'
+
+  enddo
+
+  return
 
 end subroutine
