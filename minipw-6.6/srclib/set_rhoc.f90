@@ -55,6 +55,7 @@ SUBROUTINE set_rhoc()
            !
            CALL drhoc(ngl, gl, omega, tpiba2, msh(nt), rgrid(nt)%r, &
              rgrid(nt)%rab, upf(nt)%rho_atc, rhocg)
+           write(*,*) 'set_rhoc: sum(rhocg) = ',sum(rhocg)
            !
            !     multiply by the structure factor and sum
            !
@@ -64,8 +65,12 @@ SUBROUTINE set_rhoc()
        ENDIF
      ENDDO
      DEALLOCATE (rhocg)
+     write(*,*) 'Before rho_g2r: sum(rhog_core) = ', sum(rhog_core)
      !
      CALL rho_g2r( dfftp, rhog_core, rho_core )
+     !
+     write(*,*) 'After rho_g2r: sum(rho_core) = ', sum(rho_core)
+
      !
      !    test on the charge and computation of the core energy
      !
@@ -84,7 +89,7 @@ SUBROUTINE set_rhoc()
         ! If you insist to have it positive definite (with the possible problems
         ! mentioned above) uncomment the following lines.  SdG, Oct 15 1999
         !
-        !         rho_core(ir) = MAX (0.0_dp, rho_core(ir))
+        rho_core(ir) = MAX(0.0_dp, rho_core(ir)) ! activated by efefer
      ENDDO
      !
      rhoneg = rhoneg / (dfftp%nr1 * dfftp%nr2 * dfftp%nr3)
