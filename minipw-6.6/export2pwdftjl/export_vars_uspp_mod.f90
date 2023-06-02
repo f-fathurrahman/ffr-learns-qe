@@ -2,6 +2,7 @@
 SUBROUTINE export_vars_uspp_mod()
 !--------------------------------
   USE uspp
+  USE us  ! in file pwcom.f90
   !
   USE json_module
   !
@@ -19,7 +20,7 @@ SUBROUTINE export_vars_uspp_mod()
   CALL json%create_object(inp, 'uspp')
   CALL json%add(p, inp)
 
-  if( .not. okvan ) then
+  if( okvan ) then
     CALL json%add(inp, 'shape_lpx', shape(lpx))
     CALL json%add(inp, 'lpx', reshape(lpx, [size(lpx)]))
 
@@ -68,6 +69,12 @@ SUBROUTINE export_vars_uspp_mod()
     CALL json%add(inp, 'shape_vkb', shape(vkb))
     CALL json%add(inp, 'vkb_real', reshape(real(vkb), [size(vkb)]))
     CALL json%add(inp, 'vkb_imag', reshape(imag(vkb), [size(vkb)]))
+  endif
+
+  ! From file pwcom.f90
+  if( allocated(qrad) ) then
+    CALL json%add(inp, 'shape_qrad', shape(qrad))
+    CALL json%add(inp, 'qrad', reshape(qrad, [size(qrad)]))
   endif
 
   ! Set the filename
