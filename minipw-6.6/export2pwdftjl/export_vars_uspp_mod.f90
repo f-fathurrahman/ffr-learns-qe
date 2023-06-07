@@ -71,6 +71,31 @@ SUBROUTINE export_vars_uspp_mod()
     CALL json%add(inp, 'vkb_imag', reshape(imag(vkb), [size(vkb)]))
   endif
 
+
+  if( allocated(qq_nt) ) then
+    CALL json%add(inp, 'shape_qq_nt', shape(qq_nt))
+    CALL json%add(inp, 'qq_nt', reshape(qq_nt, [size(qq_nt)]))
+  endif
+
+  if( allocated(qq_at) ) then
+    CALL json%add(inp, 'shape_qq_at', shape(qq_at))
+    CALL json%add(inp, 'qq_at', reshape(qq_at, [size(qq_at)]))
+  endif
+
+
+  if( allocated(dvan) ) then
+    CALL json%add(inp, 'shape_dvan', shape(dvan))
+    CALL json%add(inp, 'dvan', reshape(dvan, [size(dvan)]))
+  endif
+
+
+  if( allocated(deeq) ) then
+    CALL json%add(inp, 'shape_deeq', shape(deeq))
+    CALL json%add(inp, 'deeq', reshape(deeq, [size(deeq)]))
+  endif
+
+
+
   ! From file pwcom.f90
   if( allocated(qrad) ) then
     CALL json%add(inp, 'shape_qrad', shape(qrad))
