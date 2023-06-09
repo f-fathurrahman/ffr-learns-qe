@@ -33,6 +33,7 @@ PROGRAM main
   CALL export_vars_uspp_mod()
 
   CALL export_paw_radial_integrator()
+  CALL export_paw_variables()
 
   CALL export_vars_scf_mod()
 
@@ -46,3 +47,4 @@ include 'export_vlocal.f90'
 include 'export_paw_radial_integrator.f90'
 include 'export_vars_uspp_mod.f90'
 include 'export_vars_scf_mod.f90'
+include 'export_paw_variables.f90'
