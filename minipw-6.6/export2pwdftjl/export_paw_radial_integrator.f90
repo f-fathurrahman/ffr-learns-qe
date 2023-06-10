@@ -15,7 +15,7 @@ SUBROUTINE export_paw_radial_integrator()
   TYPE(json_value), POINTER :: p, inp
 
   IF( .not. okpaw ) THEN 
-    WRITE(*,*) 'No PAW Data: early return'
+    WRITE(*,*) 'paw_radial_integrator: early return'
     RETURN 
   ENDIF 
 
