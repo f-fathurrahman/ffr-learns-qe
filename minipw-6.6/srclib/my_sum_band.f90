@@ -152,6 +152,7 @@ SUBROUTINE my_sum_band()
         rho%bec(:,:,:) = becsum(:,:,:)
         CALL PAW_symmetrize(rho%bec)
      END IF
+     write(*,*) 'sum becsum = ', sum(becsum)
      !
      ! ... Here we add the (unsymmetrized) Ultrasoft contribution to the charge
      !

@@ -56,15 +56,10 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   CALL my_sum_vrs( nrxx, nspin, vltot, vr, vrs )
   CALL my_interpolate_vrs( nrxx, nspin, doublegrid, kedtau, kedtaur, vrs )
 
+  write(*,*)
   write(*,*) 'my_set_vrs: sum vltot after = ', sum(vltot)*0.5d0
   write(*,*) 'my_set_vrs: sum vr (dense) after = ', sum(vr)*0.5d0
   write(*,*) 'my_set_vrs: sum vrs (smooth) after = ', sum(vrs)*0.5d0
-
-  write(*,*) 'Some potentials: vr and vrs '
-  do i = 1,10
-    write(*,'(1x,I5,2F18.10)') i, vr(i,1), vrs(i,1)
-  enddo
-
 
   write(*,*)
   write(*,*) '------------------------------------------------------------'

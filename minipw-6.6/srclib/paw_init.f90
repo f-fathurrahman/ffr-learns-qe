@@ -465,10 +465,6 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
     ENDDO
   ENDDO
 
-  write(111,*) r(1,:)
-  write(112,*) r(2,:)
-  write(113,*) r(3,:)
-
   ! cleanup
   DEALLOCATE( x, w )
   !

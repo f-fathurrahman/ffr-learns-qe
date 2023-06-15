@@ -56,6 +56,7 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
   write(*,*) 'ENTER my_v_of_rho'
   write(*,*) '************************************************************'
 
+  write(*,*) 'sum v_of_r before my_v_xc, should be zero (in Ha): ', sum(v%of_r)*0.5d0
 
   ! calculate exchange-correlation potential
   IF (dft_is_meta()) then
@@ -63,17 +64,17 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
     !v%kin_r(:,:) = 0.d0 ! ffr
   ELSE
     CALL my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v%of_r )
-    ! ffr
-    !write(*,*) 'sum rho_core = ', sum(rho_core)
-    !write(*,*) 'integ rho_core = ', sum(rho_core)*omega/dfftp%nnr
-    !write(*,*) 'etxc = ', etxc
   ENDIF
+
+  write(*,*) 'sum v_of_r after my_v_xc (in Ha):', sum(v%of_r)*0.5d0
 
   ! add a magnetic field  (if any)
   CALL add_bfield( v%of_r, rho%of_r )
 
   ! calculate hartree potential
   CALL my_v_h( rho%of_g(:,1), ehart, charge, v%of_r )
+
+  write(*,*) 'sum v_of_r after my_v_h (in Ha):', sum(v%of_r)*0.5d0
 
   ! DFT+U(+V): build up (extended) Hubbard potential 
   IF (lda_plus_u) THEN

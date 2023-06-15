@@ -137,5 +137,8 @@ SUBROUTINE my_sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
       DEALLOCATE( auxk2, auxk1 )
     ENDIF
   ENDDO
+
+  write(*,*) 'my_sum_bec: sum(becsum) = ', sum(becsum)
+
   !
 END SUBROUTINE my_sum_bec

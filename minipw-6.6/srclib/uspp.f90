@@ -272,9 +272,9 @@ CONTAINS
        costheta = 2.0_DP * randy() - 1.0_DP
        sintheta = SQRT ( 1.0_DP - costheta*costheta)
        phi = tpi * randy()
-       r (1,ir) = sintheta * cos(phi)
-       r (2,ir) = sintheta * sin(phi)
-       r (3,ir) = costheta
+       r(1,ir) = sintheta * cos(phi)
+       r(2,ir) = sintheta * sin(phi)
+       r(3,ir) = costheta
        rr(ir)   = 1.0_DP
     end do
     

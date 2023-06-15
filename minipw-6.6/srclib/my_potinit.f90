@@ -177,7 +177,6 @@ SUBROUTINE my_potinit()
     write(*,*) 'my_potinit: sum rho%bec = ', sum(rho%bec)
     write(*,*) 'my_potinit: EHxc (in Ha) = ', 0.5d0*epaw
     write(*,*) 'my_potinit: sum ddd_PAW after PAW_potential (in Ha) = ', 0.5d0*sum(ddd_PAW)
-    write(999,*) ddd_PAW
     write(*,*) 'Wrote ddd_PAW to fort.999, shape ddd_PAW: ', shape(ddd_PAW)
   endif
 

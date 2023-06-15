@@ -1250,6 +1250,7 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
   !
   ! compute energy if required:
   ! E_h = \sum_lm \int v_lm(r) (rho_lm(r) r^2) dr
+  !write(*,*) 'PAW radial mesh: i%m = ', i%m
   IF (PRESENT(energy)) THEN
     energy = 0._dp
     DO lm = 1, i%l**2

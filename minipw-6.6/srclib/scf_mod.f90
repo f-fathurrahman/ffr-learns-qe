@@ -89,18 +89,25 @@ MODULE scf
   TYPE(scf_type) :: vnew
   !! used to correct the forces
   !
-  REAL(DP) :: v_of_0
-  !! vltot(G=0)      
+
+  !! vltot(G=0)
+  REAL(DP) :: v_of_0 
+
+   !! the local potential in real space
   REAL(DP), ALLOCATABLE :: vltot(:)
-  !! the local potential in real space
-  REAL(DP), ALLOCATABLE :: vrs(:,:)
+  
   !! the total pot. in real space (smooth grid)
-  REAL(DP), ALLOCATABLE :: rho_core(:)
+  REAL(DP), ALLOCATABLE :: vrs(:,:)
+  
   !! the core charge in real space
-  REAL(DP), ALLOCATABLE :: kedtau(:,:)
+  REAL(DP), ALLOCATABLE :: rho_core(:)
+  
   !! position dependent kinetic energy enhancement factor
-  COMPLEX(DP), ALLOCATABLE :: rhog_core(:)
+  REAL(DP), ALLOCATABLE :: kedtau(:,:)
+  
   !! the core charge in reciprocal space
+  COMPLEX(DP), ALLOCATABLE :: rhog_core(:)
+  
   !
   INTEGER, PRIVATE  :: record_length, &
                        rlen_rho=0,  rlen_kin=0,  rlen_ldaU=0,  rlen_bec=0,&

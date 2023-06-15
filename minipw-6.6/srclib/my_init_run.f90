@@ -75,7 +75,7 @@ SUBROUTINE my_init_run()
   !
   ! ... variable initialization for parallel symmetrization
   !
-  CALL sym_rho_init(gamma_only )
+  CALL sym_rho_init( gamma_only )
   !
   ! ... allocate memory for all other arrays (potentials, wavefunctions etc)
   !
