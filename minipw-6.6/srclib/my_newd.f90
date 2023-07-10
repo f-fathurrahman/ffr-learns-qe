@@ -34,9 +34,6 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
   LOGICAL, INTENT(IN) :: skip_vltot
   !! If .FALSE. vltot is added to vr when necessary
   !
-  real(dp), parameter :: CONV_FACTOR = 2.d0 ! from Deeq 1/Ry to 1/Ha
-  real(dp), parameter :: Q_FACTOR = 4.d0
-  !
   ! ... local variables
   !
   ! starting/ending indices, local number of G-vectors
@@ -80,15 +77,15 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         psic(ig) = vltot(ig) + vr(ig,is)
       ENDDO
     ENDIF
-    write(*,*) 'my_newq: sum(vltot) in Ha = ', sum(vltot)*CONV_FACTOR
-    write(*,*) 'my_newq: sum(vr) in Ha = ', sum(vr)*CONV_FACTOR
-    write(*,*) 'my_newq: sum(psic) Veff in Ha = ', sum(psic)*CONV_FACTOR
+    !write(*,*) 'my_newq: sum(vltot) in Ha = ', sum(vltot)*0.5d0
+    !write(*,*) 'my_newq: sum(vr) in Ha = ', sum(vr)*0.5d0
+    !write(*,*) 'my_newq: sum(psic) Veff in Ha = ', sum(psic)*0.5d0
     !
     CALL fwfft( 'Rho', psic, dfftp )
     DO ig = 1, ngm
       vaux(ig,is) = psic(dfftp%nl(ig))
     ENDDO
-    write(*,*) 'my_newq: sum vaux = ', sum(vaux)
+    !write(*,*) 'my_newq: sum vaux = ', sum(vaux)
   ENDDO
   ! vaux is V_eff(G)
 
@@ -108,7 +105,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
         DO jh = ih, nh(nt)
           ijh = ijh + 1
           CALL qvan2( ngm, ih, jh, nt, qmod, qgm(:,ijh), ylmk0 )
-          write(*,'(1x,A,I4,A,2F18.10)') 'ijh = ', ijh, ' sum qgm = ', sum(qgm(:,ijh))*Q_FACTOR
+          !write(*,'(1x,A,I4,A,2F18.10)') 'ijh = ', ijh, ' sum qgm = ', sum(qgm(:,ijh))
         ENDDO
       ENDDO
 
@@ -134,7 +131,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
                 eigts2(mill(2,ig),na) * &
                 eigts3(mill(3,ig),na) )
             ENDDO
-            write(*,'(1x,A,I4,A,2F18.10)') 'nb = ', nb, ' sum aux (in Ha) = ', sum(aux(:,nb))*CONV_FACTOR
+            !write(*,'(1x,A,I4,A,2F18.10)') 'nb = ', nb, ' sum aux (in Ha) = ', sum(aux(:,nb))
           ENDIF
         ENDDO
         !
@@ -143,7 +140,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
                  2*ngm, 0.0_dp, deeaux, nij )
         IF ( gamma_only .AND. gstart == 2 ) &
              CALL DGER( nij, nab, -1.0_dp, qgm, 2*ngm, aux, 2*ngm, deeaux, nij )
-        write(*,*) 'sum deeaux (in Ha) = ', sum(deeaux)*CONV_FACTOR
+        !write(*,*) 'sum deeaux (in Ha) = ', sum(deeaux)*0.5d0
         !
         nb = 0
         DO na = 1, nat
@@ -154,7 +151,7 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
               DO jh = ih, nh(nt)
                 ijh = ijh + 1
                 deeq(ih,jh,na,is) = omega * deeaux(ijh,nb)
-                write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)*CONV_FACTOR ! to Ha
+                !write(*,'(4I4,F18.10)') ih, jh, na, is, deeq(ih, jh, na, is)*0.5d0 ! to Ha
                 IF (jh > ih) deeq(jh,ih,na,is) = deeq(ih,jh,na,is)
               ENDDO
             ENDDO
@@ -168,9 +165,8 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
     ENDIF ! tvanp
     !
   ENDDO ! over ntyp
-  
 
-  write(*,*) '**** my_newq: sum(deeq) (in Ha) = ', sum(deeq)*CONV_FACTOR
+  !write(*,*) '**** my_newq: sum(deeq) (in Ha) = ', sum(deeq)
 
   DEALLOCATE( qmod, ylmk0, vaux )
   
@@ -208,7 +204,6 @@ SUBROUTINE my_newd()
   ! counters on g vectors, atom type, beta functions x 2,
   !   atoms, spin, aux, aux, beta func x2 (again)
   !
-  real(dp), parameter :: CONV_FACTOR = 2.d0 ! from Deeq 1/Ry to 1/Ha
 
 
   write(*,*)
@@ -251,11 +246,7 @@ SUBROUTINE my_newd()
 
   IF( noncolin ) CALL add_paw_to_deeq( deeq )
 
-  write(*,*) 'After newq: '
-  write(*,*) 'sum Dvan (in Ha) = ', sum(dvan)*CONV_FACTOR
-  !write(*,*) 'Some Deeq'
-
-  write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*CONV_FACTOR
+  !write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
   atoms : &
   DO na = 1, nat
@@ -276,13 +267,13 @@ SUBROUTINE my_newd()
      ENDIF if_noncolin
   ENDDO atoms
 
-  write(*,*) 'After USPP contrib if any: sum Deeq (in Ha) = ', sum(deeq)*CONV_FACTOR
+  !write(*,*) 'After USPP contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
   IF(.NOT. noncolin) CALL add_paw_to_deeq(deeq)
 
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
 
-  write(*,*) 'After adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*CONV_FACTOR
+  !write(*,*) 'After adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
 
   write(*,*)

@@ -30,7 +30,7 @@ SUBROUTINE export_paw_variables()
   CALL json%add(inp, 'ddd_paw', reshape(ddd_paw, [size(ddd_paw)]))
  
   ! Set the filename
-  WRITE(filename,"(A22,I1,A5)") 'paw_variables.json'
+  WRITE(filename,"(A18,I1,A5)") 'paw_variables.json'
 
   ! write to file
   CALL json%print(p, trim(filename))

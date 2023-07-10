@@ -143,8 +143,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
   ! This is simply loop over atoms
   atoms: DO ia = ia_s, ia_e
 
-    !write(*,*)
-    !write(*,*) 'Loop PAW_potential: ia = ', ia
+    write(*,*)
+    write(*,*) 'Loop PAW_potential: ia = ', ia
 
     !
     i%a = ia                      ! atom's index
@@ -182,8 +182,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         IF( i_what == AE ) THEN
           ! Compute rho spherical harmonics expansion from becsum and pfunc
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc, rho_lm )
-          !write(*,*)
-          !write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
+          write(*,*)
+          write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
           !
           with_small_so = upf(i%t)%has_so .AND. nspin_mag==4
           IF (with_small_so) THEN
@@ -200,8 +200,8 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           !
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%ptfunc, rho_lm, upf(i%t)%qfuncl )
           !          optional argument for pseudo part (aug. charge) --> ^^^
-          !write(*,*)
-          !write(*,*) 'i_what == PS, sum rho_lm = ', sum(rho_lm)
+          write(*,*)
+          write(*,*) 'i_what == PS, sum rho_lm = ', sum(rho_lm)
           rho_core => upf(i%t)%rho_atc ! as before
           sgn = -1._DP                 ! as before
           with_small_so = .FALSE.
@@ -212,8 +212,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         
         !
         ! First compute the Hartree potential (it does not depend on spin...):
-        !write(*,*) 'Before PAW_h_potential: sum(rho_lm) = ', sum(rho_lm)
+        write(*,*)
+        write(*,*) 'Calling PAW_h_potential:'
         CALL PAW_h_potential( i, rho_lm, v_lm(:,:,1), energy )
+        write(*,*) 'After PAW_h_potential: energy (in Ha) = ', energy*0.5d0
         !
         ! NOTE: optional variables works recursively: e.g. if energy is not present here
         ! it will not be present in PAW_h_potential either!
@@ -224,26 +226,30 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           savedv_lm(:,:,is) = v_lm(:,:,1)
         ENDDO
         
-        !write(*,*) 'sum v_lm after PAW_h_potential (in Ha): ', sum(v_lm)*0.5d0
+        write(*,*) 'sum v_lm after PAW_h_potential (in Ha): ', sum(v_lm)*0.5d0
 
 
         !
         ! Then the XC one:
+        write(*,*)
+        write(*,*) 'Calling PAW_xc_potential:'
         CALL PAW_xc_potential( i, rho_lm, rho_core, v_lm, energy )
+        write(*,*) 'After PAW_xc_potential: energy (in Ha) = ', energy*0.5d0
+
         !
         !IF (PRESENT(energy)) write(*,*) 'X',i%a,i_what,sgn*energy
         IF( PRESENT(energy) .AND. mykey == 0 ) energy_tot = energy_tot + sgn*energy
         IF( PRESENT(e_cmp)  .AND. mykey == 0 ) e_cmp(ia, XC, i_what) = sgn*energy
         
-        !write(*,*) 'sum v_lm after PAW_xc_potential (in Ha): ', sum(v_lm)*0.5d0
+        write(*,*) 'sum v_lm after PAW_xc_potential (in Ha): ', sum(v_lm)*0.5d0
 
         savedv_lm(:,:,:) = savedv_lm(:,:,:) + v_lm(:,:,:)
         
-        !write(*,*) 'sum savedv_lm: (in Ha) = ', sum(savedv_lm)*0.5d0
+        write(*,*) 'sum savedv_lm: (in Ha) = ', sum(savedv_lm)*0.5d0
 
-        !write(*,*) '--------------------------'
-        !write(*,*) 'ENTER Calculating ddd_paw:'
-        !write(*,*) '--------------------------'
+        write(*,*) '--------------------------'
+        write(*,*) 'ENTER Calculating ddd_paw:'
+        write(*,*) '--------------------------'
 
         !
         spins: DO is = 1, nspin_mag
@@ -290,7 +296,6 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
                   ENDDO
                   CALL simpson( kkbeta, msmall_lm(1,lm,is), g(i%t)%rab(1), integral )
                   d(nmb,i%a,is) = d(nmb,i%a,is) + sgn * integral
-                  ! 0.5 factor added for debugging (convert to Ha unit)
                 ENDIF
               ENDDO
               ! restore becfake to zero
@@ -299,9 +304,9 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           ENDDO ! nb
         ENDDO spins
 
-        !write(*,*) '--------------------------'
-        !write(*,*) 'EXIT Calculating ddd_paw:'
-        !write(*,*) '--------------------------'
+        write(*,*) '--------------------------'
+        write(*,*) 'EXIT Calculating ddd_paw:'
+        write(*,*) '--------------------------'
 
         IF( with_small_so ) THEN
           DEALLOCATE( msmall_lm )
@@ -1236,6 +1241,11 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
   !     done here --> ^^^^^^^^^^^^^^^^^^^^^           ^^^^^^^^^^^^^^^^^^^^^^ <-- input to the hartree subroutine
   !                 output from the h.s. --> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   v_lm = 0.0_DP
+  
+  write(*,*) 'Enter PAW_h_potential'
+  write(*,*) 'grid.dx = ', g(i%t)%dx
+  write(*,*) 'grid.mesh  = ', g(i%t)%mesh
+
   !
   DO lm = 1, i%l**2
     l = INT(sqrt(DBLE(lm-1))) ! l has to start from *zero*
@@ -1243,9 +1253,10 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
     DO k = 1, i%m
       aux(k) = pref * SUM(rho_lm(k,lm,1:nspin_lsda))
     ENDDO
-    !write(*,*) 'sum aux (in Ha) = ', sum(aux)*0.5d0
     !
+    write(*,*)
     CALL hartree( l, 2*l+2, i%m, g(i%t), aux(:), v_lm(:,lm) )
+    write(*,*) 'lm = ', lm, ' sum v_lm(:,lm) in Ha = ', sum(v_lm(:,lm))*0.5d0
   ENDDO
   !
   ! compute energy if required:
