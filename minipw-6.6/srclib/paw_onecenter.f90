@@ -34,8 +34,8 @@ MODULE paw_onecenter
                             ! (all-electron and pseudo) on radial grid
   PUBLIC :: PAW_h_potential ! computes hartree potential, only used by paw_exx
 
-  ! ffr
-  !PUBLIC :: PAW_rad2lm, PAW_lm2rad
+  ! ffr (temporarily set to be public)
+  PUBLIC :: PAW_rad2lm, PAW_lm2rad, PAW_gradient, PAW_rad2lm3, PAW_divergence, compute_rho_spin_lm
 
   !
   INTEGER, SAVE :: paw_comm, me_paw, nproc_paw

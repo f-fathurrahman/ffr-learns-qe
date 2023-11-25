@@ -45,6 +45,11 @@ SUBROUTINE my_gradcorr( rho, rhog, rho_core, rhog_core, etxc, vtxc, v )
   !
   !
   IF ( .NOT. dft_is_gradient() ) RETURN
+
+  IF (nspin==4 .AND. domag) THEN
+    write(*,*) 'nspin==4 and domag is disabled'
+  ENDIF
+
   !
   etxcgc = 0.0_DP
   vtxcgc = 0.0_DP
@@ -79,24 +84,13 @@ SUBROUTINE my_gradcorr( rho, rhog, rho_core, rhog_core, etxc, vtxc, v )
   !
   ! calculate the gradient of rho + rho_core in real space
   !
-  IF( nspin == 4 .AND. domag ) THEN
-    !
-    CALL compute_rho( rho, rhoaux, segni, dfftp%nnr ) 
-    !
-    ! bring starting rhoaux to G-space
-    !
-    CALL rho_r2g( dfftp, rhoaux(:,1:nspin0), rhogaux(:,1:nspin0) )
-    !
-  ELSE
-    !
-    ! for convenience rhoaux and rhogaux are in (up,down) format, when LSDA
-    !
-    DO is = 1, nspin0
-      rhoaux(:,is)  = (  rho(:,1) + sgn(is) *  rho(:,nspin0) ) * 0.5_DP
-      rhogaux(:,is) = ( rhog(:,1) + sgn(is) * rhog(:,nspin0) ) * 0.5_DP
-    ENDDO
-    !
-  ENDIF
+  !
+  ! for convenience rhoaux and rhogaux are in (up,down) format, when LSDA
+  !
+  DO is = 1, nspin0
+    rhoaux(:,is)  = (  rho(:,1) + sgn(is) *  rho(:,nspin0) ) * 0.5_DP
+    rhogaux(:,is) = ( rhog(:,1) + sgn(is) * rhog(:,nspin0) ) * 0.5_DP
+  ENDDO
   !
   ! ffr: Gradients are calculated here
   DO is = 1, nspin0
@@ -167,11 +161,8 @@ SUBROUTINE my_gradcorr( rho, rhog, rho_core, rhog_core, etxc, vtxc, v )
     !
   ENDIF
   !
-  !
   DO is = 1, nspin0
-    !
     rhoaux(:,is) = rhoaux(:,is) - fac * rho_core(:)
-    !
   END DO
   !
   DEALLOCATE( grho )
@@ -196,22 +187,11 @@ SUBROUTINE my_gradcorr( rho, rhog, rho_core, rhog_core, etxc, vtxc, v )
   vtxc = vtxc + omega * vtxcgc / ( dfftp%nr1 * dfftp%nr2 * dfftp%nr3 )
   etxc = etxc + omega * etxcgc / ( dfftp%nr1 * dfftp%nr2 * dfftp%nr3 )
   !
-  IF (nspin==4 .AND. domag) THEN
-     DO is = 1, nspin0
-        vgg(:,is) = v(:,is)
-     ENDDO
-     !
-     v = vsave
-     DO k = 1, dfftp%nnr
-        v(k,1) = v(k,1) + 0.5d0*(vgg(k,1)+vgg(k,2))
-        amag = SQRT(rho(k,2)**2+rho(k,3)**2+rho(k,4)**2)
-        IF (amag > 1.d-12) THEN
-           v(k,2) = v(k,2) + segni(k)*0.5d0*(vgg(k,1)-vgg(k,2))*rho(k,2)/amag
-           v(k,3) = v(k,3) + segni(k)*0.5d0*(vgg(k,1)-vgg(k,2))*rho(k,3)/amag
-           v(k,4) = v(k,4) + segni(k)*0.5d0*(vgg(k,1)-vgg(k,2))*rho(k,4)/amag
-        ENDIF
-     ENDDO
-  ENDIF
+  !
+  ! skipped calculation for non-collinear spin calc
+  !
+
+
   !
   DEALLOCATE( dh )
   DEALLOCATE( h )
@@ -226,4 +206,4 @@ SUBROUTINE my_gradcorr( rho, rhog, rho_core, rhog_core, etxc, vtxc, v )
   !
   RETURN
   !
-END SUBROUTINE gradcorr
+END SUBROUTINE 
