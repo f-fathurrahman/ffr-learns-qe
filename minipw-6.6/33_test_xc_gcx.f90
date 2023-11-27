@@ -32,6 +32,14 @@ subroutine test_xc_gcx()
   gradx(2,1,1) = 3.d0
   gradx(3,1,1) = 4.d0
 
+  ! we will consider PBE function here as an example
+
+  ! In case of using Libxc, the evaluated sx will also contain
+  ! the LDA part times arho + GGA (gradient correction)
+
+  ! In case of using internal xc (not using Libxc), this will only evaluate
+  ! the contribution from gradient correction only.
+
   CALL xc_gcx( Nrmesh, Nspin, arho, gradx, sx, sc, v1x, v2x, v1c, v2c )
 
   write(*,*) 'sx = ', sx

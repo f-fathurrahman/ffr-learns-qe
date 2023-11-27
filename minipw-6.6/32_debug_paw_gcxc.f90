@@ -63,7 +63,7 @@ SUBROUTINE debug_PAW_gcxc_potential()
   write(*,*) 'sum rho%bec = ', sum(rho%bec)
 
   ! Choose atom index and which partial waves to be used (AE or PS)
-  ia = 3
+  ia = 1
   i_what = AE
 
   i%a = ia   ! atom's index
@@ -410,7 +410,7 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
     DEALLOCATE( egcxc_of_tid )
     !
     ! convert the first part of the GC correction back to spherical harmonics
-    CALL my_PAW_rad2lm( i, gc_rad, gc_lm, i%l, nspin_gga )
+    CALL PAW_rad2lm( i, gc_rad, gc_lm, i%l, nspin_gga )
     
     !
     write(*,*) 'sum wwylm = ', sum(rad(i%t)%wwylm)
