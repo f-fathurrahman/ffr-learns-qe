@@ -302,6 +302,10 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       !
       write(*,*) 'sum sx = ', sum(sx)
       write(*,*) 'sum sc = ', sum(sc)
+      write(*,*) 'sum v1x = ', sum(v1x)
+      write(*,*) 'sum v1c = ', sum(v1c)
+      write(*,*) 'sum v2x = ', sum(v2x)
+      write(*,*) 'sum v2c = ', sum(v2c)
       !
       DO k = 1, i%m
         e_rad(k) = e2 * (sx(k)+sc(k)) * g(i%t)%r2(k)
@@ -314,13 +318,18 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       CALL simpson(i%m, e_rad, g(i%t)%rab, e)
       egcxc_of_tid(mytid) = egcxc_of_tid(mytid) + e*rad(i%t)%ww(ix)
       !
-      write(*,*) 'energy (in Ha) = ', e
+      write(*,*) 'energy for current ix (in Ha) = ', e*rad(i%t)%ww(ix)*0.5d0
       !write(*,*) 'egcxc_of_tid = ', egcxc_of_tid
       !
     ENDDO
+
+    write(*,*) 'energy for all ix (in Ha) = ', egcxc_of_tid(mytid)*0.5d0
+
     !
     DEALLOCATE( arho, grad2_v ) 
     DEALLOCATE( gradx )
+    ! grad2_v is not used ???
+
     !
     !
     ELSEIF ( nspin_mag == 2 .OR. nspin_mag == 4 ) THEN
@@ -401,7 +410,16 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
     DEALLOCATE( egcxc_of_tid )
     !
     ! convert the first part of the GC correction back to spherical harmonics
-    CALL PAW_rad2lm( i, gc_rad, gc_lm, i%l, nspin_gga )
+    CALL my_PAW_rad2lm( i, gc_rad, gc_lm, i%l, nspin_gga )
+    
+    !
+    write(*,*) 'sum wwylm = ', sum(rad(i%t)%wwylm)
+    write(*,*) 'i%l = ', i%l
+    write(*,*) 'sum gc_rad = ', sum(gc_rad)
+    write(*,*) 'sum abs gc_lm = ', sum(abs(gc_lm))
+    write(*,*) 'shape gc_lm = ', shape(gc_lm)
+    write(*,*) 'gc_rad 1 1 1 = ', gc_rad(1,1,1)
+    write(*,*) 'gc_lm 1 1 1 = ', gc_lm(1,1,1)
     !
     ! Note that the expansion into spherical harmonics of the derivative 
     ! with respect to theta of the spherical harmonics, is very slow to
@@ -413,23 +431,48 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
     ! ADC 30/04/2009.
     ! 
     DO ix = 1, rad(i%t)%nx
-       h_rad(1:i%m,3,ix,1:nspin_gga) = h_rad(1:i%m,3,ix,1:nspin_gga) / &
-                                       rad(i%t)%sin_th(ix)
+       h_rad(1:i%m,3,ix,1:nspin_gga) = h_rad(1:i%m,3,ix,1:nspin_gga)/rad(i%t)%sin_th(ix)
     ENDDO
     ! We need the gradient of H to calculate the last part of the exchange
     ! and correlation potential. First we have to convert H to its Y_lm expansion
     CALL PAW_rad2lm3( i, h_rad, h_lm, i%l+rad(i%t)%ladd, nspin_gga )
+
+    write(*,*) 'l = ', i%l
+    write(*,*) 'ladd = ', rad(i%t)%ladd
+    write(*,*) 'lmax_loc_add = ', i%l + rad(i%t)%ladd
+    write(*,*) 'sum abs h_rad = ', sum(abs(h_rad))
+    write(*,*) 'sum abs h_lm = ', sum(abs(h_lm))
+    write(*,*) 'h_lm 1 = ', h_lm(1,1,1,1)
+    write(*,*) 'h_lm 2 = ', h_lm(1,2,1,1)
+    write(*,*) 'h_lm 3 = ', h_lm(1,3,1,1)
+
+    write(*,*) 'maxval(abs(h_rad)) 1 = ', maxval(abs(h_rad(:,1,:,:)))
+    write(*,*) 'maxval(abs(h_rad)) 2 = ', maxval(abs(h_rad(:,2,:,:)))
+    write(*,*) 'maxval(abs(h_rad)) 3 = ', maxval(abs(h_rad(:,3,:,:)))
+    write(*,*)
+    write(*,*) 'maxval(abs(h_lm)) 1 = ', maxval(abs(h_lm(:,1,:,:)))
+    write(*,*) 'maxval(abs(h_lm)) 2 = ', maxval(abs(h_lm(:,2,:,:)))
+    write(*,*) 'maxval(abs(h_lm)) 3 = ', maxval(abs(h_lm(:,3,:,:)))
+    write(*,*)
+
+    write(*,*) 'sum sin_th = ', sum(rad(i%t)%sin_th)
+
     !
     ! Compute div(H)
     CALL PAW_divergence( i, h_lm, div_h, i%l+rad(i%t)%ladd, i%l )
     !                       input max lm --^  output max lm-^
-    !
+    
+    write(*,*) 'sum div_h = ', sum(div_h)
+
     ! Finally sum it back into v_xc
     DO is = 1,nspin_gga
       DO lm = 1,i%l**2
          vout_lm(1:i%m,lm,is) = vout_lm(1:i%m,lm,is) + e2*(gc_lm(1:i%m,lm,is)-div_h(1:i%m,lm,is))
       ENDDO
     ENDDO
+
+  write(*,*) 'sum abs vout_lm (in Ha) = ', 0.5d0*sum(abs(vout_lm))
+
   !
   IF (nspin_mag == 4 ) then
     stop 'nspin_mag == 4 is disabled'
@@ -449,4 +492,54 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   !
   ! if(PRESENT(energy)) write(*,*) "gcxc -->", e_gcxc
   !
+END SUBROUTINE
+
+
+!--------------------------------------------------------------------------------
+SUBROUTINE my_PAW_rad2lm( i, F_rad, F_lm, lmax_loc, nspin )
+!------------------------------------------------------------------------------
+  use kinds, only : dp
+  use paw_variables, only : paw_info, rad
+  implicit none
+  !! Computes:
+  !! \[ F_{lm}(r) = \int d \Omega\ F(r,\text{th},\text{ph})\ Y_{lm}(\text{th},
+  !! \text{ph}) \]
+  !
+  TYPE(paw_info), INTENT(IN) :: i
+  !! atom's minimal info
+  INTEGER, INTENT(IN) :: nspin
+  !! spin configuration label
+  INTEGER,  INTENT(IN) :: lmax_loc
+  !! In some cases I have to keep higher angular components
+  !! than the default ones (=lmaxq =the ones present in rho)
+  REAL(DP), INTENT(OUT):: F_lm(i%m, lmax_loc**2, nspin)
+  !! lm component of F up to lmax_loc
+  REAL(DP), INTENT(IN) :: F_rad(i%m, rad(i%t)%nx, nspin)
+  !! radial samples of F
+  !
+  ! ... local variables
+  !
+  INTEGER :: ix    ! counter for integration
+  INTEGER :: lm    ! counter for angmom
+  INTEGER :: ispin ! counter for spin
+  INTEGER :: j
+
+  write(*,*) 'shape F_lm = ', shape(F_lm)
+  write(*,*) 'shape F_rad = ', shape(F_rad)
+
+  write(*,*) 'sum F_lm = ', sum(F_lm)
+
+  DO ispin = 1, nspin
+    DO lm = 1, lmax_loc**2
+      F_lm(:,lm,ispin) = 0.0_dp
+      DO ix = 1, rad(i%t)%nx
+        DO j = 1, i%m
+          F_lm(j, lm, ispin) = F_lm(j, lm, ispin) + F_rad(j,ix,ispin) * rad(i%t)%wwylm(ix,lm)
+          !write(111,'(1x,3I5,2F18.10)') lm, ix, j, rad(i%t)%wwylm(ix,lm), F_lm(j,lm,ispin)
+        ENDDO
+      ENDDO
+    ENDDO
+  ENDDO
+
+  return
 END SUBROUTINE
