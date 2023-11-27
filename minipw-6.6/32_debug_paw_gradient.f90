@@ -19,9 +19,9 @@ SUBROUTINE debug_PAW_gcxc_potential()
   USE atom, ONLY : g => rgrid
   USE ions_base, ONLY : nat, ityp
   USE lsda_mod, ONLY : nspin
-  USE uspp_param, ONLY : upf
   USE PAW_variables, only : paw_info
   use paw_onecenter, only : paw_rho_lm
+  USE uspp_param, ONLY : upf
   !
   implicit none
   !
@@ -63,7 +63,7 @@ SUBROUTINE debug_PAW_gcxc_potential()
   write(*,*) 'sum rho%bec = ', sum(rho%bec)
 
   ! Choose atom index and which partial waves to be used (AE or PS)
-  ia = 2
+  ia = 3
   i_what = AE
 
   i%a = ia   ! atom's index
@@ -127,8 +127,10 @@ SUBROUTINE debug_PAW_gcxc_potential()
              
   !
   ! Then the GCXC one:
+  write(*,*) 'sum rho_core = ', sum(rho_core)
   CALL my_PAW_gcxc_potential( i, rho_lm, rho_core, v_lm, energy )
-  
+
+  write(*,*) 'shape rho_lm = ', shape(rho_lm)
 
   !
   write(*,*) 'X = ', i%a, i_what, sgn*energy
@@ -153,7 +155,6 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   use kinds, only : DP
   USE noncollin_module, ONLY : nspin_mag
   USE constants, ONLY : e2, eps12
-  USE uspp_param, ONLY : upf
   USE xc_lda_lsda, ONLY : xc
   USE paw_variables, ONLY : paw_info, rad
 
@@ -215,13 +216,10 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   REAL(DP), DIMENSION(i%m) :: sx, sc
   REAL(DP), ALLOCATABLE :: v2cud(:)
   !
-  REAL(DP) :: vnull
-  !
   REAL(DP), ALLOCATABLE :: e_rad(:)      ! aux, used to store energy
   REAL(DP) :: e, e_gcxc                  ! aux, used to integrate energy
   !
   INTEGER  :: k, ix, is, lm              ! counters on spin and mesh
-  REAL(DP) :: sgn                        ! workspace
   REAL(DP) :: co2                        ! workspace
   !
   INTEGER :: mytid, ntids
@@ -285,26 +283,39 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       !  WARNING: the next 2 calls are duplicated for spin==2
       CALL PAW_lm2rad( i, ix, rho_lm, rho_rad, nspin_mag )
       CALL PAW_gradient( i, ix, rho_lm, rho_rad, rho_core, grad2, grad )
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad2) = ', ix, sum(grad2)
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad r)     = ', ix, sum(grad(:,1,:))
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad phi)   = ', ix, sum(grad(:,2,:))
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad theta) = ', ix, sum(grad(:,3,:))
+      write(*,*)
+
       !
       DO k = 1, i%m
         arho(k,1) = rho_rad(k,1)*g(i%t)%rm2(k) + rho_core(k)
         arho(k,1) = ABS(arho(k,1))
         gradx(:,k,1) = grad(k,:,1)
       ENDDO
+      write(*,*) 'sum arho = ', sum(arho)
+      write(*,*) 'sum gradx = ', sum(gradx)
       !
       CALL xc_gcx( i%m, 1, arho, gradx, sx, sc, v1x, v2x, v1c, v2c )
+      !
+      write(*,*) 'sum sx = ', sum(sx)
+      write(*,*) 'sum sc = ', sum(sc)
       !
       DO k = 1, i%m
         e_rad(k) = e2 * (sx(k)+sc(k)) * g(i%t)%r2(k)
         gc_rad(k,ix,1)  = (v1x(k,1)+v1c(k,1))  !*g(i%t)%rm2(k)
         h_rad(k,:,ix,1) = (v2x(k,1)+v2c(k,1))*grad(k,:,1)*g(i%t)%r2(k)
       ENDDO
+      !write(*,*) 'sum(e_rad) = ', sum(e_rad)
       !
       ! integrate energy (if required)
-      !IF( PRESENT(energy) ) THEN
-         CALL simpson(i%m, e_rad, g(i%t)%rab, e)
-         egcxc_of_tid(mytid) = egcxc_of_tid(mytid) + e*rad(i%t)%ww(ix)
-      !ENDIF
+      CALL simpson(i%m, e_rad, g(i%t)%rab, e)
+      egcxc_of_tid(mytid) = egcxc_of_tid(mytid) + e*rad(i%t)%ww(ix)
+      !
+      write(*,*) 'energy (in Ha) = ', e
+      !write(*,*) 'egcxc_of_tid = ', egcxc_of_tid
       !
     ENDDO
     !
@@ -382,6 +393,9 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
     DEALLOCATE( rho_rad )
     DEALLOCATE( grad  )
     DEALLOCATE( grad2 )
+
+    ! accumulate sum of egcxc to energy
+    e_gcxc = SUM(egcxc_of_tid)
     energy = energy + e_gcxc
 
     DEALLOCATE( egcxc_of_tid )

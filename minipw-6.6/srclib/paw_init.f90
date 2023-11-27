@@ -501,6 +501,10 @@ SUBROUTINE PAW_rad_init( l, ls, rad )
   ! to initialize the gradient of ylm, as we are working in spherical
   ! coordinates the formula involves \hat{theta} and \hat{phi}
   gradient: IF (dft_is_gradient()) THEN
+
+    write(*,*) 'Using gradient correction in PAW_rad_init'
+    write(*,*) 'rad%lm_max = ', rad%lm_max
+
     ALLOCATE( rad%dylmt(rad%nx,rad%lm_max), &
               rad%dylmp(rad%nx,rad%lm_max), &
               aux(rad%nx,rad%lm_max) )
