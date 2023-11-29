@@ -27,7 +27,7 @@ subroutine test_xc_gcx()
   allocate( v1x(Nrmesh,Nspin), v2x(Nrmesh,Nspin) )
   allocate( v1c(Nrmesh,Nspin), v2c(Nrmesh,Nspin) )
   
-  arho(1,1) = 5.d0
+  arho(1,1) = 1d-6
   gradx(1,1,1) = 2.d0
   gradx(2,1,1) = 3.d0
   gradx(3,1,1) = 4.d0
