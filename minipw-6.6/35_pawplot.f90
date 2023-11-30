@@ -43,9 +43,8 @@ SUBROUTINE PAW_make_ae_charge_ ( rho, flag, nx, r, rhopaw )
    USE constants,         ONLY : fpi
    USE ions_base,         ONLY : nat, ityp, tau
    USE lsda_mod,          ONLY : nspin
-   USE uspp_param,        ONLY : nh, nhm, upf
+   USE uspp_param,        ONLY : upf
    USE scf,               ONLY : scf_type
-   USE fft_base,          ONLY : dfftp
    USE splinelib,         ONLY : spline, splint
    USE cell_base,         ONLY : at, bg, alat
    !
@@ -56,11 +55,9 @@ SUBROUTINE PAW_make_ae_charge_ ( rho, flag, nx, r, rhopaw )
    REAL (dp), INTENT(out)  :: rhopaw(nx,nspin) ! PAW charge
    !
    TYPE(paw_info)          :: i                ! minimal info on atoms
-   INTEGER                 :: ip               ! counter on x,y,z
    INTEGER                 :: ir               ! counter on grid point
    INTEGER                 :: is               ! spin index
    INTEGER                 :: lm               ! counters on angmom and radial grid
-   INTEGER                 :: j,k,l
    INTEGER                 :: ia
    REAL(DP),ALLOCATABLE    :: wsp_lm(:,:,:), ylm_posi(:,:), d1y(:), d2y(:)
    REAL(DP),ALLOCATABLE    :: rho_lm(:,:,:), rho_lm_ae(:,:,:), rho_lm_ps(:,:,:)
@@ -192,7 +189,6 @@ SUBROUTINE PAWplot()
   USE io_global,  ONLY : stdout
   USE environment,ONLY : environment_start, environment_end
   USE lsda_mod,   ONLY : nspin, current_spin
-  USE cell_base,  ONLY : bg
   USE gvect,      ONLY : ngm
   USE scf,        ONLY : rho
   USE noncollin_module, ONLY : noncolin
@@ -216,11 +212,11 @@ SUBROUTINE PAWplot()
   filplot = 'pawcharge.dat'
   plot = 'valence'
   spin_component = 0
-  e1(:) = 0.d0
+  e1(:) = 1.d0
   e2(:) = 0.d0
   e3(:) = 0.d0
   x0(:) = 0.d0
-  nx = 0
+  nx = 100
   ny = 0
   nz = 0
   !
@@ -254,10 +250,15 @@ SUBROUTINE PAWplot()
   tredim = ( e3(1)**2 + e3(2)**2 + e3(3)**2 > 1d-6 )
   twodim = ( e2(1)**2 + e2(2)**2 + e2(3)**2 > 1d-6 ) .and. .not. tredim
   onedim = ( e1(1)**2 + e1(2)**2 + e1(3)**2 > 1d-6 ) .and. .not. twodim
+
+  write(*,*) 'onedim = ', onedim
+  write(*,*) 'twodim = ', twodim
+  write(*,*) 'tredim = ', tredim
+
   !
   IF ( onedim ) THEN
      !
-     !     One-dimensional plot
+     ! One-dimensional plot
      !
      IF (nx <= 0 )   CALL errore ('pawplot', 'wrong nx', 1)
      ALLOCATE ( rhoplot(nx) )
@@ -275,7 +276,7 @@ SUBROUTINE PAWplot()
         ELSE
             flag = 0
         ENDIF
-        CALL PAW_make_ae_charge_ (rho, flag, nx, r, rhopaw )
+        CALL PAW_make_ae_charge_(rho, flag, nx, r, rhopaw )
         !
         IF (spin_component == 0 .and. nspin ==2 ) THEN
            rhoplot(:) = rhopaw(:,1)+ rhopaw(:,2)
