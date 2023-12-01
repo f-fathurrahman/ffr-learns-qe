@@ -27,89 +27,85 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
 
   implicit none
 
-   TYPE(scf_type), INTENT(inout) :: rho
-   LOGICAL, INTENT(IN) :: withcore
-   TYPE(paw_info)          :: i                     ! minimal info on atoms
-   INTEGER                 :: ipol                  ! counter on x,y,z
-   INTEGER                 :: ir                    ! counter on grid point
-   INTEGER                 :: is                    ! spin index
-   INTEGER                 :: lm                    ! counters on angmom and radial grid
-   INTEGER                 :: j,k,l
-   INTEGER                 :: ia
-   LOGICAL                 :: offrange
-   REAL(DP),ALLOCATABLE    :: wsp_lm(:,:,:), ylm_posi(:,:), d1y(:), d2y(:)
-   REAL(DP),ALLOCATABLE    :: rho_lm(:,:,:), rho_lm_ae(:,:,:), rho_lm_ps(:,:,:)
-   REAL(DP)                :: posi(3), first, second, rhoup, rhodw
-   REAL(DP)                :: inv_nr1, inv_nr2, inv_nr3, distsq
+  TYPE(scf_type), INTENT(inout) :: rho
+  LOGICAL, INTENT(IN) :: withcore
+  TYPE(paw_info) :: i ! minimal info on atoms
+  INTEGER :: ipol ! counter on x,y,z
+  INTEGER :: ir   ! counter on grid point
+  INTEGER :: is   ! spin index
+  INTEGER :: lm   ! counters on angmom and radial grid
+  INTEGER :: j,k,l
+  INTEGER :: ia
+  LOGICAL :: offrange
+  REAL(DP), ALLOCATABLE :: wsp_lm(:,:,:), ylm_posi(:,:), d1y(:), d2y(:)
+  REAL(DP), ALLOCATABLE :: rho_lm(:,:,:), rho_lm_ae(:,:,:), rho_lm_ps(:,:,:)
+  REAL(DP) :: posi(3), first, second, rhoup, rhodw
+  REAL(DP) :: inv_nr1, inv_nr2, inv_nr3, distsq
 
-   ! Some initialization
-   !
-   inv_nr1 = 1.D0 / dble(  dfftp%nr1 )
-   inv_nr2 = 1.D0 / dble(  dfftp%nr2 )
-   inv_nr3 = 1.D0 / dble(  dfftp%nr3 )
-   !
-   ! I cannot parallelize on atoms, because it is already parallelized
-   ! on charge slabs
-   !
-   atoms: DO ia = 1, nat
+  ! Some initialization
+  !
+  inv_nr1 = 1.D0 / dble(dfftp%nr1)
+  inv_nr2 = 1.D0 / dble(dfftp%nr2)
+  inv_nr3 = 1.D0 / dble(dfftp%nr3)
+  !
+  ! I cannot parallelize on atoms, because it is already parallelized
+  ! on charge slabs
+  !
+  atoms: DO ia = 1, nat
+    !
+    i%a = ia                      ! atom's index
+    i%t = ityp(ia)                ! type of atom ia
+    i%m = g(i%t)%mesh             ! radial mesh size for atom i%t
+    i%b = upf(i%t)%nbeta          ! number of beta functions for i%t
+    i%l = upf(i%t)%lmax_rho+1 ! max ang.mom. in augmentation for ia
+    !
+    ifpaw: IF (upf(i%t)%tpawp) THEN
       !
-      i%a = ia                      ! atom's index
-      i%t = ityp(ia)                ! type of atom ia
-      i%m = g(i%t)%mesh             ! radial mesh size for atom i%t
-      i%b = upf(i%t)%nbeta          ! number of beta functions for i%t
-      i%l = upf(i%t)%lmax_rho+1 ! max ang.mom. in augmentation for ia
+      ! Arrays are allocated inside the cycle to allow reduced
+      ! memory usage as different atoms have different meshes
+      ALLOCATE( rho_lm_ae(i%m,i%l**2,nspin), &
+                rho_lm_ps(i%m,i%l**2,nspin) )
+      ALLOCATE( rho_lm(i%m,i%l**2,nspin), &
+                ylm_posi(1,i%l**2),       &
+                wsp_lm(i%m, i%l**2,nspin)  )
       !
-      ifpaw: IF (upf(i%t)%tpawp) THEN
-         !
-         ! Arrays are allocated inside the cycle to allow reduced
-         ! memory usage as different atoms have different meshes
-         ALLOCATE(rho_lm_ae(i%m,i%l**2,nspin), &
-                  rho_lm_ps(i%m,i%l**2,nspin) )
-         ALLOCATE(rho_lm(i%m,i%l**2,nspin), &
-                  ylm_posi(1,i%l**2),       &
-                  wsp_lm(i%m, i%l**2,nspin)  )
-         !
-         ! Compute rho spherical harmonics expansion from becsum and pfunc
-         CALL PAW_rho_lm(i, rho%bec, upf(i%t)%paw%pfunc,  rho_lm_ae)
-         CALL PAW_rho_lm(i, rho%bec, upf(i%t)%paw%ptfunc, rho_lm_ps, &
-              upf(i%t)%qfuncl)
-         !
-         DO is=1,nspin
-            DO lm = 1,i%l**2
-               DO ir = 1, i%m
-                  rho_lm(ir,lm,is) = ( rho_lm_ae(ir,lm,is) - &
-                       rho_lm_ps(ir,lm,is) ) * g(i%t)%rm2(ir)
-               ENDDO
-            ENDDO
-            !
-            ! add core charge
-            !
-            IF (withcore) THEN
-               DO ir = 1, i%m
-                  rho_lm(ir,1,is) = rho_lm(ir,1,is) + &
-                     upf(i%t)%paw%ae_rho_atc(ir) / nspin * (2._DP * sqrtpi)
-               ENDDO
-            ENDIF
-         ENDDO
-
-         ! deallocate asap
-         DEALLOCATE(rho_lm_ae, rho_lm_ps)
-         !
-         ALLOCATE( d1y(upf(i%t)%kkbeta), d2y(upf(i%t )%kkbeta) )
-         DO is = 1,nspin
-            DO lm = 1, i%l**2
-               CALL radial_gradient(rho_lm(1:upf(i%t)%kkbeta,lm,is), d1y, &
-                                    g(i%t)%r, upf(i%t)%kkbeta, 1)
-               CALL radial_gradient(d1y, d2y, g(i%t)%r, upf(i%t)%kkbeta, 1)
-               !
-               first  = d1y(1) ! first derivative in first point
-               second = d2y(1) ! second derivative in first point
-               ! prepare interpolation
-               CALL spline( g(i%t)%r(:), rho_lm(:,lm,is), first, second, &
-                    wsp_lm(:,lm,is) )
-            ENDDO
-         ENDDO
-         DEALLOCATE(d1y, d2y)
+      ! Compute rho spherical harmonics expansion from becsum and pfunc
+      CALL PAW_rho_lm(i, rho%bec, upf(i%t)%paw%pfunc,  rho_lm_ae)
+      CALL PAW_rho_lm(i, rho%bec, upf(i%t)%paw%ptfunc, rho_lm_ps, upf(i%t)%qfuncl)
+      !
+      DO is=1,nspin
+        DO lm = 1,i%l**2
+          DO ir = 1, i%m
+            rho_lm(ir,lm,is) = ( rho_lm_ae(ir,lm,is) - rho_lm_ps(ir,lm,is) ) * g(i%t)%rm2(ir)
+          ENDDO
+        ENDDO
+        !
+        ! add core charge
+        !
+        IF (withcore) THEN
+          DO ir = 1, i%m
+            rho_lm(ir,1,is) = rho_lm(ir,1,is) + upf(i%t)%paw%ae_rho_atc(ir) / nspin * (2._DP * sqrtpi)
+          ENDDO
+        ENDIF
+      ENDDO
+      ! deallocate asap
+      DEALLOCATE(rho_lm_ae, rho_lm_ps)
+      !
+      ALLOCATE( d1y(upf(i%t)%kkbeta), d2y(upf(i%t )%kkbeta) )
+      DO is = 1,nspin
+        DO lm = 1, i%l**2
+          ! last argument = 1 means using coarse grid algorithm
+          CALL my_radial_gradient(rho_lm(1:upf(i%t)%kkbeta,lm,is), d1y, &
+                                g(i%t)%r, upf(i%t)%kkbeta, 1)
+          CALL my_radial_gradient(d1y, d2y, g(i%t)%r, upf(i%t)%kkbeta, 1)
+          !
+          first  = d1y(1) ! first derivative in first point
+          second = d2y(1) ! second derivative in first point
+          ! prepare interpolation
+          CALL spline( g(i%t)%r(:), rho_lm(:,lm,is), first, second, wsp_lm(:,lm,is) )
+        ENDDO
+      ENDDO
+      DEALLOCATE(d1y, d2y)
          !
          rsp_point : DO ir = 1, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p
             !
@@ -177,7 +173,9 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
 END SUBROUTINE PAW_make_ae_charge
 
 
+!------------------------
 subroutine plot_paw_rho()
+!------------------------
   USE scf, ONLY : rho
   USE fft_base, ONLY : dfftp
   !
@@ -198,4 +196,8 @@ subroutine plot_paw_rho()
   deallocate(raux)
 
 end subroutine
+
+
+INCLUDE 'my_radial_gradient.f90'
+
 
