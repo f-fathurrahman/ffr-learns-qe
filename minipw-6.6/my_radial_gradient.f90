@@ -51,20 +51,25 @@ subroutine my_radial_gradient(f,gf,r,mesh,iflag)
   !write(*,*) 'f = ', f
   imin = 1
   points: do i = 2, mesh
+    !write(*,*) 'Outer loop start: ', i
     do j = i+1,mesh
+      !write(*,*) '  Middle loop: ', j
       if( r(j) > r(i) + delta ) then
         do k = i-1,1,-1
+          !write(*,'(1x,A,3I4)') '    Inner loop: ', i, j, k
           if( r(k) < r(i) - delta ) then
             gf(i) = ( (r(j)-r(i))**2*(f(k)-f(i))   &
                      -(r(k)-r(i))**2*(f(j)-f(i)) ) &
                     /((r(j)-r(i))*(r(k)-r(i))*(r(j)-r(k)))
+            !write(*,*) '    will cycle from k to i: gradient for point ', i, ' has been computed'
             cycle points ! start again from i, we are on k
           endif
         enddo
         ! if the code arrives here there are not enough points on the left: 
         ! r(i)-delta is smaller than r(1). 
-        !write(*,*) 'Not enough points on the left'
+        !write(*,*) '  Not enough points on the left'
         imin = i
+        !write(*,*) '  will cycle from j to i'
         cycle points ! start again from i, we are on j
       endif
     enddo
@@ -77,6 +82,8 @@ subroutine my_radial_gradient(f,gf,r,mesh,iflag)
     !write(*,*) 'Not enough points on the right'
     gf(i) = 0.0_DP
   enddo points
+  write(*,*) 'Sum gf after loop = ', sum(gf)
+  write(*,*) 'Final imin = ', imin
   !
   ! In the first imin points the previous formula cannot be
   ! used. We interpolate with a polynomial the points already found
@@ -104,7 +111,9 @@ subroutine my_radial_gradient(f,gf,r,mesh,iflag)
     ! No statement, one
   enddo points_fit
   !
+  write(*,*) 'Before my_fit_pol b = ', b
   call my_fit_pol(raux,faux,npoint,3,b)
+  write(*,*) 'After my_fit_pol b = ', b
   do i = 1,imin
      gf(i) = b(1) + r(i)*( b(2) + r(i)*( b(3) + r(i)*b(4) ) )
   enddo
