@@ -174,9 +174,9 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   IF ( ((.NOT.is_libxc(1)) .OR. (.NOT.is_libxc(2))) &
         .AND. fkind_x/=XC_EXCHANGE_CORRELATION ) THEN
      !
-     write(*,*)
-     write(*,*) '!!!!!! LDA/LSDA: Not using LibXC !!!!!'
-     write(*,*)
+     !write(*,*)
+     !write(*,*) '!!!!!! LDA/LSDA: Not using LibXC !!!!!'
+     !write(*,*)
      SELECT CASE( sr_d )
      CASE( 1 )
         !
