@@ -6,10 +6,10 @@ LIBXC_HOME = /home/efefer/mysoftwares/libxc-4.3.4dyn
 DFLAGS = -D__FFTW -D__LIBXC
 
 F77 = gfortran
-F77_OPTS = -O0 -Wall -cpp -fPIC
+F77_OPTS = -O3 -Wall -cpp -fPIC
 
 F90 = gfortran
-F90_OPTS = -O0 -I$(LIBXC_HOME)/include $(DFLAGS) -Wall -cpp -fPIC
+F90_OPTS = -O3 -I$(LIBXC_HOME)/include $(DFLAGS) -Wall -cpp -fPIC
 
 include OBJECTS_QE.make
 
