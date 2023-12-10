@@ -63,8 +63,8 @@ SUBROUTINE debug_PAW_gcxc_potential()
   write(*,*) 'sum rho%bec = ', sum(rho%bec)
 
   ! Choose atom index and which partial waves to be used (AE or PS)
-  ia = 1
-  i_what = AE
+  ia = 2
+  i_what = PS
 
   i%a = ia   ! atom's index
   i%t = ityp(ia) ! type of atom ia
@@ -283,11 +283,11 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       !  WARNING: the next 2 calls are duplicated for spin==2
       CALL PAW_lm2rad( i, ix, rho_lm, rho_rad, nspin_mag )
       CALL PAW_gradient( i, ix, rho_lm, rho_rad, rho_core, grad2, grad )
-      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad2) = ', ix, sum(grad2)
-      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad r)     = ', ix, sum(grad(:,1,:))
-      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad phi)   = ', ix, sum(grad(:,2,:))
-      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad theta) = ', ix, sum(grad(:,3,:))
-      write(*,*)
+      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad2) = ', ix, sum(grad2)
+      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad r)     = ', ix, sum(grad(:,1,:))
+      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad phi)   = ', ix, sum(grad(:,2,:))
+      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad theta) = ', ix, sum(grad(:,3,:))
+      !write(*,*)
 
       !
       DO k = 1, i%m
@@ -295,17 +295,17 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
         arho(k,1) = ABS(arho(k,1))
         gradx(:,k,1) = grad(k,:,1)
       ENDDO
-      write(*,*) 'sum arho = ', sum(arho)
-      write(*,*) 'sum gradx = ', sum(gradx)
+      !write(*,*) 'sum arho = ', sum(arho)
+      !write(*,*) 'sum gradx = ', sum(gradx)
       !
       CALL xc_gcx( i%m, 1, arho, gradx, sx, sc, v1x, v2x, v1c, v2c )
       !
-      write(*,*) 'sum sx = ', sum(sx)
-      write(*,*) 'sum sc = ', sum(sc)
-      write(*,*) 'sum v1x = ', sum(v1x)
-      write(*,*) 'sum v1c = ', sum(v1c)
-      write(*,*) 'sum v2x = ', sum(v2x)
-      write(*,*) 'sum v2c = ', sum(v2c)
+      !write(*,*) 'sum sx = ', sum(sx)
+      !write(*,*) 'sum sc = ', sum(sc)
+      !write(*,*) 'sum v1x = ', sum(v1x)
+      !write(*,*) 'sum v1c = ', sum(v1c)
+      !write(*,*) 'sum v2x = ', sum(v2x)
+      !write(*,*) 'sum v2c = ', sum(v2c)
       !
       DO k = 1, i%m
         e_rad(k) = e2 * (sx(k)+sc(k)) * g(i%t)%r2(k)
@@ -522,11 +522,6 @@ SUBROUTINE my_PAW_rad2lm( i, F_rad, F_lm, lmax_loc, nspin )
   INTEGER :: lm    ! counter for angmom
   INTEGER :: ispin ! counter for spin
   INTEGER :: j
-
-  write(*,*) 'shape F_lm = ', shape(F_lm)
-  write(*,*) 'shape F_rad = ', shape(F_rad)
-
-  write(*,*) 'sum F_lm = ', sum(F_lm)
 
   DO ispin = 1, nspin
     DO lm = 1, lmax_loc**2

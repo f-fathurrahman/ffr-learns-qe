@@ -975,6 +975,10 @@ SUBROUTINE PAW_gcxc_potential( i, rho_lm, rho_core, v_lm, energy )
   ELSE
     v_lm(:,:,1:nspin_mag) = v_lm(:,:,1:nspin_mag)+vout_lm(:,:,1:nspin_mag)
   ENDIF
+
+  write(*,*) 'energy in PAW_gcxc_potential (in Ha): ', 0.5d0*energy
+  write(*,*) 'sum vlm in PAW_gcxc_potential (in Ha): ', 0.5d0*sum(v_lm)
+
   !
   DEALLOCATE( gc_rad )
   DEALLOCATE( gc_lm  )
@@ -1446,9 +1450,9 @@ END SUBROUTINE PAW_lm2rad
     !
     ! This routine recollects the result within the paw communicator
     !
-    write(*,*) 'sum F_lm before mp_sum = ', sum(F_lm)
+    !write(*,*) 'sum F_lm before mp_sum = ', sum(F_lm)
     CALL mp_sum( F_lm, paw_comm )
-    write(*,*) 'sum F_lm after mp_sum = ', sum(F_lm)
+    !write(*,*) 'sum F_lm after mp_sum = ', sum(F_lm)
     !
     IF (TIMING) CALL stop_clock( 'PAW_rad2lm' )
     !

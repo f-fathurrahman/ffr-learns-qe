@@ -345,11 +345,11 @@ SUBROUTINE PAW_init_onecenter()
         ! ffr: max_mesh and max_nx are used to allocate memory for vs_rad
         ! ffr: vs_rad is used for noncolinear case.
 
-        write(*,*)
-        write(*,*) 'Radial integrator: '
-        write(*,*) 'nt = ', nt
-        write(*,*) 'rad(nt)%nx = ', rad(nt)%nx
-        write(*,*) 'rad(nt)%ww = ', rad(nt)%ww
+        !write(*,*)
+        !write(*,*) 'Radial integrator: '
+        !write(*,*) 'nt = ', nt
+        !write(*,*) 'rad(nt)%nx = ', rad(nt)%nx
+        !write(*,*) 'rad(nt)%ww = ', rad(nt)%ww
 
         !
         CYCLE types
