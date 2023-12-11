@@ -491,6 +491,8 @@ CONTAINS
    !
    IF (ngms < ngm ) THEN
       !
+      write(*,*) 'high_frequency_mixing is active'
+      !
       rhoin%of_g = rhoin%of_g + alphamix * (input_rhout%of_g-rhoin%of_g)
       rhoin%of_g(1:ngms,1:nspin) = (0.d0,0.d0)
       ! define rho_s%of_r 
