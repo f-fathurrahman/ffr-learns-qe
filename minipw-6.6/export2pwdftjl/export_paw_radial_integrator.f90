@@ -45,6 +45,21 @@ SUBROUTINE export_paw_radial_integrator()
     CALL json%add(inp, 'shape_wwylm', shape(rad(isp)%wwylm))
     CALL json%add(inp, 'wwylm', reshape(rad(isp)%wwylm, [size(rad(isp)%wwylm)]))
  
+    if( associated(rad(isp)%dylmt) ) then
+      CALL json%add(inp, 'shape_dylmt', shape(rad(isp)%dylmt))
+      CALL json%add(inp, 'dylmt', reshape(rad(isp)%dylmt, [size(rad(isp)%dylmt)]))
+    endif
+
+    if( associated(rad(isp)%dylmp) ) then
+      CALL json%add(inp, 'shape_dylmp', shape(rad(isp)%dylmp))
+      CALL json%add(inp, 'dylmp', reshape(rad(isp)%dylmp, [size(rad(isp)%dylmp)]))
+    endif
+
+    if( associated(rad(isp)%cotg_th) ) then
+      CALL json%add(inp, 'shape_cotg_th', shape(rad(isp)%cotg_th))
+      CALL json%add(inp, 'cotg_th', reshape(rad(isp)%cotg_th, [size(rad(isp)%cotg_th)]))
+    endif
+
     ! Set the filename
     WRITE(filename,"(A22,I1,A5)") 'paw_radial_integrator_', isp, '.json'
 

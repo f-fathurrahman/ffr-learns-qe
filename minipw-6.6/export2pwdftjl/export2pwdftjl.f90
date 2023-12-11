@@ -23,18 +23,12 @@ PROGRAM main
   CALL prepare_all()
   
   CALL export_atoms()
-  
   CALL export_pspot_upf()
-
   CALL export_atom_grid()
-
   CALL export_vlocal()
-
   CALL export_vars_uspp_mod()
-
   CALL export_paw_radial_integrator()
   CALL export_paw_variables()
-
   CALL export_vars_scf_mod()
 
 END PROGRAM main

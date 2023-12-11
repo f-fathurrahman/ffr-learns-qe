@@ -1,13 +1,11 @@
 !--------------------------------
 SUBROUTINE export_paw_variables()
 !--------------------------------
-  USE ions_base, ONLY: nsp
   USE paw_variables
   !
   USE json_module
   
   IMPLICIT NONE 
-  INTEGER :: isp
   CHARACTER(30) :: filename
   ! JSON stuffs
   TYPE(json_core) :: json
