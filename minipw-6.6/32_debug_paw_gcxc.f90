@@ -9,6 +9,132 @@ END PROGRAM
 
 
 
+!-----------------------------------------------------------------------------
+SUBROUTINE my_PAW_atomic_becsum()
+!--------------------------------------------------------------------------
+  !! Initialize becsum with atomic occupations (for PAW atoms only).  
+  !! NOTE: requires exact correspondence chi <--> beta in the atom,
+  !! that is that all wavefunctions considered for PAW generation are
+  !! counted in chi (otherwise the array "oc" does not correspond to beta).
+  !
+  USE kinds,                ONLY : DP
+  USE uspp,                 ONLY : nhtoj, nhtol, indv, becsum
+  USE scf,                  ONLY : rho
+  USE uspp_param,           ONLY : upf, nh, nhm
+  USE ions_base,            ONLY : nat, ityp
+  USE lsda_mod,             ONLY : nspin, starting_magnetization
+  USE paw_variables,        ONLY : okpaw
+  USE paw_symmetry,         ONLY : PAW_symmetrize
+  USE random_numbers,       ONLY : randy
+  USE basis,                ONLY : starting_wfc
+  USE noncollin_module,     ONLY : nspin_mag, angle1, angle2
+  !
+  IMPLICIT NONE
+  !
+  !REAL(DP), INTENT(INOUT) :: becsum(nhm*(nhm+1)/2,nat,nspin)
+  INTEGER :: ispin, na, nt, ijh, ih, jh, nb, mb
+  REAL(DP) :: noise = 0._DP
+  !
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'ENTER my_PAW_atomic_becsum'
+  write(*,*) '------------------------------------------------------------'
+  !
+  !
+  IF (.NOT. okpaw) RETURN
+  IF (.NOT. ALLOCATED(becsum))   CALL errore( 'PAW_init_becsum', &
+                 'Something bad has happened: becsum is not allocated yet', 1 )
+  !
+  ! Add a bit of random noise if not starting from atomic or saved wfcs:
+  IF ( starting_wfc=='atomic+random') noise = 0.05_DP
+  IF ( starting_wfc=='random')        noise = 0.10_DP
+  !
+
+  noise = 0.d0
+  !if(noise > 0.d0) then
+  !  write(*,*) 'PAW_atomic_becsum: Random component will be added to becsum'
+  !endif
+
+  becsum = 0.0_DP
+  na_loop: DO na = 1, nat
+    nt = ityp(na)
+    is_paw: IF (upf(nt)%tpawp) THEN
+      !
+      ijh = 1
+      ih_loop: DO ih = 1, nh(nt)
+        nb = indv(ih,nt)
+        !
+        IF (nspin == 1) THEN
+          !
+          becsum(ijh,na,1) = upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          !
+        ELSEIF (nspin == 2) THEN
+          !
+          becsum(ijh,na,1) = 0.5_dp*(1._DP+starting_magnetization(nt))* &
+                             upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          becsum(ijh,na,2) = 0.5_dp*(1._DP-starting_magnetization(nt))* &
+                             upf(nt)%paw%oc(nb) / DBLE(2*nhtol(ih,nt)+1)
+          !
+        ELSEIF (nspin == 4) THEN
+          !
+          becsum(ijh,na,1) = upf(nt)%paw%oc(nb)/DBLE(2*nhtol(ih,nt)+1)
+          IF (nspin_mag == 4) THEN
+            becsum(ijh,na,2) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               SIN(angle1(nt))*COS(angle2(nt))
+            becsum(ijh,na,3) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               SIN(angle1(nt))*SIN(angle2(nt))
+            becsum(ijh,na,4) = becsum(ijh,na,1) *              &
+                               starting_magnetization(nt)*     &
+                               COS(angle1(nt))
+          ENDIF
+          !
+        ENDIF
+        !
+        ijh = ijh + 1
+        !
+        jh_loop: &
+         DO jh = ( ih + 1 ), nh(nt)
+          !mb = indv(jh,nt)
+          DO ispin = 1, nspin_mag
+            IF (noise > 0._DP) &
+               becsum(ijh,na,ispin) = becsum(ijh,na,ispin) + noise *2._DP*(.5_DP-randy())
+          ENDDO
+          !
+          ijh = ijh + 1
+          !
+        ENDDO jh_loop
+      ENDDO ih_loop
+    ENDIF is_paw
+  ENDDO na_loop
+
+  becsum(:,2,1) = 0.5d0 
+
+  !
+  ! ... copy becsum in scf structure and symmetrize it
+  rho%bec(:,:,:) = becsum(:,:,:)
+
+  write(*,*) 'my_PAW_atomic_becsum: sum(becsum) before PAW_symmetrize = ', sum(becsum)
+  write(*,*) 'becsum(1,1,1) before = ', becsum(1,1,1)
+  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+
+  CALL PAW_symmetrize( rho%bec )
+
+  write(*,*) 'my_PAW_atomic_becsum: sum(becsum) after PAW_symmetrize = ', sum(rho%bec)
+  write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
+  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+
+  write(*,*)
+  write(*,*) '------------------------------------------------------------'
+  write(*,*) 'EXIT my_PAW_atomic_becsum'
+  write(*,*) '------------------------------------------------------------'
+
+
+  !
+END SUBROUTINE
+
+
 !----------------------------------
 SUBROUTINE debug_PAW_gcxc_potential()
 !----------------------------------
@@ -59,7 +185,7 @@ SUBROUTINE debug_PAW_gcxc_potential()
 
   ! From potinit
   ! no need to guard agains okpaw here
-  CALL PAW_atomic_becsum()
+  CALL my_PAW_atomic_becsum()
   write(*,*) 'sum rho%bec = ', sum(rho%bec)
 
   ! Choose atom index and which partial waves to be used (AE or PS)
@@ -318,7 +444,7 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       CALL simpson(i%m, e_rad, g(i%t)%rab, e)
       egcxc_of_tid(mytid) = egcxc_of_tid(mytid) + e*rad(i%t)%ww(ix)
       !
-      write(*,*) 'energy for current ix (in Ha) = ', e*rad(i%t)%ww(ix)*0.5d0
+      write(*,*) 'energy for current ix (in Ha) = ', ix, e*rad(i%t)%ww(ix)*0.5d0
       !write(*,*) 'egcxc_of_tid = ', egcxc_of_tid
       !
     ENDDO
