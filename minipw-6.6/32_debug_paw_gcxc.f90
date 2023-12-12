@@ -405,14 +405,18 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
     ALLOCATE( gradx(3,i%m,1) )
     !
     DO ix = 1, rad(i%t)%nx
+      
+      write(*,*) 'Begin ix = ', ix
       !
       !  WARNING: the next 2 calls are duplicated for spin==2
-      CALL PAW_lm2rad( i, ix, rho_lm, rho_rad, nspin_mag )
+      CALL PAW_lm2rad( i, ix, rho_lm, rho_rad, nspin_mag )      
+      write(*,*) 'sum rho_rad = ', sum(rho_rad)
+
       CALL PAW_gradient( i, ix, rho_lm, rho_rad, rho_core, grad2, grad )
       !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad2) = ', ix, sum(grad2)
-      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad r)     = ', ix, sum(grad(:,1,:))
-      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad phi)   = ', ix, sum(grad(:,2,:))
-      !write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad theta) = ', ix, sum(grad(:,3,:))
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad r)     = ', ix, sum(grad(:,1,:))
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad phi)   = ', ix, sum(grad(:,2,:))
+      write(*,'(1x,A,I5,ES18.10)') 'ix, sum(grad theta) = ', ix, sum(grad(:,3,:))
       !write(*,*)
 
       !
@@ -448,6 +452,9 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
       !write(*,*) 'egcxc_of_tid = ', egcxc_of_tid
       !
     ENDDO
+
+    write(*,*) 'sum gc_rad = ', sum(gc_rad)
+    write(*,*) 'sum h_rad = ', sum(h_rad)*0.5d0 ! Libxc convention
 
     write(*,*) 'energy for all ix (in Ha) = ', egcxc_of_tid(mytid)*0.5d0
 
