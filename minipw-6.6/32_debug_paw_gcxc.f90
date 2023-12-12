@@ -539,12 +539,14 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   ! accumulate sum of egcxc to energy
   e_gcxc = SUM(egcxc_of_tid)
   energy = energy + e_gcxc
-
+  !
   DEALLOCATE( egcxc_of_tid )
+  !
   !
   ! convert the first part of the GC correction back to spherical harmonics
   CALL PAW_rad2lm( i, gc_rad, gc_lm, i%l, nspin_gga )
-  
+  write(*,*) 'sum gc_lm = ', sum(gc_lm)
+  !
   !
   !write(*,*) 'sum wwylm = ', sum(rad(i%t)%wwylm)
   !write(*,*) 'i%l = ', i%l
@@ -566,13 +568,17 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   DO ix = 1, rad(i%t)%nx
      h_rad(1:i%m,3,ix,1:nspin_gga) = h_rad(1:i%m,3,ix,1:nspin_gga)/rad(i%t)%sin_th(ix)
   ENDDO
+  write(*,*) 'sum h_rad after divided by sin_th = ', sum(h_rad)*0.5d0
+
+
   ! We need the gradient of H to calculate the last part of the exchange
   ! and correlation potential. First we have to convert H to its Y_lm expansion
   CALL PAW_rad2lm3( i, h_rad, h_lm, i%l+rad(i%t)%ladd, nspin_gga )
+  write(*,*) 'sum h_lm = ', sum(h_lm)*0.5d0
 
-  !write(*,*) 'l = ', i%l
-  !write(*,*) 'ladd = ', rad(i%t)%ladd
-  !write(*,*) 'lmax_loc_add = ', i%l + rad(i%t)%ladd
+  write(*,*) 'l = ', i%l
+  write(*,*) 'ladd = ', rad(i%t)%ladd
+  write(*,*) 'lmax_loc_add = ', i%l + rad(i%t)%ladd
   !write(*,*) 'sum abs h_rad = ', sum(abs(h_rad))
   !write(*,*) 'sum abs h_lm = ', sum(abs(h_lm))
   !write(*,*) 'h_lm 1 = ', h_lm(1,1,1,1)
@@ -594,7 +600,7 @@ SUBROUTINE my_PAW_gcxc_potential(i, rho_lm, rho_core, v_lm, energy)
   CALL PAW_divergence( i, h_lm, div_h, i%l+rad(i%t)%ladd, i%l )
   !                       input max lm --^  output max lm-^
     
-  !write(*,*) 'sum div_h = ', sum(div_h)
+  write(*,*) 'sum div_h = ', sum(div_h)*0.5d0
 
   ! Finally sum it back into v_xc
   DO is = 1,nspin_gga
