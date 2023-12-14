@@ -41,6 +41,7 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
   REAL(DP), ALLOCATABLE :: rho_lm(:,:,:), rho_lm_ae(:,:,:), rho_lm_ps(:,:,:)
   REAL(DP) :: posi(3), first, second, rhoup, rhodw
   REAL(DP) :: inv_nr1, inv_nr2, inv_nr3, distsq
+  real(dp) :: rho_ir
 
   ! Some initialization
   !
@@ -53,10 +54,15 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
   !
   atoms: DO ia = 1, nat
     !
+    write(*,*)
+    write(*,'(1x,A,I5)') 'Atom index ia = ', ia
+    write(*,'(1x,A,3F18.10)') 'position = ', matmul(at*alat, tau(:,ia))
+    !
+    !
     i%a = ia                      ! atom's index
     i%t = ityp(ia)                ! type of atom ia
     i%m = g(i%t)%mesh             ! radial mesh size for atom i%t
-    i%b = upf(i%t)%nbeta          ! number of beta functions for i%t
+    i%b = upf(i%t)%nbeta          ! number of beta functions for i%t (NOT USED?)
     i%l = upf(i%t)%lmax_rho+1 ! max ang.mom. in augmentation for ia
     !
     ifpaw: IF (upf(i%t)%tpawp) THEN
@@ -88,6 +94,9 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
           ENDDO
         ENDIF
       ENDDO
+      !
+      write(*,*) 'sum rho_lm = ', sum(rho_lm)
+      !
       ! deallocate asap
       DEALLOCATE(rho_lm_ae, rho_lm_ps)
       !
@@ -103,72 +112,86 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
           second = d2y(1) ! second derivative in first point
           ! prepare interpolation
           CALL spline( g(i%t)%r(:), rho_lm(:,lm,is), first, second, wsp_lm(:,lm,is) )
+          write(*,*) 'sum wsp_lm(:,lm,is) = ', sum(wsp_lm(:,lm,is))
         ENDDO
       ENDDO
       DEALLOCATE(d1y, d2y)
-         !
-         rsp_point : DO ir = 1, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p
-            !
-            ! three dimensional indices (l,j,k)
-            !
-            CALL fft_index_to_3d (ir, dfftp, l,j,k, offrange)
-            IF ( offrange ) CYCLE rsp_point
-            !
-            DO ipol = 1, 3
-               posi(ipol) = dble( l )*inv_nr1*at(ipol,1) + &
-                            dble( j )*inv_nr2*at(ipol,2) + &
-                            dble( k )*inv_nr3*at(ipol,3)
+      !
+      !rsp_point : DO ir = 1, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p
+      rsp_point: do ir = 1,1
+        !
+        ! three dimensional indices (l,j,k)
+        !
+        CALL fft_index_to_3d(ir, dfftp, l, j, k, offrange)
+        !
+        write(*,*) 'l, j, k = ', l, j, k
+        write(*,*) 'offrange = ', offrange
+        !
+        IF ( offrange ) CYCLE rsp_point
+        !
+        DO ipol = 1, 3
+           posi(ipol) = dble(l)*inv_nr1*at(ipol,1) + &
+                        dble(j)*inv_nr2*at(ipol,2) + &
+                        dble(k)*inv_nr3*at(ipol,3)
+        ENDDO
+        !
+        ! find the distance of real-space grid's point ir w.r.t
+        ! closer periodic image of atom ia
+        !
+        posi(:) = posi(:) - tau(:,ia)
+        CALL cryst_to_cart( 1, posi, bg, -1 )
+        posi(:) = posi(:) - anint( posi(:) )
+        CALL cryst_to_cart( 1, posi, at, 1 )
+        !
+        posi(:) = posi(:) * alat
+        distsq = posi(1)**2 + posi(2)**2 + posi(3)**2
+        !
+        write(*,'(1x,A,3F18.10)') 'posi = ', posi
+        write(*,'(1x,A,F18.10)') 'distsq = ', distsq
+        !
+        ! don't consider points too far from the atom:
+        IF( distsq > g(i%t)%r2(upf(i%t)%kkbeta) ) then
+          write(*,*) 'distsq is too far'
+          CYCLE rsp_point
+        endif
+        !
+        ! generate the atomic charge on point posi(:), which means
+        ! sum over l and m components rho_lm_ae-rho_lm_ps
+        ! interpolate the radial function at distance |posi(:)|
+        !
+        ! prepare spherical harmonics
+        CALL ylmr2( i%l**2, 1, posi, distsq, ylm_posi )
+        !
+        IF( nspin/=2 ) THEN
+          DO is = 1,nspin
+            DO lm = 1, i%l**2
+              ! do interpolation - distsq depends upon ir
+              rho_ir = splint( g(i%t)%r(:) , rho_lm(:,lm,is), wsp_lm(:,lm,is), sqrt(distsq) )
+              write(*,'(1x,I5,F18.10)') lm, rho_ir
+              rho%of_r(ir,is) = rho%of_r(ir,is) + ylm_posi(1,lm) * rho_ir
             ENDDO
-            !
-            ! find the distance of real-space grid's point ir w.r.t
-            ! closer periodic image of atom ia
-            !
-            posi(:) = posi(:) - tau(:,ia)
-            CALL cryst_to_cart( 1, posi, bg, -1 )
-            posi(:) = posi(:) - anint( posi(:) )
-            CALL cryst_to_cart( 1, posi, at, 1 )
-            !
-            posi(:) = posi(:) * alat
-            distsq = posi(1)**2 + posi(2)**2 + posi(3)**2
-            ! don't consider points too far from the atom:
-            IF ( distsq > g(i%t)%r2(upf(i%t)%kkbeta) ) CYCLE rsp_point
-            !
-            ! generate the atomic charge on point posi(:), which means
-            ! sum over l and m components rho_lm_ae-rho_lm_ps
-            ! interpolate the radial function at distance |posi(:)|
-            !
-            ! prepare spherical harmonics
-            CALL ylmr2( i%l**2, 1, posi, distsq, ylm_posi )
-            IF ( nspin/=2 ) THEN
-               DO is = 1,nspin
-                  DO lm = 1, i%l**2
-                     ! do interpolation - distsq depends upon ir
-                     rho%of_r(ir,is)= rho%of_r(ir,is) + ylm_posi(1,lm) &
-                          * splint(g(i%t)%r(:) , rho_lm(:,lm,is), &
-                          wsp_lm(:,lm,is), sqrt(distsq) )
-                  ENDDO
-               ENDDO
-            ELSE
-               DO lm = 1, i%l**2
-                  ! do interpolation
-                  is = 1
-                  rhoup = splint(g(i%t)%r(:) , rho_lm(:,lm,is), &
-                       wsp_lm(:,lm,is), sqrt(distsq) )
-                  is = 2
-                  rhodw = splint(g(i%t)%r(:) , rho_lm(:,lm,is), &
-                       wsp_lm(:,lm,is), sqrt(distsq) )
-                  rho%of_r(ir,1)= rho%of_r(ir,1) + ylm_posi(1,lm) * &
-                       (rhoup + rhodw)
-                  rho%of_r(ir,2)= rho%of_r(ir,2) + ylm_posi(1,lm) * &
-                       (rhoup - rhodw)
-               ENDDO
-            ENDIF
-         ENDDO rsp_point
-         !
-         DEALLOCATE(rho_lm, ylm_posi, wsp_lm)
-         !
-      ENDIF ifpaw
-   ENDDO atoms
+          ENDDO
+        ELSE
+          DO lm = 1, i%l**2
+             ! do interpolation
+             is = 1
+             rhoup = splint( g(i%t)%r(:) , rho_lm(:,lm,is), wsp_lm(:,lm,is), sqrt(distsq) )
+             is = 2
+             rhodw = splint( g(i%t)%r(:) , rho_lm(:,lm,is), wsp_lm(:,lm,is), sqrt(distsq) )
+             rho%of_r(ir,1)= rho%of_r(ir,1) + ylm_posi(1,lm) * (rhoup + rhodw)
+             rho%of_r(ir,2)= rho%of_r(ir,2) + ylm_posi(1,lm) * (rhoup - rhodw)
+          ENDDO
+        ENDIF
+        !
+        write(*,*) 'rho%of_r(ir,1) = ', rho%of_r(ir,1)
+        !
+      ENDDO rsp_point
+      !
+      DEALLOCATE(rho_lm, ylm_posi, wsp_lm)
+      !
+    ENDIF ifpaw
+  
+  ENDDO atoms
 
 END SUBROUTINE PAW_make_ae_charge
 
@@ -186,11 +209,16 @@ subroutine plot_paw_rho()
 
   ALLOCATE( raux(dfftp%nnr) )
 
-  withcore = .true.
+  withcore = .false.
+
+  rho%of_r(:, 1) = 0.d0 ! zero out plane wave contrib
+
   CALL PAW_make_ae_charge(rho, withcore)
 
   raux(:) = rho%of_r(:, 1)
 
+  write(*,*)
+  write(*,*) 'sum rho%of_r(:,1) after = ', sum(rho%of_r(:,1))
   write(*,*) 'sum(raux) = ', sum(raux)
 
   deallocate(raux)
