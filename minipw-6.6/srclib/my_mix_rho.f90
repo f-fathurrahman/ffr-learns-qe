@@ -134,30 +134,30 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
 
   !
   IF( conv .OR. dr2 < tr2_min ) THEN
-     !
-     ! ... if convergence is achieved or if the self-consistency error (dr2) is
-     ! ... smaller than the estimated error due to diagonalization (tr2_min),
-     ! ... exit and leave rhoin and rhocout unchanged
-     !
-     IF ( ALLOCATED( df ) ) THEN
-         DO i=1, n_iter
-            call destroy_mix_type(df(i))
-         END DO
-         DEALLOCATE( df )
-     END IF
-     IF ( ALLOCATED( dv ) ) THEN
-         DO i=1, n_iter
-            call destroy_mix_type(dv(i))
-         END DO
-         DEALLOCATE( dv )
-     END IF
-     !
-     call destroy_mix_type(rhoin_m)
-     call destroy_mix_type(rhout_m)
-     !
-     IF ( ALLOCATED( dv_nsg ) ) DEALLOCATE( dv_nsg )
-     IF ( ALLOCATED( df_nsg ) ) DEALLOCATE( df_nsg )
-     RETURN
+    !
+    ! if convergence is achieved or if the self-consistency error (dr2) is
+    ! smaller than the estimated error due to diagonalization (tr2_min),
+    ! exit and leave rhoin and rhocout unchanged
+    !
+    IF( ALLOCATED( df ) ) THEN
+      DO i=1, n_iter
+        call destroy_mix_type(df(i))
+      END DO
+      DEALLOCATE( df )
+    ENDIF
+    IF( ALLOCATED( dv ) ) THEN
+      DO i=1, n_iter
+        call destroy_mix_type(dv(i))
+      END DO
+      DEALLOCATE( dv )
+    ENDIF
+    !
+    call destroy_mix_type(rhoin_m)
+    call destroy_mix_type(rhout_m)
+    !
+    IF ( ALLOCATED( dv_nsg ) ) DEALLOCATE( dv_nsg )
+    IF ( ALLOCATED( df_nsg ) ) DEALLOCATE( df_nsg )
+    RETURN
   ENDIF
 
   IF( .NOT. ALLOCATED( df ) ) THEN
@@ -173,21 +173,18 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
       CALL create_mix_type( dv(i) )
     ENDDO
   ENDIF
-
   !
-  ! ... iter_used = mixrho_iter-1  if  mixrho_iter <= n_iter
-  ! ... iter_used = n_iter         if  mixrho_iter >  n_iter
+  ! iter_used = mixrho_iter-1  if  mixrho_iter <= n_iter
+  ! iter_used = n_iter         if  mixrho_iter >  n_iter
   !
   iter_used = MIN( ( mixrho_iter - 1 ), n_iter )
-
+  !
   write(*,*) 'my_mix_rho: n_iter = ', n_iter
   write(*,*) 'my_mix_rho: mixrho_iter = ', mixrho_iter
   write(*,*) 'my_mix_rho: iter_used = ', iter_used
-
-
   !
-  ! ... ipos is the position in which results from the present iteration
-  ! ... are stored. ipos=mixrho_iter-1 until ipos=n_iter, then back to 1,2,...
+  ! ipos is the position in which results from the present iteration
+  ! are stored. ipos=mixrho_iter-1 until ipos=n_iter, then back to 1,2,...
   !
   ipos = mixrho_iter - 1 - ( ( mixrho_iter - 2 ) / n_iter ) * n_iter
   !
@@ -230,61 +227,61 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
       ENDDO
     ENDDO
     !
-    !   allocate(e(iter_used), v(iter_used, iter_used))
-    !   CALL rdiagh(iter_used, betamix, iter_used, e, v)
-    !   write(*,'(1e11.3)') e(:)
-    !   write(*,*)
-    !   deallocate(e,v)
+    ! allocate(e(iter_used), v(iter_used, iter_used))
+    ! CALL rdiagh(iter_used, betamix, iter_used, e, v)
+    ! write(*,'(1e11.3)') e(:)
+    ! write(*,*)
+    ! deallocate(e,v)
     allocate(work(iter_used), iwork(iter_used))
     !write(*,*) betamix(:,:)
-    CALL DSYTRF( 'U', iter_used, betamix, iter_used, iwork, work, iter_used, info )
-    CALL errore( 'broyden', 'factorization', abs(info) )
+    CALL DSYTRF('U', iter_used, betamix, iter_used, iwork, work, iter_used, info )
+    CALL errore('broyden', 'factorization', abs(info) )
     !
-    CALL DSYTRI( 'U', iter_used, betamix, iter_used, iwork, work, info )
-    CALL errore( 'broyden', 'DSYTRI', abs(info) )    !
+    CALL DSYTRI('U', iter_used, betamix, iter_used, iwork, work, info )
+    CALL errore('broyden', 'DSYTRI', abs(info) )    !
     deallocate(iwork)
     !
     FORALL( i = 1:iter_used, &
             j = 1:iter_used, j > i ) betamix(j,i) = betamix(i,j)
     !
     DO i = 1, iter_used
-        work(i) = rho_ddot( df(i), rhout_m, ngm0 )
-    END DO
+      work(i) = rho_ddot( df(i), rhout_m, ngm0 )
+    ENDDO
     !
     DO i = 1, iter_used
-        !
-        gamma0 = DOT_PRODUCT( betamix(1:iter_used,i), work(1:iter_used) )
-        !
-        call mix_type_AXPY ( -gamma0, dv(i), rhoin_m )
-        call mix_type_AXPY ( -gamma0, df(i), rhout_m )
-    END DO
+      !
+      gamma0 = DOT_PRODUCT( betamix(1:iter_used,i), work(1:iter_used) )
+      !
+      call mix_type_AXPY( -gamma0, dv(i), rhoin_m )
+      call mix_type_AXPY( -gamma0, df(i), rhout_m )
+    ENDDO
     DEALLOCATE(betamix, work)
     !
-    ! ... auxiliary vectors dv and df not needed anymore
+    ! auxiliary vectors dv and df not needed anymore
     !
   ENDIF skip_on_first
   !
   IF ( ALLOCATED( df ) ) THEN
-     DO i=1, n_iter
-        call destroy_mix_type(df(i))
-     END DO
-     DEALLOCATE( df )
-  END IF
-  IF ( ALLOCATED( dv ) ) THEN
-     DO i=1, n_iter
-        call destroy_mix_type(dv(i))
-     END DO
-     DEALLOCATE( dv )
-  END IF
+    DO i=1, n_iter
+      call destroy_mix_type(df(i))
+    END DO
+    DEALLOCATE( df )
+  ENDIF
+  IF( ALLOCATED( dv ) ) THEN
+    DO i=1, n_iter
+      call destroy_mix_type(dv(i))
+    END DO
+    DEALLOCATE( dv )
+  ENDIF
 
 
   !
-  ! ... preconditioning the new search direction
+  ! preconditioning the new search direction
   !
   write(*,*) 'imix = ', imix
   IF ( imix == 1 ) THEN
     CALL my_approx_screening( rhout_m )
-  ELSE IF ( imix == 2 ) THEN
+  ELSEIF ( imix == 2 ) THEN
     CALL my_approx_screening2( rhout_m, rhoin_m )
   ENDIF
 

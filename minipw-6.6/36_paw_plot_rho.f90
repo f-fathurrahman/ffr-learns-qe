@@ -117,15 +117,15 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
       ENDDO
       DEALLOCATE(d1y, d2y)
       !
-      !rsp_point : DO ir = 1, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p
-      rsp_point: do ir = 1,1
+      rsp_point : DO ir = 1, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p
+      !rsp_point: do ir = 1,1
         !
         ! three dimensional indices (l,j,k)
         !
         CALL fft_index_to_3d(ir, dfftp, l, j, k, offrange)
         !
-        write(*,*) 'l, j, k = ', l, j, k
-        write(*,*) 'offrange = ', offrange
+        !write(*,*) 'l, j, k = ', l, j, k
+        !write(*,*) 'offrange = ', offrange
         !
         IF ( offrange ) CYCLE rsp_point
         !
@@ -146,12 +146,12 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
         posi(:) = posi(:) * alat
         distsq = posi(1)**2 + posi(2)**2 + posi(3)**2
         !
-        write(*,'(1x,A,3F18.10)') 'posi = ', posi
-        write(*,'(1x,A,F18.10)') 'distsq = ', distsq
+        !write(*,'(1x,A,3F18.10)') 'posi = ', posi
+        !write(*,'(1x,A,F18.10)') 'distsq = ', distsq
         !
         ! don't consider points too far from the atom:
         IF( distsq > g(i%t)%r2(upf(i%t)%kkbeta) ) then
-          write(*,*) 'distsq is too far'
+          !write(*,*) 'distsq is too far'
           CYCLE rsp_point
         endif
         !
@@ -183,7 +183,7 @@ SUBROUTINE PAW_make_ae_charge(rho, withcore)
           ENDDO
         ENDIF
         !
-        write(*,*) 'rho%of_r(ir,1) = ', rho%of_r(ir,1)
+        !write(*,*) 'rho%of_r(ir,1) = ', rho%of_r(ir,1)
         !
       ENDDO rsp_point
       !
