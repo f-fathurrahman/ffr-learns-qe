@@ -73,6 +73,13 @@ SUBROUTINE my_forces()
   REAL(DP) :: latvecs(3,3)
   INTEGER :: atnum(1:nat)
   REAL(DP) :: stress_dftd3(3,3)
+
+  write(*,*)
+  write(*,*) '----------------'
+  write(*,*) 'ENTER my_forces:'
+  write(*,*) '----------------'
+  write(*,*)
+
   !
   ALLOCATE( forcenl(3,nat), forcelc(3,nat), forcecc(3,nat), &
             forceh(3,nat), forceion(3,nat), forcescc(3,nat) )
@@ -81,17 +88,17 @@ SUBROUTINE my_forces()
   forceh(:,:)   = 0.D0
   force(:,:)    = 0.D0
   !
-  ! ... The nonlocal contribution is computed here
+  ! The nonlocal contribution is computed here
   !
   CALL my_force_us( forcenl )
   !
-  ! ... The local contribution
+  ! The local contribution
   !
   CALL my_force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl,       &
                  g, rho%of_r(:,1), dfftp%nl, gstart, gamma_only, vloc, &
                  forcelc )
   !
-  ! ... The NLCC contribution
+  ! The NLCC contribution
   !
   CALL force_cc( forcecc )
   !
@@ -119,7 +126,7 @@ SUBROUTINE my_forces()
     !
   ENDIF
   !
-  ! ... The Grimme-D3 dispersion correction
+  ! The Grimme-D3 dispersion correction
   !
   IF ( ldftd3 ) THEN
     !
@@ -141,7 +148,7 @@ SUBROUTINE my_forces()
      force_disp_xdm = force_xdm(nat)
   ENDIF
   !
-  ! ... The SCF contribution
+  ! The SCF contribution
   !
   CALL my_force_corr( forcescc )
   !
@@ -152,11 +159,11 @@ SUBROUTINE my_forces()
                         rho%of_g(:,1), force_mt )
   ENDIF
   !
-  ! ... call void routine for user define/ plugin patches on internal forces
+  ! call void routine for user define/ plugin patches on internal forces
   !
   CALL plugin_int_forces()
   !
-  ! ... Berry's phase electric field terms
+  ! Berry's phase electric field terms
   !
   IF (lelfield) THEN
     ALLOCATE( forces_bp_efield(3,nat) )
@@ -242,18 +249,18 @@ SUBROUTINE my_forces()
   !
   IF( textfor ) force(:,:) = force(:,:) + extfor(:,:)
   !
-  ! ... call void routine for user define/ plugin patches on external forces
+  ! call void routine for user define/ plugin patches on external forces
   !
   CALL plugin_ext_forces()
   !
-  ! ... write on output the forces
+  ! write on output the forces
   !
   WRITE( stdout, '(/,5x,"Forces acting on atoms (cartesian axes, Ry/au):", / )')
   DO na = 1, nat
      WRITE( stdout, 9035) na, ityp(na), force(:,na)
   ENDDO
   !
-  ! ... forces on fixed coordinates are set to zero ( C.S. 15/10/2003 )
+  ! forces on fixed coordinates are set to zero ( C.S. 15/10/2003 )
   !
   force(:,:)    = force(:,:)    * DBLE( if_pos )
   forcescc(:,:) = forcescc(:,:) * DBLE( if_pos )
@@ -396,8 +403,16 @@ SUBROUTINE my_forces()
   !
   IF(ALLOCATED(force_mt))   DEALLOCATE( force_mt )
 
+  write(*,*)
+  write(*,*) '----------------'
+  write(*,*) 'EXIT my_forces:'
+  write(*,*) '----------------'
+  write(*,*)
+
   RETURN
+
   !
 9035 FORMAT(5X,'atom ',I4,' type ',I2,'   force = ',3F14.8)
+
   !
 END SUBROUTINE my_forces
