@@ -32,6 +32,13 @@ SUBROUTINE my_force_corr(forcescc)
   REAL(DP), ALLOCATABLE :: rhocgnt(:), aux(:) ! work space
   REAL(DP) ::  gx, arg, fact ! temp factors
   INTEGER :: ir, isup, isdw, ig, nt, na, ndm ! counters
+  
+
+  write(*,*)
+  write(*,*) 'ENTER my_force_corr'
+  write(*,*)
+
+
   !
   ! vnew is V_out - V_in, psic is the temp space
   !
@@ -43,7 +50,7 @@ SUBROUTINE my_force_corr(forcescc)
     psic(:) = ( vnew%of_r(:, isup) + vnew%of_r(:, isdw) ) * 0.5d0
   ENDIF
 
-  write(*,*) 'avg psic (R space) = ', sum(abs(psic))/size(psic)
+  write(*,*) 'avg abs V_out - V_in (R space) in Ha = ', 0.5d0*sum(abs(psic))/size(psic)
 
   !
   ndm = MAXVAL( msh(1:ntyp) )
@@ -98,6 +105,10 @@ SUBROUTINE my_force_corr(forcescc)
   
   DEALLOCATE( aux )
   DEALLOCATE( rhocgnt )
+
+  write(*,*)
+  write(*,*) 'EXIT my_force_corr'
+  write(*,*)
 
   RETURN 
 

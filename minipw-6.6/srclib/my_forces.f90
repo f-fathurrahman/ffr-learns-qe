@@ -100,7 +100,7 @@ SUBROUTINE my_forces()
   !
   ! The NLCC contribution
   !
-  CALL force_cc( forcecc )
+  CALL my_force_cc( forcecc )
   !
   ! The Hubbard contribution
   ! (included by force_us if using beta as local projectors)
@@ -110,7 +110,8 @@ SUBROUTINE my_forces()
   ! The ionic contribution is computed here
   !
   IF( do_comp_esm ) THEN
-     CALL esm_force_ew( forceion )
+    ! special case for NLCC
+    CALL esm_force_ew( forceion )
   ELSE
      CALL force_ew( alat, nat, ntyp, ityp, zv, at, bg, tau, omega, g, &
                     gg, ngm, gstart, gamma_only, gcutm, strf, forceion )
@@ -267,15 +268,15 @@ SUBROUTINE my_forces()
   !
   IF ( iverbosity > 0 ) THEN
     IF ( do_comp_mt ) THEN
-       WRITE( stdout, '(5x,"The Martyna-Tuckerman correction term to forces")')
-       DO na = 1, nat
-          WRITE( stdout, 9035) na, ityp(na), ( force_mt(ipol,na), ipol = 1, 3 )
-       ENDDO
+      WRITE( stdout, '(5x,"The Martyna-Tuckerman correction term to forces")')
+      DO na = 1, nat
+        WRITE( stdout, 9035) na, ityp(na), ( force_mt(ipol,na), ipol = 1, 3 )
+      ENDDO
     END IF
     !
     WRITE( stdout, '(5x,"The non-local contrib.  to forces")')
     DO na = 1, nat
-       WRITE( stdout, 9035) na, ityp(na), ( forcenl(ipol,na), ipol = 1, 3 )
+      WRITE( stdout, 9035) na, ityp(na), ( forcenl(ipol,na), ipol = 1, 3 )
     ENDDO
     WRITE( stdout, '(5x,"The ionic contribution  to forces")')
     DO na = 1, nat
