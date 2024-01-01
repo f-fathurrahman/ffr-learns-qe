@@ -37,6 +37,9 @@ SUBROUTINE my_compute_deff( deff, et )
       ENDDO
     ENDDO
     !
+    !write(*,*) 'sum qq_at = ', sum(qq_at)
+    !write(*,*) 'sum Deeq = ', sum(Deeq)
+    !write(*,*) 'sum Deff (in Ha) = ', 0.5d0*sum(Deff)
   ENDIF
   !
   !

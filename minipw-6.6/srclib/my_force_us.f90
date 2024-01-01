@@ -113,7 +113,8 @@ SUBROUTINE my_force_us( forcenl )
   ! Since our summation over k points was only on the irreducible 
   ! BZ we have to symmetrize the forces.
   !
-  CALL symvector( nat, forcenl )
+  !CALL symvector( nat, forcenl )
+  ! disabled for debugging purposes
   !
   RETURN
   !

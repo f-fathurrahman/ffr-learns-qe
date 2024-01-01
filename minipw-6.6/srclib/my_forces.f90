@@ -241,7 +241,8 @@ SUBROUTINE my_forces()
 
 
   ! Resymmetrize (should not be needed, but ...)
-  CALL symvector( nat, force )
+  !CALL symvector( nat, force )
+  ! disabled for debugging purposes
 
   IF (remove_rigid_rot ) then
     write(*,*) 'my_forces: remove rigid rotation'
@@ -274,26 +275,32 @@ SUBROUTINE my_forces()
       ENDDO
     END IF
     !
+    write(*,*)
     WRITE( stdout, '(5x,"The non-local contrib.  to forces")')
     DO na = 1, nat
       WRITE( stdout, 9035) na, ityp(na), ( forcenl(ipol,na), ipol = 1, 3 )
     ENDDO
+    write(*,*)
     WRITE( stdout, '(5x,"The ionic contribution  to forces")')
     DO na = 1, nat
        WRITE( stdout, 9035) na, ityp(na), ( forceion(ipol,na), ipol = 1, 3 )
     ENDDO
+    write(*,*)
     WRITE( stdout, '(5x,"The local contribution  to forces")')
     DO na = 1, nat
        WRITE( stdout, 9035) na, ityp(na), ( forcelc(ipol,na), ipol = 1, 3 )
     ENDDO
+    write(*,*)
     WRITE( stdout, '(5x,"The core correction contribution to forces")')
     DO na = 1, nat
        WRITE( stdout, 9035) na, ityp(na), ( forcecc(ipol,na), ipol = 1, 3 )
     ENDDO
+    write(*,*)
     WRITE( stdout, '(5x,"The Hubbard contrib.    to forces")')
     DO na = 1, nat
        WRITE( stdout, 9035) na, ityp(na), ( forceh(ipol,na), ipol = 1, 3 )
     ENDDO
+    write(*,*)
     WRITE( stdout, '(5x,"The SCF correction term to forces")')
     DO na = 1, nat
        WRITE( stdout, 9035) na, ityp(na), ( forcescc(ipol,na), ipol = 1, 3 )

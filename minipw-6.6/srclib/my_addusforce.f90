@@ -42,7 +42,7 @@ SUBROUTINE my_addusforce_g( forcenl )
   USE noncollin_module,   ONLY : nspin_mag
   USE scf,                ONLY : v, vltot
   USE uspp,               ONLY : becsum, okvan
-  USE uspp_param,         ONLY : upf, lmaxq, nh, nhm
+  USE uspp_param,         ONLY : upf, lmaxq, nh
   USE mp_bands,           ONLY : intra_bgrp_comm
   USE mp_pools,           ONLY : inter_pool_comm
   USE mp,                 ONLY : mp_sum
@@ -65,6 +65,11 @@ SUBROUTINE my_addusforce_g( forcenl )
   REAL(DP),    ALLOCATABLE :: ddeeq(:,:,:,:), qmod(:), ylmk0(:,:), forceq(:,:)
   !
   IF(.NOT. okvan) RETURN
+
+  write(*,*)
+  write(*,*) 'ENTER my_addusforce_g'
+  write(*,*)
+
   !
   ALLOCATE( forceq(3,nat) ) ! main quantity of interest
   forceq(:,:) = 0.0_dp
@@ -84,9 +89,12 @@ SUBROUTINE my_addusforce_g( forcenl )
     ELSE
       aux(:) = vltot(:) + v%of_r(:,is)
     ENDIF
+    write(*,*) 'sum aux before fwfft in (Ha) = ', sum(aux)*0.5d0
     CALL fwfft( 'Rho', aux, dfftp )
+    write(*,*) 'sum aux after fwfft in (Ha) = ', sum(aux)*0.5d0
     ! Note the factors -i and 2pi/a *units of G) here in V(G) !
     vg(:,is) = aux(dfftp%nl(:)) * tpiba * (0.d0, -1.d0)
+    write(*,*) 'sum vg (in Ha) * 2*pi = ', sum(vg)*0.5d0
   ENDDO
   DEALLOCATE( aux )
   ! Finish calculation -im*V_eff(G)
@@ -103,6 +111,10 @@ SUBROUTINE my_addusforce_g( forcenl )
   ENDDO
   !
   DO nt = 1, ntyp
+
+    write(*,*)
+    write(*,*) 'Begin species loop = ', nt
+
     IF ( upf(nt)%tvanp ) THEN
       !
       ! nij = max number of (ih,jh) pairs per atom type nt
@@ -115,8 +127,10 @@ SUBROUTINE my_addusforce_g( forcenl )
         DO jh = ih, nh(nt)
           ijh = ijh + 1
           CALL qvan2( ngm, ih, jh, nt, qmod, qgm(:,ijh), ylmk0 )
+          !write(*,*) 'ijh = ', ijh, ' sum(qgm) = ', sum(qgm(:,ijh))
         ENDDO
       ENDDO
+      !
       !
       ! nab = number of atoms of type nt
       !
@@ -145,13 +159,18 @@ SUBROUTINE my_addusforce_g( forcenl )
             !
           ENDIF
         ENDDO
+        write(*,*) 'sum aux1 in (Ha) = ', sum(aux1)*0.5d0
         !
         ! ddeeq = dot product of aux1 with the Q functions
         ! No need for special treatment of the G=0 term (is zero)
         !
+        write(*,*) 'sum qgm before dgemm: ', sum(qgm)
         DO ipol = 1, 3
+          write(*,*)
+          write(*,*) 'ipol = ', ipol, ' sum(aux1) ', sum(aux1(:,:,ipol))
           CALL DGEMM( 'C', 'N', nij, nab, 2*ngm, fact, qgm, 2*ngm, &
                aux1(1,1,ipol), 2*ngm, 0.0_dp, ddeeq(1,1,ipol,is), nij )
+          write(*,*) 'sum Ddeeq after DGEMM = ', sum(ddeeq(:,:,ipol,is))
         ENDDO
         !
       ENDDO
@@ -176,7 +195,7 @@ SUBROUTINE my_addusforce_g( forcenl )
     ENDIF
   ENDDO
   !
-  10 CONTINUE
+  !10 CONTINUE ! NOT USED???
   !
   ! Not required for serial calculation
   CALL mp_sum( forceq, inter_pool_comm )
@@ -188,6 +207,11 @@ SUBROUTINE my_addusforce_g( forcenl )
   DEALLOCATE(ylmk0)
   DEALLOCATE(vg)
   DEALLOCATE(forceq)
+  
+  write(*,*)
+  write(*,*) 'EXIT my_addusforce_g'
+  write(*,*)
+
   !
   RETURN
   !
