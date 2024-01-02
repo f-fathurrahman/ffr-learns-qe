@@ -115,6 +115,10 @@ SUBROUTINE my_force_us( forcenl )
   !
   !CALL symvector( nat, forcenl )
   ! disabled for debugging purposes
+  write(*,*) '***************************************************'
+  write(*,*) '*** DEBUG: symvector in my_force_us is disabled ***'
+  write(*,*) '***************************************************'
+
   !
   RETURN
   !
