@@ -50,16 +50,14 @@ SUBROUTINE my_force_corr(forcescc)
     psic(:) = ( vnew%of_r(:, isup) + vnew%of_r(:, isdw) ) * 0.5d0
   ENDIF
 
-  write(*,*) 'avg abs V_out - V_in (R space) in Ha = ', 0.5d0*sum(abs(psic))/size(psic)
-
-  !
-  ndm = MAXVAL( msh(1:ntyp) )
-  ALLOCATE( rhocgnt(ngl) )
+  write(*,*) 'sum vnew%of_r in Ha = ', 0.5d0*sum(vnew%of_r(:,1))
+  write(*,*) 'sum psic before fwfft in Ha = ', 0.5d0*sum(psic)
 
   CALL fwfft('Rho', psic, dfftp)
 
-  write(*,*) 'avg psic (G space) = ', sum(abs(psic))/size(psic)
-  write(*,*) 'size psic = ', size(psic)
+  write(*,*) 'sum psic after fwfft (in Ha) = ', sum(psic)*0.5d0
+
+  write(*,*) 'ngm = ', ngm
 
   IF( gamma_only ) THEN 
     fact = 2.d0
@@ -67,7 +65,8 @@ SUBROUTINE my_force_corr(forcescc)
     fact = 1.d0
   ENDIF
 
-
+  ndm = MAXVAL( msh(1:ntyp) )
+  ALLOCATE( rhocgnt(ngl) )
   ALLOCATE( aux(ndm) )
   !
   DO nt = 1, ntyp
@@ -85,6 +84,9 @@ SUBROUTINE my_force_corr(forcescc)
       ENDDO 
       CALL simpson( msh(nt), aux, rgrid(nt)%rab, rhocgnt(ig) )
     ENDDO 
+    !
+    write(*,*) 'sum rhocgnt = ', sum(rhocgnt)
+    !
     ! sum over atoms
     DO na = 1, nat
       IF( nt == ityp(na) ) THEN 

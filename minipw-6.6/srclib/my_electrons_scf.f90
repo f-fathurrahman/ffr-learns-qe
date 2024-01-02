@@ -364,11 +364,23 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         ! 1) the output HXC-potential is saved in v
         ! 2) vnew contains V(out)-V(in) ( used to correct the forces ).
         !
-        vnew%of_r(:,:) = v%of_r(:,:)
+        write(*,*)
+        write(*,*) '-------------------------------------------------------'
+        write(*,*) 'VNEW: Convergence achived: calculating vnew to correct forces'
 
+        vnew%of_r(:,:) = v%of_r(:,:)
+        write(*,*) 'VNEW: Before my_v_of_rho: sum vnew (in Ha) = ', sum(vnew%of_r)*0.5d0
+        !
         CALL my_v_of_rho( rho,rho_core,rhog_core, &
                        ehart, etxc, vtxc, eth, etotefield, charge, v )
+        !
+        write(*,*) 'VNEW: After my_v_of_rho: sum v (in Ha) = ', sum(v%of_r)*0.5d0
+        !
         vnew%of_r(:,:) = v%of_r(:,:) - vnew%of_r(:,:)
+        !
+        write(*,*) 'VNEW: After subtraction: sum vnew%of_r (in Ha) = ', sum(vnew%of_r)*0.5d0
+        write(*,*) '-------------------------------------------------------'
+        write(*,*)
         !
         IF(okpaw) THEN
           CALL PAW_potential( rho%bec, ddd_paw, epaw, etot_cmp_paw )
