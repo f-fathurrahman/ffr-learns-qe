@@ -38,7 +38,12 @@ SUBROUTINE my_force_cc( forcecc )
   ! exchange-correlation potential
   ! radial fourier transform of rho core
   REAL(DP) ::  arg, fact
-  !
+
+  write(*,*)
+  write(*,*) '*** ENTER my_force_cc'
+  write(*,*)
+
+
   !
   forcecc(:,:) = 0.d0
   !
@@ -53,16 +58,17 @@ SUBROUTINE my_force_cc( forcecc )
     fact = 1.d0
   ENDIF
   !
-  ! recalculate the exchange-correlation potential
+  ! recalculate the exchange-correlation potential (also include rhoe)
   !
   ALLOCATE( vxc(dfftp%nnr,nspin) )
   ! ffr: only for rho_core
+  println("sum rhoe_core = ", sum(rhoe_core))
   CALL v_xc( rho, rho_core, rhog_core, etxc, vtxc, vxc )
   !
   psic = (0.0_DP,0.0_DP)
   IF (nspin == 1 .OR. nspin == 4) THEN
     DO ir = 1, dfftp%nnr
-      psic(ir) = vxc (ir,1)
+      psic(ir) = vxc(ir,1)
     ENDDO
   ELSE
      DO ir = 1, dfftp%nnr
@@ -72,7 +78,9 @@ SUBROUTINE my_force_cc( forcecc )
   !
   DEALLOCATE( vxc )
   !
+  write(*,*) 'sum psic before fwfft (in Ha) = ', 0.5d0*sum(psic)
   CALL fwfft( 'Rho', psic, dfftp )
+  write(*,*) 'sum psic after fwfft (in Ha) = ', 0.5d0*sum(psic)
   !
   ! psic contains now Vxc(G)
   !
@@ -86,6 +94,7 @@ SUBROUTINE my_force_cc( forcecc )
       !
       CALL drhoc( ngl, gl, omega, tpiba2, msh(nt), rgrid(nt)%r, &
                   rgrid(nt)%rab, upf(nt)%rho_atc, rhocg )
+      write(*,*) 'sum rhocg = ', sum(rhocg)
       DO na = 1, nat
         IF (nt == ityp (na) ) THEN
           DO ig = gstart, ngm
@@ -103,7 +112,11 @@ SUBROUTINE my_force_cc( forcecc )
   CALL mp_sum( forcecc, intra_bgrp_comm )
   !
   DEALLOCATE( rhocg )
-  !
+
+  write(*,*)
+  write(*,*) '*** EXIT my_force_cc'
+  write(*,*)
+
   RETURN
   !
 END SUBROUTINE my_force_cc
