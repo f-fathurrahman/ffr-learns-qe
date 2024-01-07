@@ -62,7 +62,8 @@ SUBROUTINE my_force_cc( forcecc )
   !
   ALLOCATE( vxc(dfftp%nnr,nspin) )
   ! ffr: only for rho_core
-  println("sum rhoe_core = ", sum(rhoe_core))
+  write(*,*) "sum rhoe_core = ", sum(rho_core)
+  !
   CALL v_xc( rho, rho_core, rhog_core, etxc, vtxc, vxc )
   !
   psic = (0.0_DP,0.0_DP)
