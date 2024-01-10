@@ -86,7 +86,7 @@ SUBROUTINE my_stress( sigma )
   IF ( do_comp_esm .AND. ( esm_bc /= 'pbc' ) )  THEN ! for ESM stress
      CALL esm_stres_har( sigmahar, rho%of_g(:,1) )
   ELSE
-     CALL stres_har( sigmahar )
+     CALL my_stress_har( sigmahar )
   END IF
   !
   ! xc contribution (diagonal)
