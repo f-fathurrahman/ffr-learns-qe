@@ -74,7 +74,8 @@ SUBROUTINE my_stress( sigma )
   !
   ! contribution from local potential
   !
-  CALL stres_loc( sigmaloc )
+  CALL my_stress_loc( sigmaloc )
+  !
   IF( do_comp_esm .AND. ( esm_bc /= 'pbc' ) ) THEN
     ! In ESM, sigmaloc has only short-range term: add long-range term
     CALL esm_stres_loclong( sigmaloclong, rho%of_g(:,1) )

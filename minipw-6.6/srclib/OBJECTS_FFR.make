@@ -11,8 +11,9 @@ my_potinit.o my_atomic_rho.o my_init_run.o \
 my_v_of_rho.o my_v_h.o my_v_xc.o my_v_xc_meta.o my_set_vrs.o \
 jl_comm_module.o my_hinit0.o my_setlocal.o \
 my_mix_rho.o my_forces.o my_force_us.o my_addusforce.o my_compute_deff.o \
+my_vloc_of_g.o my_dvloc_of_g.o \
 my_force_lc.o my_force_corr.o my_force_cc.o \
-my_stress.o my_stress_ewa.o my_stress_har.o \
+my_stress.o my_stress_ewa.o my_stress_har.o my_stress_loc.o \
 my_gradcorr.o \
 info_upf.o write_array.o
 

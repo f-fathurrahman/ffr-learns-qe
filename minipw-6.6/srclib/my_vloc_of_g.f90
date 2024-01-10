@@ -11,7 +11,8 @@ SUBROUTINE my_vloc_of_g( mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, &
   !! Atomic Ry units everywhere.
   !
   USE kinds
-  USE constants,    ONLY : pi, fpi, e2, eps8
+  USE constants, ONLY : pi, fpi, e2, eps8
+  USE Coul_cut_2D, ONLY: do_cutoff_2D
   !
   IMPLICIT NONE
   !
@@ -57,7 +58,7 @@ SUBROUTINE my_vloc_of_g( mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, &
     ! do_comp_esp and do_cutoff_2D are removed
     !
     do ir = 1, msh
-      aux(ir) = r(ir) * ( r(ir) * vloc_at(ir) + zp * e2)
+      aux(ir) = r(ir) * ( r(ir) * vloc_at(ir) + zp * e2 )
     enddo
     call simpson( msh, aux, rab, vlcp )
     vloc(1) = vlcp        
@@ -72,26 +73,24 @@ SUBROUTINE my_vloc_of_g( mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, &
   do ir = 1, msh
     aux1(ir) = r(ir) * vloc_at(ir) + zp * e2 * qe_erf(r(ir))
   enddo
-
   fac = zp * e2 / tpiba2
   !
   ! and here we perform the integral, after multiplying for the |G|
   ! dependent part
   !
   do igl = igl0, ngl
-    gx = sqrt (gl (igl) * tpiba2)
+    gx = sqrt(gl(igl) * tpiba2)
     do ir = 1, msh
       aux(ir) = aux1(ir) * sin(gx*r(ir))/gx
     enddo
-    call simpson (msh, aux, rab, vlcp)
-     !
-      ! here we re-add the analytic fourier transform of the erf function
-      !
-      IF (.not. do_cutoff_2D) THEN
-         vlcp = vlcp - fac*exp(-gl(igl)*tpiba2*0.25d0) / gl (igl)
-      ENDIF
-
-     vloc(igl) = vlcp
+    call simpson( msh, aux, rab, vlcp )
+    !
+    ! here we re-add the analytic fourier transform of the erf function
+    !
+    IF( .not. do_cutoff_2D ) THEN
+      vlcp = vlcp - fac*exp(-gl(igl)*tpiba2*0.25d0) / gl (igl)
+    ENDIF
+    vloc(igl) = vlcp
   enddo
   vloc(:) = vloc(:)*fpi/omega
   deallocate (aux, aux1)

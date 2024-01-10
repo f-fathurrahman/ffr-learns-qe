@@ -184,7 +184,7 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
   write(*,*) 'Ewald stress, not symmetrized (Ry/bohr**3):'
   write(*,*)
   do l = 1,3
-    write(*,*) sigmaewa(l,1), sigmaewa(l,2), sigmaewa(l,3)
+    write(*,'(1x,3F18.10)') sigmaewa(l,1), sigmaewa(l,2), sigmaewa(l,3)
   enddo
 
   !
