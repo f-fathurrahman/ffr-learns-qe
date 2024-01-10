@@ -81,8 +81,12 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
   IF (alpha==0.0) CALL errore( 'stres_ew', 'optimal alpha not found', 1 )
   upperbound = e2 * charge**2 * SQRT(2 * alpha / tpi) * &
                qe_erfc ( SQRT(tpiba2 * gcutm / 4.0d0 / alpha) )
+  write(*,*) 'alpha = ', alpha, 'upperbound = ', upperbound
   !
   IF (upperbound > 1d-7) GOTO 12
+
+  write(*,*) 'Using alpha = ', alpha
+
   !
   ! G-space sum here
   !
@@ -93,6 +97,8 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
   ELSE
     sdewald = 0.d0
   ENDIF
+  write(*,*) 'e2 = ', e2
+  write(*,*) 'sdewald before subtracted  (in Ha/bohr**2) = ', 0.5d0*sdewald
   !
   ! sdewald is the diagonal term
   IF( gamma_only ) THEN
@@ -125,6 +131,8 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
       !
     ENDDO
   ENDIF
+  write(*,*) 'sdewald after subtracted (in Ha/bohr**2) = ', 0.5d0*sdewald
+
   !
   DO l = 1, 3
     sigmaewa(l,l) = sigmaewa(l,l) + sdewald
@@ -133,6 +141,7 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
   ! R-space sum here (see ewald.f90 for details on parallelization)
   !
   rmax = 4.0d0 / SQRT(alpha) / alat
+  write(*,*) 'rmax*alat = ', rmax*alat
   !
   ! with this choice terms up to ZiZj*erfc(5) are counted (erfc(5)=2x10^-1
   !
@@ -170,6 +179,14 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
       sigmaewa(l,m) = -sigmaewa(l,m)
     ENDDO
   ENDDO
+
+  write(*,*)
+  write(*,*) 'Ewald stress, not symmetrized (Ry/bohr**3):'
+  write(*,*)
+  do l = 1,3
+    write(*,*) sigmaewa(l,1), sigmaewa(l,2), sigmaewa(l,3)
+  enddo
+
   !
   write(*,*)
   write(*,*) '*** EXIT my_stres_ewa'
