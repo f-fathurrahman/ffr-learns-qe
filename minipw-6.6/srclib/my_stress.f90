@@ -68,8 +68,8 @@ SUBROUTINE my_stress( sigma )
   WRITE( stdout, '(//5x,"Computing stress (Cartesian axis) and pressure"/)' )
   !
   IF ( lelfield .AND. okvan ) THEN
-     CALL infomsg( 'stres', 'stress with USPP and electric fields (Berry) not implemented' )
-     RETURN
+    CALL infomsg( 'stres', 'stress with USPP and electric fields (Berry) not implemented' )
+    RETURN
   END IF
   !
   ! contribution from local potential
@@ -84,17 +84,17 @@ SUBROUTINE my_stress( sigma )
   !
   ! Hartree contribution
   !
-  IF ( do_comp_esm .AND. ( esm_bc /= 'pbc' ) )  THEN ! for ESM stress
-     CALL esm_stres_har( sigmahar, rho%of_g(:,1) )
+  IF( do_comp_esm .AND. ( esm_bc /= 'pbc' ) )  THEN ! for ESM stress
+    CALL esm_stres_har( sigmahar, rho%of_g(:,1) )
   ELSE
-     CALL my_stress_har( sigmahar )
+    CALL my_stress_har( sigmahar )
   END IF
   !
   ! xc contribution (diagonal)
   !
   sigmaxc(:,:) = 0.d0
   DO l = 1, 3
-     sigmaxc(l,l) = -(etxc - vtxc)/omega
+    sigmaxc(l,l) = -(etxc - vtxc)/omega
   ENDDO
   !
   ! xc contribution: add gradient corrections (non diagonal)

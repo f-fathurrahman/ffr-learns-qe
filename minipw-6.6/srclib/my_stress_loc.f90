@@ -35,16 +35,17 @@ subroutine my_stress_loc( sigmaloc )
   write(*,*)
 
 
-  allocate(dvloc(ngl))
+  allocate( dvloc(ngl) )
   sigmaloc(:,:) = 0.d0
   psic(:) = CMPLX(rho%of_r(:,1), KIND=dp)
   CALL fwfft('Rho', psic, dfftp)
   ! psic contains now the charge density in G space
-  if (gamma_only) then
-     fact = 2.d0
+  if( gamma_only ) then
+    fact = 2.d0
   else
-     fact = 1.d0
-  end if
+    fact = 1.d0
+  endif
+  !
   evloc = 0.0d0
   do nt = 1, ntyp
     if(gstart==2) evloc = evloc + psic(dfftp%nl(1)) * strf(1,nt) * vloc(igtongl(1), nt)
@@ -55,9 +56,10 @@ subroutine my_stress_loc( sigmaloc )
   enddo
   ! 2D:  add contribution from cutoff long-range part of Vloc
   IF (do_cutoff_2D)  call cutoff_stres_evloc( psic, strf, evloc )
-  !
-  !      WRITE( 6,*) ' evloc ', evloc, evloc*omega   ! DEBUG
-  !
+
+  write(*,*) 'evloc (in Ha) = ', evloc*0.5d0
+
+
   do nt = 1, ntyp
     IF ( upf(nt)%is_gth ) THEN
       !
