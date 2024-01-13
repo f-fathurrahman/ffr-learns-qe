@@ -92,10 +92,26 @@ SUBROUTINE my_stress( sigma )
   !
   ! xc contribution (diagonal)
   !
+  write(*,*)
+  write(*,*) 'ENTER sigmaxc diagonal'
+  write(*,*)
   sigmaxc(:,:) = 0.d0
   DO l = 1, 3
     sigmaxc(l,l) = -(etxc - vtxc)/omega
   ENDDO
+  !
+  write(*,*) 'etxc (in Ha) = ', etxc*0.5d0
+  write(*,*) 'vtxc (in Ha) = ', vtxc*0.5d0
+  write(*,*)
+  write(*,*) 'HXC stress (diagonal), not symmetrized (Ry/bohr**3):'
+  write(*,*)
+  do l = 1,3
+    write(*,'(1x,3F18.10)') sigmaxc(l,1), sigmaxc(l,2), sigmaxc(l,3)
+  enddo
+  write(*,*)
+  write(*,*) 'EXIT sigmaxc diagonal'
+  write(*,*)
+  !
   !
   ! xc contribution: add gradient corrections (non diagonal)
   !
@@ -108,7 +124,7 @@ SUBROUTINE my_stress( sigma )
   !
   ! core correction contribution
   !
-  CALL stres_cc( sigmaxcc )
+  CALL my_stress_cc( sigmaxcc )
   !
   ! ewald contribution
   !
@@ -136,7 +152,7 @@ SUBROUTINE my_stress( sigma )
     DEALLOCATE( force_d3 )
   ENDIF
   !
-  ! kinetic + nonlocal contribuition
+  ! kinetic + nonlocal contribution
   !
   CALL stres_knl( sigmanlc, sigmakin )
   !
