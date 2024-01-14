@@ -23,7 +23,7 @@ SUBROUTINE my_addusstress( sigmanlc )
     stop 'tqr in my_addusstress is not supported'
   ELSE
     sigma_g(:,:) = 0.d0
-    CALL addusstress_g( sigma_g )
+    CALL my_addusstress_g( sigma_g )
     sigmanlc = sigmanlc + sigma_g
   ENDIF
   !
