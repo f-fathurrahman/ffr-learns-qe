@@ -154,7 +154,7 @@ SUBROUTINE my_stress( sigma )
   !
   ! kinetic + nonlocal contribution
   !
-  CALL stres_knl( sigmanlc, sigmakin )
+  CALL my_stress_knl( sigmanlc, sigmakin )
   !
   DO l = 1, 3
     DO m = 1, 3

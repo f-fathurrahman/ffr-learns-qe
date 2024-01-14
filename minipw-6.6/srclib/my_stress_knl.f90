@@ -32,6 +32,11 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
   REAL(DP), ALLOCATABLE :: gk (:,:), kfac (:)
   REAL(DP) :: twobysqrtpi, gk2, arg
   INTEGER  :: npw, ik, l, m, i, ibnd, is
+  
+  write(*,*)
+  write(*,*) '*** ENTER my_stress_knl'
+  write(*,*)
+
   !
   ALLOCATE( gk(npwx,3) )
   ALLOCATE( kfac(npwx) )
@@ -43,46 +48,52 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
   kfac(:) = 1.d0
   !
   DO ik = 1, nks
-     IF ( nks > 1 ) CALL get_buffer( evc, nwordwfc, iunwfc, ik )
-     npw = ngk(ik)
-     DO i = 1, npw
-        gk(i,1) = ( xk(1,ik) + g(1,igk_k(i,ik)) ) * tpiba
-        gk(i,2) = ( xk(2,ik) + g(2,igk_k(i,ik)) ) * tpiba
-        gk(i,3) = ( xk(3,ik) + g(3,igk_k(i,ik)) ) * tpiba
-        IF (qcutz > 0.d0) THEN
-           gk2 = gk(i,1)**2 + gk(i,2)**2 + gk(i,3)**2
-           arg = ( (gk2-ecfixed)/q2sigma )**2
-           kfac(i) = 1.d0 + qcutz / q2sigma * twobysqrtpi * EXP(-arg)
-        ENDIF
-     ENDDO
-     !
-     ! kinetic contribution
-     !
-     DO l = 1, 3
-        DO m = 1, l
-           DO ibnd = 1, nbnd
-              DO i = 1, npw
-                 IF (noncolin) THEN
-                    sigmakin(l,m) = sigmakin(l,m) + wg(ibnd,ik) * &
-                     gk(i,l) * gk(i, m) * kfac(i) * &
-                     ( DBLE (CONJG(evc(   i  ,ibnd))*evc(   i  ,ibnd)) + &
-                       DBLE (CONJG(evc(i+npwx,ibnd))*evc(i+npwx,ibnd)))
-                 ELSE
-                    sigmakin(l,m) = sigmakin(l,m) + wg(ibnd,ik) * &
-                        gk(i,l) * gk(i, m) * kfac(i) * &
-                          DBLE (CONJG(evc(i, ibnd) ) * evc(i, ibnd) )
-                 ENDIF
-              ENDDO
-           ENDDO
+    write(*,*)
+    !write(*,*) 'ik = ', ik
+    IF ( nks > 1 ) CALL get_buffer( evc, nwordwfc, iunwfc, ik )
+    npw = ngk(ik)
+    DO i = 1, npw
+      gk(i,1) = ( xk(1,ik) + g(1,igk_k(i,ik)) ) * tpiba
+      gk(i,2) = ( xk(2,ik) + g(2,igk_k(i,ik)) ) * tpiba
+      gk(i,3) = ( xk(3,ik) + g(3,igk_k(i,ik)) ) * tpiba
+      IF( qcutz > 0.d0 ) THEN
+        gk2 = gk(i,1)**2 + gk(i,2)**2 + gk(i,3)**2
+        arg = ( (gk2-ecfixed)/q2sigma )**2
+        kfac(i) = 1.d0 + qcutz / q2sigma * twobysqrtpi * EXP(-arg)
+      ENDIF
+    ENDDO
+    !write(*,'(1x,A,I5,F18.10)') 'ik, sum(gk) = ', ik, sum(gk(1:npw,1:3))
+    !write
+    !
+    ! kinetic contribution
+    !
+    DO l = 1, 3
+      DO m = 1, l
+        DO ibnd = 1, nbnd
+          DO i = 1, npw
+            IF (noncolin) THEN
+              sigmakin(l,m) = sigmakin(l,m) + wg(ibnd,ik) * &
+               gk(i,l) * gk(i, m) * kfac(i) * &
+               ( DBLE (CONJG(evc(   i  ,ibnd))*evc(   i  ,ibnd)) + &
+                 DBLE (CONJG(evc(i+npwx,ibnd))*evc(i+npwx,ibnd)))
+            ELSE
+              sigmakin(l,m) = sigmakin(l,m) + wg(ibnd,ik) * &
+                   gk(i,l) * gk(i, m) * kfac(i) * &
+                  DBLE( CONJG( evc(i,ibnd) ) * evc(i, ibnd) )
+            ENDIF
+          ENDDO
         ENDDO
-        !
-     ENDDO
-     !
-     !  contribution from the  nonlocal part
-     !
-     CALL my_stress_us( ik, gk, sigmanlc )
-     !
+      ENDDO
+      !
+    ENDDO
+    write(*,*) 'wg ik = ', wg(:,ik)
+    !
+    ! contribution from the  nonlocal part
+    !
+    CALL my_stress_us( ik, gk, sigmanlc )
+    !
   ENDDO
+  !write(*,*) 'kfac = ', kfac
   !
   DEALLOCATE( kfac )
   DEALLOCATE(  gk  )
@@ -99,21 +110,30 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
   !
   ! add US term from augmentation charge derivatives, sum result over PW's
   !
-  CALL addusstress( sigmanlc )
+  CALL my_addusstress( sigmanlc )
   CALL mp_sum( sigmanlc, intra_bgrp_comm )
   !
   DO l = 1, 3
-     DO m = 1, l-1
-        sigmanlc(m,l) = sigmanlc(l,m)
-        sigmakin(m,l) = sigmakin(l,m)
-     ENDDO
+    DO m = 1, l-1
+      sigmanlc(m,l) = sigmanlc(l,m)
+      sigmakin(m,l) = sigmakin(l,m)
+    ENDDO
   ENDDO
   !
   IF ( gamma_only ) THEN
-     sigmakin(:,:) = 2.d0 * e2 / omega * sigmakin(:,:)
+    sigmakin(:,:) = 2.d0 * e2 / omega * sigmakin(:,:)
   ELSE
-     sigmakin(:,:) = e2 / omega * sigmakin(:,:)
+    sigmakin(:,:) = e2 / omega * sigmakin(:,:)
   ENDIF
+  !
+  write(*,*)
+  write(*,*) 'Kinetic energy stress, not symmetrized (Ry/bohr**3):'
+  write(*,*)
+  do l = 1,3
+    write(*,'(1x,3F18.10)') sigmakin(l,1), sigmakin(l,2), sigmakin(l,3)
+  enddo
+  write(*,*)
+  !
   sigmanlc(:,:) = -1.d0 / omega * sigmanlc(:,:)
   !
   ! symmetrize stress

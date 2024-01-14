@@ -14,7 +14,7 @@ my_mix_rho.o my_forces.o my_force_us.o my_addusforce.o my_compute_deff.o \
 my_vloc_of_g.o my_dvloc_of_g.o \
 my_force_lc.o my_force_corr.o my_force_cc.o \
 my_stress.o my_stress_ewa.o my_stress_har.o my_stress_loc.o my_stress_cc.o \
-my_stress_knl.o \
+my_stress_knl.o my_stress_us.o my_addusstress.o \
 my_gradcorr.o \
 info_upf.o write_array.o
 
