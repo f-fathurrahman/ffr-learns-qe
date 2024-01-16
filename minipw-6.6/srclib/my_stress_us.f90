@@ -117,7 +117,7 @@ SUBROUTINE my_stress_us_k()
         IF( ityp(na) == np ) THEN
           DO ih = 1, nh(np)
             ikb = ijkb0 + ih
-            evps = evps + fac*deff(ih,ih,na)*ABS(becp%k(ikb,ibnd) )**2
+            evps = evps + fac * deff(ih,ih,na) * ABS(becp%k(ikb,ibnd))**2
             !
             IF ( upf(np)%tvanp .OR. upf(np)%is_multiproj ) THEN
               !
@@ -148,7 +148,7 @@ SUBROUTINE my_stress_us_k()
   !
   ALLOCATE( dvkb( npwx, nkb ) )
   !
-  CALL gen_us_dj( ik, dvkb )
+  CALL my_gen_us_dj( ik, dvkb )
   !
   DO ibnd = 1, nbnd
     work2 = (0.D0,0.D0)
@@ -203,7 +203,7 @@ SUBROUTINE my_stress_us_k()
   !
   DO ipol = 1, 3
     !
-    CALL gen_us_dy( ik, xyz(1,ipol), dvkb )
+    CALL my_gen_us_dy( ik, xyz(1,ipol), dvkb )
     !
     DO ibnd = 1, nbnd
       work2 = (0.D0,0.D0)

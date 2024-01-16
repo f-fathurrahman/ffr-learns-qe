@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------
-SUBROUTINE dqvan2( ih, jh, np, ipol, ngy, g, tpiba, qmod, ylmk0, dylmk0,&
+SUBROUTINE my_dqvan2( ih, jh, np, ipol, ngy, g, tpiba, qmod, ylmk0, dylmk0,&
                  dqg )
 !-----------------------------------------------------------------------
   !! This routine computes the derivatives of the Fourier transform of
