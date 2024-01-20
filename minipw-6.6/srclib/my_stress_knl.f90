@@ -136,6 +136,15 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
   !
   sigmanlc(:,:) = -1.d0 / omega * sigmanlc(:,:)
   !
+  write(*,*)
+  write(*,*) 'PsPonNL (NCPP, USPP, or/and PAW) energy stress, not symmetrized (Ry/bohr**3):'
+  write(*,*)
+  do l = 1,3
+    write(*,'(1x,3F18.10)') sigmanlc(l,1), sigmanlc(l,2), sigmanlc(l,3)
+  enddo
+  write(*,*)
+
+  !
   ! symmetrize stress
   !
   CALL symmatrix( sigmakin )

@@ -95,6 +95,7 @@ SUBROUTINE my_stress_us_k()
   !
   !
   ALLOCATE( deff(nhm,nhm,nat) )
+  Deff(:,:,:) = 0.d0
   !
   ALLOCATE( work1(npwx), work2(npwx) )
   !
@@ -111,6 +112,8 @@ SUBROUTINE my_stress_us_k()
     IF( ABS(fac) < 1.d-9 ) CYCLE
     !
     CALL compute_deff(deff, et(ibnd,ik))
+    write(*,*)
+    write(*,*) 'ibnd, ebands (in Ha) = ', ibnd, 0.5d0*et(ibnd,ik)
     ijkb0 = 0
     DO np = 1, ntyp
       DO na = 1, nat
@@ -118,6 +121,7 @@ SUBROUTINE my_stress_us_k()
           DO ih = 1, nh(np)
             ikb = ijkb0 + ih
             evps = evps + fac * deff(ih,ih,na) * ABS(becp%k(ikb,ibnd))**2
+            !write(*,*) 'na, ih, Deff (in Ha) = ', na, ih, deff(ih,ih,na)*0.5d0
             !
             IF ( upf(np)%tvanp .OR. upf(np)%is_multiproj ) THEN
               !
@@ -137,10 +141,12 @@ SUBROUTINE my_stress_us_k()
       ENDDO ! na
     ENDDO ! np
   ENDDO ! ibnd
+  write(*,*) 'evps (in Ha) = ', evps*0.5d0
   !
   DO l = 1, 3
     sigmanlc(l,l) = sigmanlc(l,l) - evps
   ENDDO
+  !
   !
 100 CONTINUE
   !
@@ -149,6 +155,7 @@ SUBROUTINE my_stress_us_k()
   ALLOCATE( dvkb( npwx, nkb ) )
   !
   CALL my_gen_us_dj( ik, dvkb )
+  write(*,'(1x,A,I4,2F18.10)') 'ik, sum(dvkb Bessel) = ', ik, sum(dvkb)
   !
   DO ibnd = 1, nbnd
     work2 = (0.D0,0.D0)
@@ -195,6 +202,15 @@ SUBROUTINE my_stress_us_k()
       ENDDO
     ENDDO
   ENDDO
+  write(*,*)
+  write(*,*) 'sigmanlc after adding deriv Bessel contrib, not symmetrized (Ry/bohr**3):'
+  write(*,*)
+  do l = 1,3
+    write(*,'(1x,3F18.10)') sigmanlc(l,1), sigmanlc(l,2), sigmanlc(l,3)
+  enddo
+  write(*,*)
+
+
   !
   ! non diagonal contribution - derivative of the spherical harmonics
   ! (no contribution from l=0)
