@@ -113,7 +113,7 @@ SUBROUTINE my_stress_us_k()
     !
     CALL compute_deff(deff, et(ibnd,ik))
     write(*,*)
-    write(*,*) 'ibnd, ebands (in Ha) = ', ibnd, 0.5d0*et(ibnd,ik)
+    write(*,*) 'ibnd, ebands (in Ha), fac = ', ibnd, 0.5d0*et(ibnd,ik), fac
     ijkb0 = 0
     DO np = 1, ntyp
       DO na = 1, nat
@@ -121,7 +121,8 @@ SUBROUTINE my_stress_us_k()
           DO ih = 1, nh(np)
             ikb = ijkb0 + ih
             evps = evps + fac * deff(ih,ih,na) * ABS(becp%k(ikb,ibnd))**2
-            !write(*,*) 'na, ih, Deff (in Ha) = ', na, ih, deff(ih,ih,na)*0.5d0
+            write(*,'(1x,A,I4,I4,F18.10)') 'na, ih, Deff (in Ha) = ', na, ih, deff(ih,ih,na)*0.5d0
+            write(*,*) 'Current value of evps (in Ha) = ', evps*0.5d0
             !
             IF ( upf(np)%tvanp .OR. upf(np)%is_multiproj ) THEN
               !
@@ -133,6 +134,7 @@ SUBROUTINE my_stress_us_k()
               DO jh = (ih + 1), nh(np)
                 jkb = ijkb0 + jh
                 evps = evps + deff(ih,jh,na) * fac * 2.D0 * DBLE(CONJG(becp%k(ikb,ibnd)) * becp%k(jkb,ibnd) )
+                write(*,*) 'Nondiagonal: evps = ', evps*0.5d0, "Deff = ", Deff(ih,jh,na)*0.5d0
               ENDDO
             ENDIF
           ENDDO

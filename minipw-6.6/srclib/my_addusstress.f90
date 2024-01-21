@@ -60,6 +60,7 @@ SUBROUTINE my_addusstress_g( sigmanlc )
   ! ... local variables
   !
   INTEGER :: ngm_s, ngm_e, ngm_l
+  integer :: l
   ! starting/ending indices, local number of G-vectors
   INTEGER :: ig, nt, ih, jh, ijh, ipol, jpol, is, na, nij
   ! counters
@@ -140,7 +141,7 @@ SUBROUTINE my_addusstress_g( sigmanlc )
             !
             DO is = 1, nspin
               DO ig = 1, ngm_l
-                aux2(ig,is) = aux2(ig,is) * CONJG(vg (ngm_s+ig-1, is))
+                aux2(ig,is) = aux2(ig,is) * CONJG(vg(ngm_s+ig-1, is))
               ENDDO
             ENDDO
             !
@@ -166,6 +167,15 @@ SUBROUTINE my_addusstress_g( sigmanlc )
       ENDIF
     ENDDO
   ENDDO
+
+  write(*,*)
+  write(*,*) 's_us is my_addusstress (Ry/bohr^3):'
+  write(*,*)
+  do l = 1,3
+    write(*,'(1x,3F18.10)') sigmanlc(l,1), sigmanlc(l,2), sigmanlc(l,3)
+  enddo
+  write(*,*)
+
   !
 10 CONTINUE
   !
