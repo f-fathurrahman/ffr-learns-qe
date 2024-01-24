@@ -47,7 +47,7 @@ $(SRC:.f90=.o) $(SRC:.f=.o)
 
 
 %.o : %.c
-	gcc -Wall -fPIC -c -o $(*F).o $<
+	gcc -O3 -Wall -fPIC -c -o $(*F).o $<
 
 #
 # Targets
