@@ -1,20 +1,10 @@
-!
-! Copyright (C) 2001-2018 Quantum_ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
-!
 !-----------------------------------------------------------------------
-SUBROUTINE phqscf
-  !-----------------------------------------------------------------------
-  !
-  !     This subroutine is the main driver of the self consistent cycle
-  !     which gives as output the change of the wavefunctions and the
-  !     change of the self-consistent potential due to a phonon of
-  !     fixed q.
-  !
+SUBROUTINE my_phqscf
+!-----------------------------------------------------------------------
+  ! This subroutine is the main driver of the self consistent cycle
+  ! which gives as output the change of the wavefunctions and the
+  ! change of the self-consistent potential due to a phonon of
+  ! fixed q.
   USE kinds,            ONLY : DP
   USE ions_base,        ONLY : nat
   USE lsda_mod,         ONLY : nspin
@@ -49,18 +39,10 @@ SUBROUTINE phqscf
   ! counter on the modes
   ! npert(irr)
 
-  REAL(DP) :: tcpu, get_clock
-  ! timing variables
-
-  EXTERNAL get_clock
-  ! the change of density due to perturbations
-
   write(*,*)
-  write(*,*) '============= ENTER phqscf ==============='
+  write(*,*) '============= ENTER my_phqscf ==============='
   write(*,*)
 
-
-  CALL start_clock ('phqscf')
   !
   ! DFPT+U
   !
@@ -75,9 +57,9 @@ SUBROUTINE phqscf
   ! of the wavefunctions
   !
   DO irr = 1, nirr
-    IF ( (comp_irr(irr)) .AND. (.NOT. done_irr(irr)) ) THEN
+    IF( (comp_irr(irr)) .AND. (.NOT. done_irr(irr)) ) THEN
       npe = npert(irr)
-      ALLOCATE(drhoscfs(dfftp%nnr , nspin_mag, npe))
+      ALLOCATE( drhoscfs(dfftp%nnr , nspin_mag, npe) )
       imode0 = 0
       DO irr1 = 1, irr - 1
         imode0 = imode0 + npert (irr1)
@@ -88,7 +70,7 @@ SUBROUTINE phqscf
         WRITE( stdout, '(//,5x,"Representation #",i4," modes #",8i4)') irr, (imode0+irr1, irr1=1,npe)
       ENDIF
       !
-      !    then for this irreducible representation we solve the linear system
+      ! then for this irreducible representation we solve the linear system
       !
       IF( okvan ) THEN
         ALLOCATE( int3(nhm, nhm, nat, nspin_mag, npe) )
@@ -146,7 +128,6 @@ SUBROUTINE phqscf
         IF (okpaw) DEALLOCATE (int3_paw)
         IF (noncolin) DEALLOCATE(int3_nc)
       ENDIF
-      tcpu = get_clock('PHONON')
       !
       DEALLOCATE (drhoscfs)
     ENDIF
@@ -176,13 +157,11 @@ SUBROUTINE phqscf
     DEALLOCATE (dyn_hub_scf)
     !
   ENDIF
-  !
-  CALL stop_clock ('phqscf')
-  !
+
   write(*,*)
-  write(*,*) '============= EXIT phqscf ==============='
+  write(*,*) '============= EXIT my_phqscf ==============='
   write(*,*)
   !
   RETURN
   !
-END SUBROUTINE phqscf
+END SUBROUTINE my_phqscf

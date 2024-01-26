@@ -174,7 +174,9 @@ write_modes.o \
 write_rec.o \
 write_hub.o \
 zstar_eu.o \
-zstar_eu_us.o 
+zstar_eu_us.o \
+my_phqscf.o
+
 
 RAMANOBJS =    \
 psyme2.o   \

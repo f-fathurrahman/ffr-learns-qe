@@ -7,8 +7,8 @@
 !
 !
 !-----------------------------------------------------------------------
-SUBROUTINE solve_linter (irr, imode0, npe, drhoscf)
-  !-----------------------------------------------------------------------
+SUBROUTINE solve_linter(irr, imode0, npe, drhoscf)
+!-----------------------------------------------------------------------
   !
   !    Driver routine for the solution of the linear system which
   !    defines the change of the wavefunction due to a lattice distorsion
