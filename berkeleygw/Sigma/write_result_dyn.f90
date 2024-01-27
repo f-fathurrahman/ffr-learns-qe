@@ -1,0 +1,223 @@
+!===========================================================================
+!
+! Routines:
+!
+! (1) write_result_dyn() Originally By ? Last Modified 7/3/2008 (JRD)
+!
+! Writes the quasiparticle spectrum to the output
+!
+!===========================================================================
+!The following macro puts any point/array in the [-0.5, 0.5) range:
+!The following macro puts any point/array in the [0, 1) range:
+!Integer division of a/b rounded up*/
+!Rounds a up to the smallest multiple of b*/
+! disable Fortran OMP pragmas if not -DOMP*/
+! note: C standard does not permit $ in identifiers, however this seems acceptable
+! as an extension, for all versions of cpp I tried. --DAS
+! truncate spaces in string
+!#!define TRUNC(s) trim(adjustl(s))
+! Oracle compiler has a length limit of 132 characters and won`t support these macros
+! No checking for faster performance, if not in debug mode
+! Use this instead of the intrinsic 'deallocate' for pointers
+! Use this instead of the intrinsic 'deallocate' for arrays
+!the TOSTRING macro converts a macro into a string
+! deprecated identifiers
+! Created Sept 2011 by DAS.
+! Define characteristics of various compilers, via compiler symbols (e.g. -DGNU)
+! to be used directly from the arch.mk files, and then defining what we need to do
+! for that compiler via the symbols for various properties (e.g. NOSIZEOF).
+! Ideally, to support a new compiler, one need only change this file, adding a
+! new block to define what -DNEWCOMPILER would mean.
+! NOTE: of course, Makefile-level issues still need to be handled in common-rules.mk
+! very ancient version may require NOSIZEOF
+! FHJ: Support for Open64 will be removed shortly in favor of OpenUH
+! open64 is very similar to path, it is an open-sourced version of it
+! omp_lib.f90 needed to do OpenMP, see common-rules.mk.
+! cce 7.4.4 and before support sizeof for intrinsic types, but need NOSIZEOF_TYPE
+! cce 8.0.0 and later do not allow sizeof for multidimensional arrays, requiring us
+! to turn sizeof off everywhere. Why would Cray do this?
+! It is considered a bug in OPEN64 that sizeof will not work in our code.
+! on some platforms there is a different return value for sizeof if build is 64-bit
+! Intrinsic module for OpenMP. Almost all compilers that support OpenMP provide
+! a "omp_lib.mod" module, though the OpenMP standard allow them to only ship a
+! "omp_lib.h" Fortran header.
+!! Local Variables:
+!! mode: f90
+!! coding: utf-8
+!! End:
+!! Local Variables:
+!! mode: f90
+!! coding: utf-8
+!! End:
+module write_result_dyn_m
+  use global_m
+  implicit none
+  private
+  public :: write_result_dyn
+contains
+subroutine write_result_dyn(kp, wfnk, sig, ax, asx, ach, ach_cor, &
+  achcor, asig, alda, efsto, enew, enew_nosr, neqp1, neqp1_nosr, ikn,ncore_excl, akih)
+  type (kpoints), intent(in) :: kp
+  type (wfnkstates), intent(in) :: wfnk
+  type (siginfo), intent(in) :: sig
+  real(DP), intent(in) :: ax(:,:) !< (sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: asx(:,:,:) !< (sig%nfreqeval,sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: ach(:,:,:) !< (sig%nfreqeval,sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: ach_cor(:,:,:) !< (sig%nfreqeval,sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: achcor(:,:) !< (sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: asig(:,:) !< (sig%ndiag+sig%noffdiag,sig%nspin)
+  real(DP), intent(in) :: alda(:,:) !< (sig%ndiag+sig%noffdiag,sig%nspin)
+  complex(DPC), intent(in) :: efsto(:,:) !< (sig%ndiag,sig%nspin)
+  complex(DPC), intent(in) :: enew(:,:) !< (sig%ndiag,sig%nspin)
+  complex(DPC), intent(in) :: enew_nosr(:,:) !< (sig%ndiag,sig%nspin)
+  integer, intent(in) :: neqp1(:,:) !< (sig%ndiag,sig%nspin)
+  integer, intent(in) :: neqp1_nosr(:,:) !< (sig%ndiag,sig%nspin)
+  integer, intent(in) :: ikn
+  integer, intent(in) :: ncore_excl !< number of core states excluded
+  real(DP), intent(in), optional :: akih(:,:) !< (sig%ndiag+sig%noffdiag,sig%nspin), ZL
+  integer :: iw, i, j, ispin
+  integer, allocatable :: iwlda(:)
+  real(DP) :: diff, diffmin, e_lk, freq0
+ 
+  ! ZL: check optional akih
+  if(sig%use_kihdat) then
+    if (.not.present(akih)) call die('In write_result_dyn, to use KIH, pass akih into this subroutine.')
+  endif
+  allocate(iwlda (sig%ndiag))
+  do ispin=1,sig%nspin
+! Sigma Diagonal
+! JRD: Find iw closest to e_lk
+! DVF : ncore_excl has to be substracted here because wfnk%ek is defined in the
+! read_wavefunction subroutine in input.f90 to be referenced to the case with
+! no core states.
+    do i = 1, sig%ndiag
+      diffmin = INF
+      e_lk = wfnk%ek(sig%diag(i)-ncore_excl,ispin)
+      ! FHJ: Figure out starting frequency for freq. grid
+      if (sig%freq_grid_shift<2) then
+        freq0 = sig%freqevalmin
+      else
+        freq0 = e_lk - sig%freqevalstep*(sig%nfreqeval-1)/2
+      endif
+      do iw=1,sig%nfreqeval
+        diff = abs(freq0 + (iw-1)*sig%freqevalstep - e_lk)
+        if (diff .lt. diffmin) then
+          diffmin=diff
+          iwlda(i)=iw
+        endif
+      enddo
+    enddo
+    call write_qp(6)
+  enddo ! ispin
+  if(allocated(iwlda))then;deallocate(iwlda);endif
+ 
+  return
+contains
+  subroutine write_qp(iunit)
+    integer, intent(in) :: iunit
+    character(len=9) :: soln_str
+    write(iunit,979) (kp%rk(j,ikn),j=1,3),ikn,sig%spin_index(ispin)
+979 format(/,7x,"k =",3f10.6,1x,"ik =",i4,1x,"spin =",i2)
+    if (sig%freq_dep_method==2) then
+      write(iunit,*)
+      if(.not.sig%use_kihdat) then
+        write(iunit,900) &
+          "n", "Emf", "Eo", "Vxc", "X", "Re Cor", "Re Eqp0", "Re Eqp1", "Soln"
+        write(iunit,900) &
+          '', '', '', '', '', "Im Cor", "Im Eqp0", "Im Eqp1"
+      else
+        write(iunit,900) &
+          "n", "Emf", "Eo", "KIH", "X", "Re Cor", "Re Eqp0", "Re Eqp1", "Soln"
+        write(iunit,900) &
+          '', '', '', '', '', "Im Cor", "Im Eqp0", "Im Eqp1"
+      endif
+    else
+      write(iunit,*)
+      if(.not.sig%use_kihdat) then
+        write(iunit,900) &
+          "n", "Emf", "Eo", "Vxc", "X", "Re Cor", "Re Eqp0", "Re Eqp1", "Soln"
+        write(iunit,900) &
+          '', '', '', '', '', "Im Cor", "Im Eqp0", "Im Eqp1"
+      else
+        write(iunit,900) &
+          "n", "Emf", "Eo", "KIH", "X", "Re Cor", "Re Eqp0", "Re Eqp1", "Soln"
+        write(iunit,900) &
+          '', '', '', '', '', "Im Cor", "Im Eqp0", "Im Eqp1"
+      endif
+    endif
+    do i = 1, sig%ndiag
+      select case (neqp1(i,ispin))
+        case (-2)
+          soln_str = 'extrap+'
+        case (-1)
+          soln_str = 'extrap-'
+        case (0)
+          soln_str = 'NO_SOLN!'
+        case (1)
+          soln_str = 'unique'
+        case default
+          write(soln_str,'("MULT:",i0)') neqp1(i,ispin)
+      endselect
+      if(.not.sig%use_kihdat) then
+        write(iunit,901) sig%diag(i), wfnk%elda(sig%diag(i)-ncore_excl,ispin), &
+          wfnk%ek(sig%diag(i)-ncore_excl,ispin), dble(alda(i,ispin)), &
+          dble(ax(i,ispin)), dble(ach_cor(iwlda(i),i,ispin)+achcor(i,ispin)), &
+          dble(efsto(i,ispin)+achcor(i,ispin)), dble(enew(i,ispin)), trim(soln_str)
+        write(iunit,902) aimag(ach_cor(iwlda(i),i,ispin)), &
+          aimag(efsto(i,ispin)), aimag(enew(i,ispin))
+      else
+        write(iunit,901) sig%diag(i), wfnk%elda(sig%diag(i)-ncore_excl,ispin), &
+          wfnk%ek(sig%diag(i)-ncore_excl,ispin), dble(akih(i,ispin)), &
+          dble(ax(i,ispin)), dble(ach_cor(iwlda(i),i,ispin)+achcor(i,ispin)), &
+          dble(efsto(i,ispin)+achcor(i,ispin)), dble(enew(i,ispin)), trim(soln_str)
+        write(iunit,902) aimag(ach_cor(iwlda(i),i,ispin)), &
+          aimag(efsto(i,ispin)), aimag(enew(i,ispin))
+      endif
+    enddo
+900 format(a6,8(a9))
+901 format(i6,7(f9.3),a9)
+902 format(6x,4(9x),3(f9.3))
+! Sigma Off-Diagonal
+    if (sig%noffdiag.gt.0) then
+      if (sig%freq_dep_method .eq. 2) then
+        if(.not.sig%use_kihdat) then
+          write(iunit,959)
+        else
+          write(iunit,9591)
+        endif
+      else
+        if(.not.sig%use_kihdat) then
+          write(iunit,969)
+        else
+          write(iunit,9691)
+        endif
+      endif
+969 format(/,3x,"n",3x,"m",3x,"l",10x,6x,"Vxc",8x,"X",5x,"SX-X",7x,"CH",6x,"Sig")
+9691 format(/,3x,"n",3x,"m",3x,"l",10x,6x,"KIH",8x,"X",5x,"SX-X",7x,"CH",6x,"Sig")
+959 format(/,3x,"n",3x,"m",3x,"l",10x,6x,"Vxc",8x,"X",6x,"Res",6x,"Int",6x,"Sig")
+9591 format(/,3x,"n",3x,"m",3x,"l",10x,6x,"KIH",8x,"X",6x,"Res",6x,"Int",6x,"Sig")
+      do i=sig%ndiag+1,sig%ndiag+sig%noffdiag
+        iw=iwlda(sig%offmap(i-sig%ndiag, 3))
+        if(.not.sig%use_kihdat) then
+          write(iunit,968) sig%off1(i-sig%ndiag), sig%off2(i-sig%ndiag), &
+            sig%off3(i-sig%ndiag), dble(alda(i,ispin)), dble(ax(i,ispin)), &
+            dble(asx(iw,i,ispin)), dble(ach(iw,i,ispin)+achcor(i,ispin)), &
+            dble(ax(i,ispin)+asx(iw,i,ispin)+ach(iw,i,ispin)+achcor(i,ispin))
+        else
+          write(iunit,968) sig%off1(i-sig%ndiag), sig%off2(i-sig%ndiag), &
+            sig%off3(i-sig%ndiag), dble(akih(i,ispin)), dble(ax(i,ispin)), &
+            dble(asx(iw,i,ispin)), dble(ach(iw,i,ispin)+achcor(i,ispin)), &
+            dble(ax(i,ispin)+asx(iw,i,ispin)+ach(iw,i,ispin)+achcor(i,ispin))
+        endif
+968 format(3i4,3x,"real",3x,5f9.3)
+        ! FHJ: why do we add aimag(achcor) only for the real case?!!
+        write(iunit,967) sig%off1(i-sig%ndiag), sig%off2(i-sig%ndiag), &
+          sig%off3(i-sig%ndiag), 0d0, 0d0, aimag(asx(iw,i,ispin)), &
+          aimag(ach(iw,i,ispin)+achcor(i,ispin)), &
+          aimag(asx(iw,i,ispin)+ach(iw,i,ispin)+achcor(i,ispin))
+967 format(3i4,3x,"imag",3x,5f9.3)
+      enddo
+    endif
+  end subroutine write_qp
+end subroutine write_result_dyn
+end module write_result_dyn_m

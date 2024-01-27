@@ -1,0 +1,102 @@
+acc_linalg.o : acc_linalg.f90 nrtype.o message.o blas.o algos_common.o 
+acc_mtxel_kernels.o : acc_mtxel_kernels.f90 push_pop.o peinfo.o nrtype.o message.o algos_common.o 
+algos_common.o : algos_common.f90 push_pop.o peinfo.o message.o 
+algos_epsilon.o : algos_epsilon.f90 push_pop.o peinfo.o message.o algos_common.o 
+bessel.o : bessel.f90 global.o 
+bgw_mpi.o : bgw_mpi.f90 global.o 
+blas.o : blas.f90 
+cells.o : cells.f90 global.o 
+check_inversion.o : check_inversion.f90 global.o 
+check_screening.o : check_screening.f90 global.o 
+checkbz.o : checkbz.f90 misc.o global.o 
+checkgriduniformity.o : checkgriduniformity.f90 global.o 
+chi_convergence.o : chi_convergence.f90 global.o 
+chi_summation.o : chi_summation.f90 timing.o misc.o elpa_interface.o vcoul_generator.o io_utils.o lin_denominator.o scalapack.o mtxelmultiply.o blas.o global.o algos_epsilon.o acc_linalg.o 
+createpools.o : createpools.f90 global.o 
+elpa_interface.o : elpa_interface.f90 
+eps0sym.o : eps0sym.f90 write_matrix.o epswrite_hdf5.o epsread_hdf5.o global.o 
+epsascbin.o : epsascbin.f90 global.o 
+epsbinasc.o : epsbinasc.f90 global.o 
+epsilon_main.o : epsilon_main.f90 write_program_header.o write_matrix.o vcoul_generator.o timing.o tile.o subgrp.o sort.o scalapack.o rqstar.o references.o read_matrix.o mtxelmultiply.o mtxel.o irrbz.o io_utils.o input_utils.o input_q.o input.o gmap.o global.o genwf_eps.o fullbz.o fftw.o epswrite_hdf5.o epsread_hdf5.o epsinv.o chi_summation.o chi_convergence.o blas.o algos_epsilon.o 
+epsinv.o : epsinv.f90 write_matrix.o vcoul_generator.o timing.o scalapack.o misc.o io_utils.o inversion.o global.o 
+epsinvomega.o : epsinvomega.f90 epsread_hdf5.o global.o 
+epsmat_merge.o : epsmat_merge.f90 global.o 
+epsomega.o : epsomega.f90 epsread_hdf5.o scalapack.o read_matrix.o inversion.o input_utils.o global.o 
+epsread_hdf5.o : epsread_hdf5.f90 
+epswrite_hdf5.o : epswrite_hdf5.f90 
+eqpcor.o : eqpcor.f90 global.o 
+essl.o : essl.f90 
+evecs.o : evecs.f90 message.o global.o 
+fft_parallel.o : fft_parallel.f90 fftw.o global.o 
+fftw.o : fftw.f90 timing.o global.o 
+find_kpt_match.o : find_kpt_match.f90 global.o 
+fixwings.o : fixwings.f90 global.o 
+fullbz.o : fullbz.f90 misc.o global.o 
+genwf.o : genwf.f90 misc.o sort.o input_utils.o random.o susymmetries.o gmap.o blas.o global.o 
+genwf_eps.o : genwf_eps.f90 timing.o sort.o susymmetries.o gmap.o genwf_mpi.o fftw.o input_utils.o global.o 
+genwf_mpi.o : genwf_mpi.f90 timing.o sort.o misc.o input_utils.o susymmetries.o gmap.o find_kpt_match.o global.o 
+global.o : global.f90 os.o scalapack_aux.o typedefs.o timing.o push_pop.o peinfo.o nrtype.o message.o 
+gmap.o : gmap.f90 misc.o global.o 
+groupk.o : groupk.f90 global.o 
+hdf5_io.o : hdf5_io.f90 hdf5_io_data.o hdf5_io_safe.o global.o 
+hdf5_io_data.o : hdf5_io_data.f90 hdf5_io_safe.o global.o 
+hdf5_io_safe.o : hdf5_io_safe.f90 global.o 
+input.o : input.f90 subgrp.o inread.o timing.o wfn_rho_vxc_io.o sort.o scissors.o misc.o irrbz.o io_utils.o input_utils.o epswrite_hdf5.o wfn_io_hdf5.o hdf5_io.o fullbz.o fftw.o eqpcor.o createpools.o checkbz.o global.o 
+input_q.o : input_q.f90 wfn_io_hdf5.o hdf5_io.o io_utils.o wfn_rho_vxc_io.o scissors.o misc.o input_utils.o eqpcor.o global.o 
+input_utils.o : input_utils.f90 blas.o global.o 
+inread.o : inread.f90 scissors.o references.o inread_common.o global.o algos_epsilon.o 
+inread_common.o : inread_common.f90 global.o 
+inversion.o : inversion.f90 scalapack.o lapack.o global.o 
+io_utils.o : io_utils.f90 global.o 
+irrbz.o : irrbz.f90 misc.o global.o 
+kernel_io.o : kernel_io.f90 wfn_rho_vxc_io.o global.o 
+lapack.o : lapack.f90 
+lin_denominator.o : lin_denominator.f90 sort.o global.o 
+message.o : message.f90 os.o peinfo.o nrtype.o 
+minibzaverage.o : minibzaverage.f90 misc.o bessel.o global.o 
+misc.o : misc.f90 blas.o global.o 
+mtxel.o : mtxel.f90 timing.o lin_denominator.o misc.o fftw.o global.o 
+mtxel_optical.o : mtxel_optical.f90 global.o 
+mtxelmultiply.o : mtxelmultiply.f90 timing.o scalapack.o global.o blas.o acc_linalg.o algos_epsilon.o 
+norm.o : norm.f90 global.o blas.o 
+nrtype.o : nrtype.f90 
+nvtx.o : nvtx.f90 
+os.o : os.f90 nrtype.o 
+peinfo.o : peinfo.f90 nrtype.o 
+ploteps.o : ploteps.f90 global.o 
+primme_bindings.o : primme_bindings.f90 
+primme_interface.o : primme_interface.f90 
+print_version_info.o : print_version_info.f90 version.o global.o 
+printchi.o : printchi.f90 global.o 
+push_pop.o : push_pop.f90 peinfo.o nrtype.o message.o 
+random.o : random.f90 global.o 
+read_cube.o : read_cube.f90 global.o 
+read_matrix.o : read_matrix.f90 epsread_hdf5.o scalapack.o global.o 
+read_rho_vxc.o : read_rho_vxc.f90 wfn_rho_vxc_io.o gmap.o global.o 
+references.o : references.f90 push_pop.o peinfo.o os.o nrtype.o message.o 
+rqstar.o : rqstar.f90 misc.o global.o 
+scalapack.o : scalapack.f90 global.o 
+scalapack_aux.o : scalapack_aux.f90 
+scalapack_hl.o : scalapack_hl.f90 
+scissors.o : scissors.f90 splines.o global.o 
+setup_subsampling_nns.o : setup_subsampling_nns.f90 subgrp.o wfn_io_hdf5.o checkbz.o fullbz.o irrbz.o random.o wfn_rho_vxc_io.o global.o 
+sort.o : sort.f90 global.o 
+spinor_symmetries.o : spinor_symmetries.f90 blas.o misc.o random.o global.o 
+splines.o : splines.f90 global.o 
+subgrp.o : subgrp.f90 misc.o global.o 
+susymmetries.o : susymmetries.f90 blas.o misc.o random.o global.o 
+symmetries.o : symmetries.f90 sort.o misc.o global.o 
+test_evecs.o : test_evecs.f90 global.o evecs.o 
+tile.o : tile.f90 global.o 
+timing.o : timing.f90 push_pop.o peinfo.o nrtype.o message.o os.o 
+trunc_cell_box.o : trunc_cell_box.f90 misc.o fftw.o fft_parallel.o global.o 
+trunc_cell_box_d.o : trunc_cell_box_d.f90 misc.o fftw.o fft_parallel.o global.o 
+trunc_cell_wire.o : trunc_cell_wire.f90 misc.o global.o fftw.o fft_parallel.o bessel.o 
+trunc_scell_box_d.o : trunc_scell_box_d.f90 misc.o global.o fftw.o fft_parallel.o 
+typedefs.o : typedefs.f90 push_pop.o message.o nrtype.o 
+vcoul_generator.o : vcoul_generator.f90 trunc_scell_box_d.o trunc_cell_wire.o trunc_cell_box_d.o trunc_cell_box.o random.o minibzaverage.o global.o 
+version.o : version.f90 
+wfn_io_hdf5.o : wfn_io_hdf5.f90 global.o 
+wfn_rho_vxc_io.o : wfn_rho_vxc_io.f90 timing.o sort.o check_inversion.o global.o 
+write_matrix.o : write_matrix.f90 timing.o io_utils.o scalapack.o hdf5_io.o global.o 
+write_program_header.o : write_program_header.f90 version.o global.o 

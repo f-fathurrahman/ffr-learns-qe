@@ -1,0 +1,295 @@
+!=========================================================================
+!
+! Routines:
+!
+! (1) offdiag Originally By gsm Last Modified 5/8/2009 (gsm)
+!
+! This routine reads in sigma_hp.log file, builds the Sigma matrix for each
+! k-point and for each finite difference point (Ecor - dE, Ecor, Ecor + dE)
+! according to Eq. (6) of Rohlfing & Louie PRB 62 4927, diagonalizes it with
+! LAPACK and writes out the eigenvalues. This is a serial program, no MPI.
+! If toff = -1/+1 the Hermitian matrix is constructed from the lower/upper
+! triangle. No input file or command-line arguments are needed.
+!
+!=========================================================================
+!The following macro puts any point/array in the [-0.5, 0.5) range:
+!The following macro puts any point/array in the [0, 1) range:
+!Integer division of a/b rounded up*/
+!Rounds a up to the smallest multiple of b*/
+! disable Fortran OMP pragmas if not -DOMP*/
+! note: C standard does not permit $ in identifiers, however this seems acceptable
+! as an extension, for all versions of cpp I tried. --DAS
+! truncate spaces in string
+!#!define TRUNC(s) trim(adjustl(s))
+! Oracle compiler has a length limit of 132 characters and won`t support these macros
+! No checking for faster performance, if not in debug mode
+! Use this instead of the intrinsic 'deallocate' for pointers
+! Use this instead of the intrinsic 'deallocate' for arrays
+!the TOSTRING macro converts a macro into a string
+! deprecated identifiers
+! Created Sept 2011 by DAS.
+! Define characteristics of various compilers, via compiler symbols (e.g. -DGNU)
+! to be used directly from the arch.mk files, and then defining what we need to do
+! for that compiler via the symbols for various properties (e.g. NOSIZEOF).
+! Ideally, to support a new compiler, one need only change this file, adding a
+! new block to define what -DNEWCOMPILER would mean.
+! NOTE: of course, Makefile-level issues still need to be handled in common-rules.mk
+! very ancient version may require NOSIZEOF
+! FHJ: Support for Open64 will be removed shortly in favor of OpenUH
+! open64 is very similar to path, it is an open-sourced version of it
+! omp_lib.f90 needed to do OpenMP, see common-rules.mk.
+! cce 7.4.4 and before support sizeof for intrinsic types, but need NOSIZEOF_TYPE
+! cce 8.0.0 and later do not allow sizeof for multidimensional arrays, requiring us
+! to turn sizeof off everywhere. Why would Cray do this?
+! It is considered a bug in OPEN64 that sizeof will not work in our code.
+! on some platforms there is a different return value for sizeof if build is 64-bit
+! Intrinsic module for OpenMP. Almost all compilers that support OpenMP provide
+! a "omp_lib.mod" module, though the OpenMP standard allow them to only ship a
+! "omp_lib.h" Fortran header.
+!! Local Variables:
+!! mode: f90
+!! coding: utf-8
+!! End:
+!! Local Variables:
+!! mode: f90
+!! coding: utf-8
+!! End:
+program offdiag
+  use global_m
+  use lapack_m
+  implicit none
+  integer :: iunit,ierr,spin,ii,jj,ll,ik
+  integer :: freq_dep,bmin,bmax,loff,toff,fdf
+  integer :: info,lda,ldvl,ldvr,lwork,nband,iw,nstart,nend
+  real(DP) :: elda,ecor,exch,sx,ch,sig,vxc,eqp0,eqp1,z1,z2
+  real(DP) :: sig3,vxc3
+  real(DP) :: max6(6)
+  integer :: idx6(6,2)
+  character*256 :: fl,str,tag
+  integer, allocatable :: isort(:)
+  real(DP), allocatable :: ham(:,:),alda(:,:),vl(:,:),vr(:,:),work(:)
+  real(DP), allocatable :: wi(:),wr(:)
+  iunit=21
+  fl = "sigma_hp.log"
+  max6(:) = 0.0d0
+  idx6(:,:)=0
+  freq_dep=-2
+  bmin=0
+  bmax=0
+  loff=-3
+  toff=-2
+  fdf=-3
+  call open_file(unit=iunit,file=fl,status='old',form='formatted')
+  ierr=0
+  do while (ierr.eq.0)
+    read(iunit,'(a)',iostat=ierr) str
+    if (str(2:21).eq."frequency_dependence") then
+      read(str(22:),*) freq_dep
+      write(6,'(a,i2)') 'frequency_dependence = ', freq_dep
+    endif
+    if (str(2:11).eq."band_index") then
+      read(str(12:),*) bmin, bmax
+      write(6,'(a,i6,a,i6)') 'band min = ', bmin, ', band max = ', bmax
+    endif
+    if (str(2:13).eq."sigma_matrix") then
+      read(str(14:),*) loff, toff
+      write(6,'(a,i6,a,i6)') 'loff = ', loff, ', toff = ', toff
+    endif
+    if (str(2:23).eq."finite_difference_form") then
+      read(str(24:),*) fdf
+      write(6,*) 'finite difference form = ', fdf
+    endif
+  enddo
+  call close_file(unit=iunit)
+  if(freq_dep.lt.-1.or.freq_dep.gt.2) call die("unknown frequency dependence")
+  if(bmin.lt.1.or.bmax.lt.bmin) call die("bmin out of range")
+  if(loff.lt.-2.or.(loff.gt.0.and.loff.lt.bmin).or.loff.gt.bmax) call die("loff out of range")
+  if(loff < 0) write(0,'(a)') 'WARNING: Sigma is not Hermitian unless all matrix elements are evaluated at the same energy.'
+  if(toff.lt.-1.or.toff.gt.1) call die("toff out of range")
+  if(fdf.lt.-2.or.fdf.gt.2) call die("fdf out of range")
+  if (freq_dep .eq. 2) call die("Full frequency is not supported")
+  if(loff == 0) call die("You need to use sigma_matrix in the sigma run to be able to use offdiag.")
+  if (fdf.eq.-1) then
+    nstart = 1
+    nend = 2
+  elseif (fdf.eq.0) then
+    nstart = 1
+    nend = 3
+  elseif (fdf.eq.1) then
+    nstart = 2
+    nend = 3
+  else
+    nstart = 2
+    nend = 2
+  endif
+  nband=bmax-bmin+1
+  lda=nband
+  ldvl=1
+  ldvr=1
+  lwork=2*nband
+  allocate(isort (nband))
+  allocate(ham (lda,nband))
+  allocate(alda (lda,nband))
+  allocate(vl (ldvl,nband))
+  allocate(vr (ldvr,nband))
+  allocate(work (lwork))
+  lwork=-1
+  allocate(wr (nband))
+  allocate(wi (nband))
+  call dgeev('N','N',nband,ham,lda,wr,wi,vl,ldvl,vr,ldvr,work,lwork,info)
+  if (info.eq.0) lwork=int(work(1))
+  if (lwork.lt.1) then
+    lwork=2*nband
+  else
+    if(allocated(work))then;deallocate(work);endif
+    allocate(work (lwork))
+  endif
+  alda(:,:)=0.0d0
+  call open_file(unit=iunit,file=fl,status='old',form='formatted')
+  write(6,*) "Reading matrix elements from " // trim(fl)
+  ierr=0
+  do while (ierr.eq.0)
+    read(iunit,'(a)',iostat=ierr) str
+    if (str(42:45).eq."ik =") then
+      read(str(47:49),*) ik
+      read(str(57:),*) spin
+      write(6,205) ik, spin
+      read(iunit,*)
+      read(iunit,*)
+      do
+        read(iunit,'(a)') str
+        if (len(trim(str)).eq.0) exit
+        read(str,*) ii,elda,ecor,exch,sx,ch,sig,vxc,eqp0,eqp1
+        alda(ii-bmin+1,ii-bmin+1)=elda
+      enddo
+      do iw = nstart, nend
+        ham=alda
+        if (iw.eq.1) write(6,501)
+        if (iw.eq.2) write(6,502)
+        if (iw.eq.3) write(6,503)
+        read(iunit,*)
+        read(iunit,*)
+        do
+          read(iunit,'(a)') str
+          if (len(trim(str)).eq.0) exit
+          read(str,*) ii,jj,ll,tag,exch,sx,ch,sig,vxc
+          if(tag(1:4) /= 'real') call die("Incorrect tag " // TRUNC(tag) // " found in place of 'real'.")
+          sig3=sig
+          vxc3=vxc
+          ham(ii-bmin+1,jj-bmin+1)=ham(ii-bmin+1,jj-bmin+1)+sig3-vxc3
+          if (ii .eq. jj) then
+            if (max6(1) .lt. abs(sig3)) then
+              max6(1) = abs(sig3)
+              idx6(1,1) = ii
+            endif
+            if (max6(2) .lt. abs(vxc3)) then
+              max6(2) = abs(vxc3)
+              idx6(2,1) = ii
+            endif
+            if (max6(3) .lt. abs(sig3 - vxc3)) then
+              max6(3) = abs(sig3 - vxc3)
+              idx6(3,1) = ii
+            endif
+          else
+            if (max6(4) .lt. abs(sig3)) then
+              max6(4) = abs(sig3)
+              idx6(4,1) = ii
+              idx6(4,2) = jj
+            endif
+            if (max6(5) .lt. abs(vxc3)) then
+              max6(5) = abs(vxc3)
+              idx6(5,1) = ii
+              idx6(5,2) = jj
+            endif
+            if (max6(6) .lt. abs(sig3 - vxc3)) then
+              max6(6) = abs(sig3 - vxc3)
+              idx6(6,1) = ii
+              idx6(6,2) = jj
+            endif
+          endif
+        enddo
+        !
+        ! construct the Hermitian matrix from the lower triangle
+        !
+        if (toff.eq.-1) then
+          do ii=1,nband
+            do jj=ii+1,nband
+              ham(ii,jj)=(ham(jj,ii))
+            enddo
+          enddo
+        endif
+        !
+        ! construct the Hermitian matrix from the upper triangle
+        !
+        if (toff.eq.1) then
+          do ii=1,nband
+            do jj=1,ii-1
+              ham(ii,jj)=(ham(jj,ii))
+            enddo
+          enddo
+        endif
+        !
+        ! diagonalize with LAPACK
+        !
+        call dgeev('N','N',nband,ham,lda,wr,wi,vl,ldvl,vr,ldvr,work,lwork,info)
+        !
+        ! sort and output eigenvalues
+        !
+        if (info.eq.0) then
+          do ii=1,nband
+            isort(ii)=ii
+          enddo
+          do ii=1,nband-1
+            ll=0
+            z1=1.0d6
+            do jj=ii,nband
+              z2=wr(isort(jj))
+              if (z2.lt.z1) then
+                ll=jj
+                z1=z2
+              endif
+            enddo
+            if (ll.gt.0) then
+              jj=isort(ii)
+              isort(ii)=isort(ll)
+              isort(ll)=jj
+            endif
+          enddo
+          do ii=1,nband
+            write(6,209) ii,wr(isort(ii)),wi(isort(ii))
+          enddo
+          write(6,*)
+          write(6,701)max6(1),idx6(1,1)
+          write(6,702)max6(2),idx6(2,1)
+          write(6,703)max6(3),idx6(3,1)
+          write(6,704)max6(4),idx6(4,1),idx6(4,2)
+          write(6,705)max6(5),idx6(5,1),idx6(5,2)
+          write(6,706)max6(6),idx6(6,1),idx6(6,2)
+        else
+          write(0,'(a,i6)') 'LAPACK error code = ', info
+          call die("Failed to diagonalize Sigma matrix.")
+        endif
+      enddo
+    endif
+  enddo
+  call close_file(unit=iunit)
+  if(allocated(isort))then;deallocate(isort);endif
+  if(allocated(ham))then;deallocate(ham);endif
+  if(allocated(alda))then;deallocate(alda);endif
+  if(allocated(vl))then;deallocate(vl);endif
+  if(allocated(vr))then;deallocate(vr);endif
+  if(allocated(work))then;deallocate(work);endif
+  if(allocated(wr))then;deallocate(wr);endif
+  if(allocated(wi))then;deallocate(wi);endif
+205 format(/,1x,"ik =",i3,1x,"s =",i2)
+209 format(1x,i4,2f12.6)
+501 format(/,1x,"Sig(Eo - dE)",/)
+502 format(/,1x,"Sig(Eo)",/)
+503 format(/,1x,"Sig(Eo + dE)",/)
+701 format(1x,"max_n  |<n|Sig|n>|       =",f10.6," eV at n =",i4)
+702 format(1x,"max_n  |<n|Vxc|n>|       =",f10.6," eV at n =",i4)
+703 format(1x,"max_n  |<n|Sig - Vxc|n>| =",f10.6," eV at n =",i4)
+704 format(1x,"max_nm |<n|Sig|m>|       =",f10.6," eV at n =",i4," m =",i4)
+705 format(1x,"max_nm |<n|Vxc|m>|       =",f10.6," eV at n =",i4," m =",i4)
+706 format(1x,"max_nm |<n|Sig - Vxc|m>| =",f10.6," eV at n =",i4," m =",i4)
+end program offdiag

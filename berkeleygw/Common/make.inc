@@ -1,0 +1,14 @@
+MAKE = make
+AR = ar
+
+F77 = gfortran
+F77_OPTS = -Wall -O3 -cpp
+
+F90 = gfortran
+F90_OPTS = -Wall -O3 -cpp -ffree-line-length-none  -I /usr/include
+# -g -fbacktrace -ffpe-trap=zero,overflow,underflow
+
+LIB_LINALG = -lblas -llapack
+LIB_FFTW3 = -lfftw3
+LIB_XC     = -L/home/efefer/mysoftwares/libxc-3.0.0/lib -lxcf90 -lxc
+LIBS       = $(LIB_LINALG) $(LIB_FFTW3) $(LIB_XC)
