@@ -175,7 +175,9 @@ write_rec.o \
 write_hub.o \
 zstar_eu.o \
 zstar_eu_us.o \
-my_phqscf.o
+my_phqscf.o my_setup_nscf.o my_cgsolve_all.o
+
+# Put my_* files at the end (no need to edit make.depend)
 
 
 RAMANOBJS =    \

@@ -68,7 +68,7 @@ SUBROUTINE do_phonon(auxdyn)
     ! to be .true. in order for the code to work properly in 
     ! the case SO-MAG).
     !
-    setup_pw=setup_pw .OR. (noncolin .AND. domag)
+    setup_pw = setup_pw .OR. (noncolin .AND. domag)
     IF (setup_pw) CALL run_nscf(do_band, iq)
     !
     ! If only_wfc = .TRUE. the code computes only the wavefunctions 

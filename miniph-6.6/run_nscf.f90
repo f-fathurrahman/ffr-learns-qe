@@ -64,27 +64,27 @@ SUBROUTINE run_nscf(do_band, iq)
   CALL start_clock( 'PWSCF' )
   !
   ! FIXME: following section does not belong to this subroutine
-  IF (done_bands(iq)) THEN
-     WRITE (stdout,'(/,5x,"Bands found: reading from ",a)') TRIM(tmp_dir_phq)
-     CALL clean_pw( .TRUE. )
-     CALL close_files(.true.)
-     wfc_dir=tmp_dir_phq
-     tmp_dir=tmp_dir_phq
-     ! FIXME: kunit is set here: in this case we do not go through setup_nscf
-     ! FIXME: and read_file calls divide_et_impera that needs kunit
-     ! FIXME: qnorm (also set in setup_nscf) is needed by allocate_nlpot
-     kunit = 2
-     IF ( lgamma_iq(iq) ) kunit = 1
-     IF (noncolin.AND.domag) THEN 
-        kunit = 4
-        IF (lgamma_iq(iq)) kunit=2
-     ENDIF
-     qnorm = SQRT(xq(1)**2+xq(2)**2+xq(3)**2) * tpiba
-     !
-     CALL read_file()
-     IF (.NOT.lgamma_iq(iq).OR.(qplot.AND.iq>1)) CALL &
-                                  set_small_group_of_q(nsymq,invsymq,minus_q)
-     RETURN
+  IF( done_bands(iq) ) THEN
+    WRITE (stdout,'(/,5x,"Bands found: reading from ",a)') TRIM(tmp_dir_phq)
+    CALL clean_pw( .TRUE. )
+    CALL close_files(.true.)
+    wfc_dir = tmp_dir_phq
+    tmp_dir = tmp_dir_phq
+    ! FIXME: kunit is set here: in this case we do not go through setup_nscf
+    ! FIXME: and read_file calls divide_et_impera that needs kunit
+    ! FIXME: qnorm (also set in setup_nscf) is needed by allocate_nlpot
+    kunit = 2
+    IF ( lgamma_iq(iq) ) kunit = 1
+    IF (noncolin.AND.domag) THEN 
+      kunit = 4
+      IF (lgamma_iq(iq)) kunit=2
+    ENDIF
+    qnorm = SQRT(xq(1)**2 + xq(2)**2 + xq(3)**2) * tpiba
+    !
+    CALL read_file()
+    IF(.NOT. lgamma_iq(iq) .OR. (qplot .AND. iq > 1)) CALL &
+                                 set_small_group_of_q(nsymq,invsymq,minus_q)
+    RETURN
   ENDIF
   !
   CALL clean_pw( .FALSE. )
@@ -93,8 +93,8 @@ SUBROUTINE run_nscf(do_band, iq)
   !
   ! From now on, work only on the _ph virtual directory
   !
-  wfc_dir=tmp_dir_phq
-  tmp_dir=tmp_dir_phq
+  wfc_dir = tmp_dir_phq
+  tmp_dir = tmp_dir_phq
   !
   ! ... Setting the values for the nscf run
   !
@@ -106,10 +106,10 @@ SUBROUTINE run_nscf(do_band, iq)
   ethr_nscf      = 1.0D-9 / nelec 
   ! threshold for diagonalization ethr_nscf - should be good for all cases
   !
-  CALL fft_type_allocate ( dfftp, at, bg, gcutm,  intra_bgrp_comm, nyfft=nyfft )
-  CALL fft_type_allocate ( dffts, at, bg, gcutms, intra_bgrp_comm, nyfft=nyfft)
+  CALL fft_type_allocate( dfftp, at, bg, gcutm,  intra_bgrp_comm, nyfft=nyfft )
+  CALL fft_type_allocate( dffts, at, bg, gcutms, intra_bgrp_comm, nyfft=nyfft )
   !
-  CALL setup_nscf ( newgrid, xq, elph_mat .OR. elph_ahc )
+  CALL my_setup_nscf( newgrid, xq, elph_mat .OR. elph_ahc )
   !
   CALL init_run()
   !
@@ -120,38 +120,36 @@ SUBROUTINE run_nscf(do_band, iq)
   ENDIF
 !!!!!!!!!!!!!!!!!!!!!!!!END OF ACFDT TEST !!!!!!!!!!!!!!!!
 !
-  IF (do_band) CALL non_scf_ph ( )
+  IF (do_band) CALL non_scf_ph( )
 
 
   IF ( check_stop_now() ) THEN
-!
-!  In this case the code stops inside the band calculation. Save the
-!  files and stop the pwscf run
-!
-     CALL punch( 'config' )
-     CALL stop_run( -1 )
-     CALL do_stop( 1 )
+    ! In this case the code stops inside the band calculation. Save the
+    ! files and stop the pwscf run
+    CALL punch( 'config' )
+    CALL stop_run( -1 )
+    CALL do_stop( 1 )
   ENDIF
   !
-  IF (.NOT.reduce_io.and.do_band) THEN
-     IF ( only_wfc ) THEN
-        ! write wavefunctions to file in portable format
-        CALL punch( 'all' )
-     ELSE
-        ! do not write wavefunctions: not sure why, I think
-        ! they are written anyway in internal format - PG
-        CALL punch( 'config' )
-     END IF
-  END IF
+  IF(.NOT. reduce_io .and. do_band) THEN
+    IF ( only_wfc ) THEN
+      ! write wavefunctions to file in portable format
+      CALL punch( 'all' )
+    ELSE
+      ! do not write wavefunctions: not sure why, I think
+      ! they are written anyway in internal format - PG
+      CALL punch( 'config' )
+    ENDIF
+  ENDIF
   !
   CALL seqopn( 4, 'restart', 'UNFORMATTED', exst )
   CLOSE( UNIT = 4, STATUS = 'DELETE' )
-  ext_restart=.FALSE.
+  ext_restart = .FALSE.
   !
   CALL close_files(.true.)
   !
 
-  bands_computed=.TRUE.
+  bands_computed = .TRUE.
   !
   CALL stop_clock( 'PWSCF' )
 
