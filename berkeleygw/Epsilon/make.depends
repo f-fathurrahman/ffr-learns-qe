@@ -1,0 +1,23 @@
+algos_epsilon.o : algos_epsilon.f90 
+chi_convergence.o : chi_convergence.f90 
+chi_summation.o : chi_summation.f90 lin_denominator.o mtxelmultiply.o algos_epsilon.o 
+eps0sym.o : eps0sym.f90 
+epsascbin.o : epsascbin.f90 
+epsbinasc.o : epsbinasc.f90 
+epsilon_main.o : epsilon_main.f90 rqstar.o mtxelmultiply.o mtxel.o input_q.o input.o genwf_eps.o epsinv.o chi_summation.o chi_convergence.o algos_epsilon.o 
+epsinv.o : epsinv.f90 
+epsinvomega.o : epsinvomega.f90 
+epsmat_merge.o : epsmat_merge.f90 
+epsomega.o : epsomega.f90 
+genwf_eps.o : genwf_eps.f90 genwf_mpi.o 
+genwf_mpi.o : genwf_mpi.f90 
+input.o : input.f90 inread.o 
+input_q.o : input_q.f90 
+inread.o : inread.f90 algos_epsilon.o 
+lin_denominator.o : lin_denominator.f90 
+mtxel.o : mtxel.f90 lin_denominator.o 
+mtxelmultiply.o : mtxelmultiply.f90 algos_epsilon.o 
+ploteps.o : ploteps.f90 
+printchi.o : printchi.f90 
+rqstar.o : rqstar.f90 
+setup_subsampling_nns.o : setup_subsampling_nns.f90 

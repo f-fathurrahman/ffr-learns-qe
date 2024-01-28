@@ -15,8 +15,6 @@ program epsilon
   use chi_convergence_m
   use chi_summation_m
   use epsinv_m
-  use epsread_hdf5_m
-  use epswrite_hdf5_m
   use fftw_m
   use fullbz_m
   use genwf_eps_m

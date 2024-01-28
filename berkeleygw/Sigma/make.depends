@@ -1,0 +1,21 @@
+algos_sigma.o : algos_sigma.f90 
+ch_converge.o : ch_converge.f90 
+epscopy.o : epscopy.f90 
+genwf_mpi.o : genwf_mpi.f90 
+input.o : input.f90 genwf_mpi.o inread.o 
+input_outer.o : input_outer.f90 
+inread.o : inread.f90 algos_sigma.o 
+mtxel.o : mtxel.f90 algos_sigma.o 
+mtxel_cor.o : mtxel_cor.f90 wpeff.o algos_sigma.o 
+mtxel_occ.o : mtxel_occ.f90 
+mtxel_vxc.o : mtxel_vxc.f90 
+offdiag.o : offdiag.f90 
+shiftenergy.o : shiftenergy.f90 
+shiftenergy_dyn.o : shiftenergy_dyn.f90 
+sig2wan.o : sig2wan.f90 
+sigma_main.o : sigma_main.f90 write_result.o write_result_hp.o write_result_dyn.o write_result_dyn_hp.o shiftenergy.o shiftenergy_dyn.o mtxel_vxc.o mtxel_occ.o mtxel.o mtxel_cor.o input_outer.o input.o genwf_mpi.o epscopy.o ch_converge.o algos_sigma.o 
+wpeff.o : wpeff.f90 
+write_result.o : write_result.f90 
+write_result_dyn.o : write_result_dyn.f90 
+write_result_dyn_hp.o : write_result_dyn_hp.f90 
+write_result_hp.o : write_result_hp.f90 
