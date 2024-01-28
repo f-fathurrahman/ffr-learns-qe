@@ -1,0 +1,48 @@
+absh.o : absh.f90 
+absorption.o : absorption.f90 inread.o haydock.o diag.o bse_init.o 
+absp.o : absp.f90 
+absp0.o : absp0.f90 absp_io.o 
+absp_io.o : absp_io.f90 
+absp_lanczos.o : absp_lanczos.f90 
+algos_kernel.o : algos_kernel.f90 
+bse_convert.o : bse_convert.f90 
+bse_init.o : bse_init.f90 intpts.o 
+bseascbin.o : bseascbin.f90 bse_convert.o 
+bsebinasc.o : bsebinasc.f90 bse_convert.o 
+bsemat_check.o : bsemat_check.f90 
+bsewrite.o : bsewrite.f90 
+diag.o : diag.f90 vmtxel.o intwfn.o intkernel.o input_q.o input_fi.o diagonalize.o absp.o absp_lanczos.o absp_io.o absp0.o 
+diagonalize.o : diagonalize.f90 
+distrib.o : distrib.f90 
+distrib_kernel.o : distrib_kernel.f90 
+epscopy.o : epscopy.f90 
+epsdiag.o : epsdiag.f90 
+epsmodel.o : epsmodel.f90 
+g_sum.o : g_sum.f90 algos_kernel.o 
+genwf_co.o : genwf_co.f90 
+genwf_kernel.o : genwf_kernel.f90 
+gx_sum.o : gx_sum.f90 
+haydock.o : haydock.f90 vmtxel.o mtxel_jdos.o iterate.o intwfn.o intkernel.o input_q.o input_fi.o absp0.o absh.o 
+input_co.o : input_co.f90 
+input_co_q.o : input_co_q.f90 
+input_fi.o : input_fi.f90 intpts.o distrib.o 
+input_kernel.o : input_kernel.f90 distrib_kernel.o 
+input_q.o : input_q.f90 
+inread.o : inread.f90 
+inread_kernel.o : inread_kernel.f90 algos_kernel.o 
+inteqp.o : inteqp.f90 intwfn.o inread.o input_q.o input_fi.o bse_init.o 
+interp.o : interp.f90 
+intkernel.o : intkernel.f90 interp.o intpts.o epsdiag.o 
+intpts.o : intpts.f90 
+intwfn.o : intwfn.f90 mtxel_t.o intpts.o interp.o input_co_q.o input_co.o genwf_co.o 
+iterate.o : iterate.f90 
+kernel.o : kernel.f90 sortbyq.o inread_kernel.o input_kernel.o genwf_kernel.o epscopy.o bsewrite.o mtxel_kernel.o algos_kernel.o 
+mtxel_jdos.o : mtxel_jdos.f90 
+mtxel_kernel.o : mtxel_kernel.f90 algos_kernel.o gx_sum.o g_sum.o w_sum.o 
+mtxel_t.o : mtxel_t.f90 
+setup_subsampling_csi.o : setup_subsampling_csi.f90 
+sortbyq.o : sortbyq.f90 
+summarize_eigenvectors.o : summarize_eigenvectors.f90 
+vmtxel.o : vmtxel.f90 
+vmtxel_main.o : vmtxel_main.f90 vmtxel.o input_q.o input_fi.o 
+w_sum.o : w_sum.f90 algos_kernel.o 
