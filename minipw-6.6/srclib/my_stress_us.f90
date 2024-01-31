@@ -112,8 +112,8 @@ SUBROUTINE my_stress_us_k()
     IF( ABS(fac) < 1.d-9 ) CYCLE
     !
     CALL compute_deff(deff, et(ibnd,ik))
-    write(*,*)
-    write(*,*) 'ibnd, ebands (in Ha), fac = ', ibnd, 0.5d0*et(ibnd,ik), fac
+    !write(*,*)
+    !write(*,*) 'ibnd, ebands (in Ha), fac = ', ibnd, 0.5d0*et(ibnd,ik), fac
     ijkb0 = 0
     DO np = 1, ntyp
       DO na = 1, nat
@@ -121,8 +121,8 @@ SUBROUTINE my_stress_us_k()
           DO ih = 1, nh(np)
             ikb = ijkb0 + ih
             evps = evps + fac * deff(ih,ih,na) * ABS(becp%k(ikb,ibnd))**2
-            write(*,'(1x,A,I4,I4,F18.10)') 'na, ih, Deff (in Ha) = ', na, ih, deff(ih,ih,na)*0.5d0
-            write(*,*) 'Current value of evps (in Ha) = ', evps*0.5d0
+            !write(*,'(1x,A,I4,I4,F18.10)') 'na, ih, Deff (in Ha) = ', na, ih, deff(ih,ih,na)*0.5d0
+            !write(*,*) 'Current value of evps (in Ha) = ', evps*0.5d0
             !
             IF ( upf(np)%tvanp .OR. upf(np)%is_multiproj ) THEN
               !
@@ -134,7 +134,7 @@ SUBROUTINE my_stress_us_k()
               DO jh = (ih + 1), nh(np)
                 jkb = ijkb0 + jh
                 evps = evps + deff(ih,jh,na) * fac * 2.D0 * DBLE(CONJG(becp%k(ikb,ibnd)) * becp%k(jkb,ibnd) )
-                write(*,*) 'Nondiagonal: evps = ', evps*0.5d0, "Deff = ", Deff(ih,jh,na)*0.5d0
+                !write(*,*) 'Nondiagonal: evps = ', evps*0.5d0, "Deff = ", Deff(ih,jh,na)*0.5d0
               ENDDO
             ENDIF
           ENDDO
@@ -143,7 +143,7 @@ SUBROUTINE my_stress_us_k()
       ENDDO ! na
     ENDDO ! np
   ENDDO ! ibnd
-  write(*,*) 'evps (in Ha) = ', evps*0.5d0
+  !write(*,*) 'evps (in Ha) = ', evps*0.5d0
   !
   DO l = 1, 3
     sigmanlc(l,l) = sigmanlc(l,l) - evps
@@ -157,7 +157,7 @@ SUBROUTINE my_stress_us_k()
   ALLOCATE( dvkb( npwx, nkb ) )
   !
   CALL my_gen_us_dj( ik, dvkb )
-  write(*,'(1x,A,I4,2F18.10)') 'ik, sum(dvkb Bessel) = ', ik, sum(dvkb)
+  !write(*,'(1x,A,I4,2F18.10)') 'ik, sum(dvkb Bessel) = ', ik, sum(dvkb)
   !
   DO ibnd = 1, nbnd
     work2 = (0.D0,0.D0)
@@ -204,13 +204,13 @@ SUBROUTINE my_stress_us_k()
       ENDDO
     ENDDO
   ENDDO
-  write(*,*)
-  write(*,*) 'sigmanlc after adding deriv Bessel contrib, not symmetrized (Ry/bohr**3):'
-  write(*,*)
-  do l = 1,3
-    write(*,'(1x,3F18.10)') sigmanlc(l,1), sigmanlc(l,2), sigmanlc(l,3)
-  enddo
-  write(*,*)
+  !write(*,*)
+  !write(*,*) 'sigmanlc after adding deriv Bessel contrib, not symmetrized (Ry/bohr**3):'
+  !write(*,*)
+  !do l = 1,3
+  !  write(*,'(1x,3F18.10)') sigmanlc(l,1), sigmanlc(l,2), sigmanlc(l,3)
+  !enddo
+  !write(*,*)
 
 
   !

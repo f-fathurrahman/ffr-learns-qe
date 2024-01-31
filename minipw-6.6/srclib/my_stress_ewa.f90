@@ -81,7 +81,7 @@ SUBROUTINE my_stress_ewa( alat, nat, ntyp, ityp, zv, at, bg, tau, &
   IF (alpha==0.0) CALL errore( 'stres_ew', 'optimal alpha not found', 1 )
   upperbound = e2 * charge**2 * SQRT(2 * alpha / tpi) * &
                qe_erfc ( SQRT(tpiba2 * gcutm / 4.0d0 / alpha) )
-  write(*,*) 'alpha = ', alpha, 'upperbound = ', upperbound
+  !write(*,*) 'alpha = ', alpha, 'upperbound = ', upperbound
   !
   IF (upperbound > 1d-7) GOTO 12
 

@@ -241,11 +241,11 @@ SUBROUTINE my_forces()
 
 
   ! Resymmetrize (should not be needed, but ...)
-  !CALL symvector( nat, force )
+  CALL symvector( nat, force )
   ! disabled for debugging purposes
-  write(*,*) '*************************************************'
-  write(*,*) '*** DEBUG: symvector in my_forces is disabled ***'
-  write(*,*) '*************************************************'
+  !write(*,*) '*************************************************'
+  !write(*,*) '*** DEBUG: symvector in my_forces is disabled ***'
+  !write(*,*) '*************************************************'
 
   IF (remove_rigid_rot ) then
     write(*,*) 'my_forces: remove rigid rotation'

@@ -86,7 +86,7 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
       ENDDO
       !
     ENDDO
-    write(*,*) 'wg ik = ', wg(:,ik)
+    !write(*,*) 'wg ik = ', wg(:,ik)
     !
     ! contribution from the  nonlocal part
     !
