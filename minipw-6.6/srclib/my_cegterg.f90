@@ -99,7 +99,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
     !    the first nvec columns contain the trial eigenvectors
   !
 
-   write(*,*) 'Calling my_cegterg here ...'
+   !write(*,*) 'Calling my_cegterg here ...'
 
 
   nhpsi = 0

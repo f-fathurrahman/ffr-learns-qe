@@ -26,24 +26,22 @@ SUBROUTINE add_paw_to_deeq( deeq )
   !
   INTEGER :: na, nt, ih, jh, ijh
   
-  write(*,*)
-  write(*,*) '--------------- add_paw_to_deeq is called'
-
   !
   IF (okpaw) THEN
-     DO na=1,nat
-        nt = ityp(na)
-        IF (.not.upf(nt)%tpawp) CYCLE
-        ijh=0
-        DO ih=1,nh(nt)
-           DO jh=ih,nh(nt)
-              ijh=ijh+1
-              deeq(ih,jh,na,1:nspin) = deeq(ih,jh,na,1:nspin) + &
-                                        ddd_paw(ijh,na,1:nspin)
-              deeq(jh,ih,na,1:nspin) = deeq(ih,jh,na,1:nspin) 
-           ENDDO
+    write(*,*)
+    write(*,*) '--------------- add_paw_to_deeq is called'
+    DO na=1,nat
+      nt = ityp(na)
+      IF (.not.upf(nt)%tpawp) CYCLE
+      ijh=0
+      DO ih=1,nh(nt)
+        DO jh=ih,nh(nt)
+          ijh = ijh + 1
+          deeq(ih,jh,na,1:nspin) = deeq(ih,jh,na,1:nspin) + ddd_paw(ijh,na,1:nspin)
+          deeq(jh,ih,na,1:nspin) = deeq(ih,jh,na,1:nspin) 
         ENDDO
-     ENDDO
+      ENDDO
+    ENDDO
   ENDIF
   !
   RETURN

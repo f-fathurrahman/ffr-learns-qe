@@ -48,7 +48,7 @@ SUBROUTINE my_stress_knl( sigmanlc, sigmakin )
   kfac(:) = 1.d0
   !
   DO ik = 1, nks
-    write(*,*)
+    !write(*,*)
     !write(*,*) 'ik = ', ik
     IF ( nks > 1 ) CALL get_buffer( evc, nwordwfc, iunwfc, ik )
     npw = ngk(ik)
