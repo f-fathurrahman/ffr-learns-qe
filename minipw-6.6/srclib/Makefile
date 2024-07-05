@@ -9,7 +9,8 @@ F77 = gfortran
 F77_OPTS = -O3 -Wall -cpp -fPIC
 
 F90 = gfortran
-F90_OPTS = -O3 -I$(LIBXC_HOME)/include $(DFLAGS) -Wall -cpp -fPIC
+F90_OPTS = -O3 -I$(LIBXC_HOME)/include $(DFLAGS) -Wall -cpp -fPIC -fallow-argument-mismatch
+# allow argument mismatch in gfortran-11 (not required in gfortran-9)
 
 include OBJECTS_QE.make
 
