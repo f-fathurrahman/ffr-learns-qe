@@ -17,6 +17,7 @@ my_stress.o my_stress_ewa.o my_stress_har.o my_stress_loc.o my_stress_cc.o \
 my_stress_knl.o my_stress_us.o my_addusstress.o \
 my_gen_us_dj.o my_gen_us_dy.o my_dqvan2.o \
 my_gradcorr.o \
+exposed_ffr.o \
 info_upf.o write_array.o
 
 # fft_interpolate is defined as an interface
