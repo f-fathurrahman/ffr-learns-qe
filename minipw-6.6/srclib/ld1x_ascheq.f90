@@ -323,6 +323,7 @@ SUBROUTINE ascheq(nn,lam,e,mesh,grid,vpot,ze2,thresh0,y,nstop)
   !WRITE(*,'(1x,A,F18.10)') 'ss = ', ss
   !WRITE(*,'(1x,A,F18.10)') 'de = ', de*0.5
   
+  ! the outputs are in Ha
   WRITE(*,*) 'iterSch = ', iter, ' e = ', e/2, ' de = ', abs(de)/2
   IF( abs(de) < thresh) THEN 
     WRITE(*,*) 'CONVERGENCE in ascheq'

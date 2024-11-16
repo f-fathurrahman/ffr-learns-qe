@@ -24,5 +24,4 @@ ld1x_default_conf.o ld1x_kin_e_density.o ld1x_run_test.o ld1x_write_results.o \
 ld1x_descreening.o ld1x_kli.o ld1x_scf.o ld1x_write_resultsps.o \
 ld1x_dfx_new.o ld1x_ld1inc.o ld1x_seriebes.o \
 ld1x_dir_outward.o ld1x_ld1_readin.o ld1x_set_psi_in.o \
-ld1x_dirsol.o ld1x_ld1_setup.o ld1x_set_rc_rv.o \
-ld1x_my_scf.o
+ld1x_dirsol.o ld1x_ld1_setup.o ld1x_set_rc_rv.o

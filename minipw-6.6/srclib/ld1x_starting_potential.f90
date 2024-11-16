@@ -25,13 +25,6 @@ subroutine starting_potential &
   real(DP), parameter :: e2 = 2.0_dp
   external vext
 
-  write(*,*)
-  write(*,*) 'In starting_potential: '
-  write(*,*) 'frozen_core = ', frozen_core
-  write(*,*) 'noscf       = ', noscf
-  write(*,*)
-
-
   !
   enne = 0.0_dp
   zz = max(zed,zval)

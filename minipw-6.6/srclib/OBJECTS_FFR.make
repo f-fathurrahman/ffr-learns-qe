@@ -1,5 +1,5 @@
 # !!! Use .o extension
-OBJ_FFR = \
+OBJ_FFR_PW = \
 prepare_all.o my_addusdens.o my_addusdens_g.o \
 test_loop_addusdens_g.o my_electrons.o my_electrons_scf.o \
 my_compute_magnetization.o my_delta_e.o my_delta_escf.o my_calc_pol.o \
@@ -19,6 +19,19 @@ my_gen_us_dj.o my_gen_us_dy.o my_dqvan2.o \
 my_gradcorr.o \
 exposed_ffr.o \
 info_upf.o write_array.o
+
+OBJ_FFR_LD1X = \
+ld1x_my_all_electron.o \
+ld1x_my_gener_pseudo.o \
+ld1x_my_run_test.o \
+ld1x_my_scf.o \
+ld1x_my_lschps.o \
+ld1x_prepare_all.o \
+ld1x_driver_starting_potential.o \
+exposed_ld1x_ffr.o
+
+
+OBJ_FFR = $(OBJ_FFR_PW) $(OBJ_FFR_LD1X)
 
 # fft_interpolate is defined as an interface
 

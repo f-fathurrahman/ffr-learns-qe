@@ -251,8 +251,6 @@ subroutine ld1_readin(input_file)
   write(*,*) 'dx   = ', dx
   write(*,*)
 
-
-
   call bcast_input()
   call mp_bcast( xmin, ionode_id, world_comm )
   call mp_bcast( dx, ionode_id, world_comm )
@@ -361,7 +359,6 @@ subroutine ld1_readin(input_file)
     call errore('ld1_readin', 'lsd not correct', 1)
   endif
 
- 
   if( config == 'default' ) CALL default_conf(zed, config)
 
   if( config == ' ' ) then
@@ -407,16 +404,15 @@ subroutine ld1_readin(input_file)
   if( dx <= 0.0_dp ) call errore('ld1_readin','wrong dx',1)
   
   !
-  ! generate the radial grid - note that if iswitch = 2 or 4
-  ! the radial grid is not generated but read from the pseudopotential file
+  ! generate the radial grid
+  ! note that if iswitch = 2 or 4 the radial grid is not generated
+  ! but read from the pseudopotential file
   !
   IF( iswitch == 1 .OR. iswitch == 3 ) THEN
     
     write(*,*)
     write(*,*) 'Generating radial grid:'
-
     write(*,*) 'zed  = ', zed   ! atomic number
-
     write(*,*) 'rmax = ', rmax
     write(*,*) 'xmin = ', xmin
     write(*,*) 'dx   = ', dx
@@ -426,9 +422,10 @@ subroutine ld1_readin(input_file)
 
     write(*,*) 'xmin after = ', xmin
     ! xmin might be modified if ibound=1
-
+    !
     write(*,*) 'grid%mesh  = ', grid%mesh
-    write(*,'(1x,A,F18.10)') 'grid%r = ', grid%r(10)
+    write(*,'(1x,A,F18.10)') 'grid%r(10) = ', grid%r(10)
+    
     rhoc = 0.0_dp
 
   ENDIF
@@ -441,8 +438,8 @@ subroutine ld1_readin(input_file)
     ! no more data needed for AE calculations
     ! (input unit can be safely closed)
     !
-    ios = close_input_file ( )
-    frozen_core=.false.
+    ios = close_input_file()
+    frozen_core = .false.
     return
     !     
   elseif( iswitch == 3 ) then
@@ -481,85 +478,102 @@ subroutine ld1_readin(input_file)
       endif
     endif
 
-    if (lloc < 0 .and. rcloc <=0.0_dp) &
-         call errore('ld1_readin','rcloc must be positive',1)
-    if (pseudotype < 1.or.pseudotype > 3) &
-         call errore('ld1_readin','specify correct pseudotype',1)
-    if (rel==2 .and. pseudotype==1 ) &
-          call errore('ld1_readin','Generation of a FR PP with'// & 
-                  &     ' pseudotype=1 not allowed',1)
-!
-!  gipaw reconstruction is not implemented in the fully relativistic case
-!
-     if (rel==2) then
-        lgipaw_reconstruction = .false.
-     endif
-     if(.not.lpaw)then
-        use_paw_as_gipaw = .false. 
-     endif
+    if( lloc < 0 .and. rcloc <=0.0_dp ) then
+      call errore('ld1_readin','rcloc must be positive',1)
+    endif
 
-     if (which_augfun=='PSQ'.and.pseudotype.ne.3) &
-          call errore('ld1_readin','PSQ requires pseudotype=3',1)
-     !
-     if (ionode) &
-        call read_psconfig (rel, lsd, nwfs, els, nns, lls, ocs, &
-             isws, jjs, enls, rcut, rcutus )
-     call bcast_psconfig()
-     !
-     if (rel==2) call occ_spinorbps &
-          (nwfs,nwfsx,els,nns,lls,jjs,ocs,rcut,rcutus,enls,isws,rel_dist)
-     !
-     lmax = maxval(lls(1:nwfs))
-     !
-     do ns=1,nwfs
-        if (pseudotype < 3) rcutus(ns) = rcut(ns)
-        do ns1=1,ns-1
-           if (lls(ns) == lls(ns1).and.pseudotype == 1) &
-                call errore('ld1_readin','Two wavefunctions for the same l',1)
+    if (pseudotype < 1.or.pseudotype > 3) then
+      call errore('ld1_readin','specify correct pseudotype',1)
+    endif
+
+    if (rel==2 .and. pseudotype==1 ) then
+      call errore('ld1_readin','Generation of a FR PP with pseudotype=1 not allowed',1)
+    endif
+
+    !
+    ! gipaw reconstruction is not implemented in the fully relativistic case
+    !
+    if( rel==2 ) then
+      lgipaw_reconstruction = .false.
+    endif
+
+    if(.not. lpaw)then
+      use_paw_as_gipaw = .false. 
+    endif
+
+    if( which_augfun == 'PSQ' .and. pseudotype /= 3) then
+      call errore('ld1_readin', 'PSQ requires pseudotype=3', 1)
+    endif
+     
+    !
+    if(ionode) then
+      call read_psconfig( rel, lsd, nwfs, els, nns, lls, ocs, &
+                      &   isws, jjs, enls, rcut, rcutus )
+    endif
+    call bcast_psconfig()
+    
+    if( rel==2 ) then
+      call occ_spinorbps(nwfs,nwfsx,els,nns,lls,jjs,ocs,rcut,rcutus,enls,isws,rel_dist)
+    endif
+    lmax = maxval(lls(1:nwfs))
+    
+    !
+    do ns=1,nwfs
+      if( pseudotype < 3 ) rcutus(ns) = rcut(ns)
+      do ns1 = 1,ns-1
+        if( lls(ns) == lls(ns1) .and. pseudotype == 1) then
+          call errore('ld1_readin','Two wavefunctions for the same l',1)
+        endif
+      enddo
+      !
+      if( enls(ns) /= 0.0_dp .and. ocs(ns) > 0.0_dp ) then
+        call errore('ld1_readin','unbound states must be empty',1)
+      endif
+      !
+      if (rcut(ns) /= rcutus(ns)) then
+        !
+        ! this channel is US. Check that there is at least another energy
+        !
+        c1 = 0
+        do ns1=1,nwfs
+          if( lls(ns) == lls(ns1) .and. jjs(ns) == jjs(ns1) ) then
+            c1=c1+1 
+          endif
         enddo
         !
-        if (enls(ns) /= 0.0_dp .and. ocs(ns) > 0.0_dp) &
-             call errore('ld1_readin','unbound states must be empty',1)
-        if (rcut(ns) /= rcutus(ns)) then
-           !
-           ! this channel is US. Check that there is at least another energy
-           !
-          c1=0
-          do ns1=1,nwfs
-             if (lls(ns) == lls(ns1) .and. jjs(ns) == jjs(ns1)) c1=c1+1 
-          enddo
-          if (c1 < 2) then
+        if( c1 < 2 ) then
              write (stdout,'(/,5x,A)') &
                   '!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!'
              call infomsg ('ld1_readin', &
                   'US requires at least two energies per channel '//els(ns))
              write (stdout,'(5x,A)') &
                   '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-          endif
         endif
-     enddo
-     if (nwfs > 1) then
-        if (els(nwfs)==els(nwfs-1) .and. jjs(nwfs)==jjs(nwfs-1) .and. &
-            lloc > -1) call errore('ld1_readin','only one local channel',1)
-     endif
-     nlc=0
-     nnl=0
-
-  end if
+      endif
+      !
+    enddo
+    !
+    if( nwfs > 1 ) then
+      if( els(nwfs)==els(nwfs-1) .and. jjs(nwfs)==jjs(nwfs-1) .and. lloc > -1) then
+        call errore('ld1_readin','only one local channel',1)
+      endif
+    endif
+    nlc = 0
+    nnl = 0
+  endif
   !
-  !    reading input for PP testing
+  ! reading input for PP testing
   !
-  jjts=0.0_dp
-  jjtsc=0.0_dp
-  
-  nconf=1
-  configts=' '
-  frozen_core=.false.
-  lsdts=lsd
-  ecutmin = 0.0_dp
-  ecutmax = 0.0_dp
-  decut   = 5.0_dp
-  rm      =30.0_dp
+  jjts = 0.0_dp
+  jjtsc = 0.0_dp
+  nconf = 1
+  configts = ' '
+  frozen_core = .false.
+  lsdts = lsd
+  ecutmin =  0.0_dp
+  ecutmax =  0.0_dp
+  decut   =  5.0_dp
+  rm      = 30.0_dp
   !
   ! default value for LDA-1/2
   !

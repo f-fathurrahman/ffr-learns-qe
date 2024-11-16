@@ -1,9 +1,4 @@
-!
-! Copyright (C) 2004i-2010 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+! similar to ld1x_scf, but with many debugging prints
 !
 !---------------------------------------------------------------
 SUBROUTINE ld1x_my_scf(ic)
@@ -21,7 +16,7 @@ SUBROUTINE ld1x_my_scf(ic)
                      nwf, nn, ll, jj, enl, oc, isw, core_state, frozen_core, &
                      tau, vtau, vsic, vsicnew, vhn1, egc, relpert, noscf
   IMPLICIT NONE
-
+ 
   INTEGER, INTENT(in) :: ic
 
   LOGICAL:: meta, conv
@@ -50,12 +45,12 @@ SUBROUTINE ld1x_my_scf(ic)
     vnew = vpot
     vtaunew = vtau
     !
+    ! loop over all states (number of wavefunctions)
     DO n = 1,nwf
-      
       !
       ! Solve one-particle equation (Schroedinger or Dirac)
       !
-      
+      ! only solve when occupation is not zero
       IF( oc(n) >= 0.0_dp ) THEN
         
         IF( ic==1 .or. .not. frozen_core .or. .not. core_state(n) ) THEN
@@ -91,11 +86,11 @@ SUBROUTINE ld1x_my_scf(ic)
             ! relativistic scalar calculation
             !
             IF( meta ) THEN
-              CALL lschps_meta( 1, zed, thresh, grid, nin, nn(n), ll(n),&
-                    enl(n), vnew(:,is), vtaunew, psi(:,:,n), nstop)
+              CALL lschps_meta( 1, zed, thresh, grid, nin, nn(n), ll(n), &
+                             &  enl(n), vnew(:,is), vtaunew, psi(:,:,n), nstop)
             ELSE
-              CALL lschps( 1, zed, thresh, grid, nin, nn(n), ll(n),&
-                    enl(n), vnew(:,is), psi(:,:,n), nstop)
+              CALL lschps( 1, zed, thresh, grid, nin, nn(n), ll(n), &
+                        &  enl(n), vnew(:,is), psi(:,:,n), nstop)
             ENDIF
             IF( nstop > 0 .and. oc(n) < 1.e-10_DP) nstop=0
             !
@@ -116,7 +111,7 @@ SUBROUTINE ld1x_my_scf(ic)
         !  
       ELSE
         !
-        ! Case oc(n) is negative
+        ! Case oc(n) is negative, zero out energies and psi
         !
         enl(n) = 0.0_dp
         psi(:,:,n) = 0.0_dp
@@ -147,10 +142,11 @@ SUBROUTINE ld1x_my_scf(ic)
 
 
     !
-    ! Calculate kinetc energy density (spherical approximation) if neede
+    ! Calculate kinetc energy density (spherical approximation) if needed
     !
-    IF( meta ) CALL kin_e_density(ndmx, grid%mesh, nwf, &
-      & ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
+    IF( meta ) then
+      CALL kin_e_density(ndmx, grid%mesh, nwf, ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
+    endif
     
     !
     ! calculate new potential

@@ -41,7 +41,7 @@ PROGRAM ld1
     !
     !   all-electron calculation
     !
-    CALL all_electron(.true., 1)
+    CALL my_all_electron(.true., 1) ! also compute log-deriv
     IF( write_coulomb ) CALL write_ae_pseudo ( )
     !
   ELSEIF( iswitch == 2 ) THEN
@@ -55,10 +55,10 @@ PROGRAM ld1
      !
      !  pseudopotential generation and test
      !
-     CALL all_electron(.FALSE., 1)
-     CALL gener_pseudo()
+     CALL my_all_electron(.FALSE., 1) ! do not compute log-deriv
+     CALL my_gener_pseudo()
      !if(.not. lgipaw_reconstruction) 
-     CALL run_test()
+     CALL my_run_test()
      CALL ld1_writeout()
      !
   ELSEIF( iswitch == 4 ) THEN

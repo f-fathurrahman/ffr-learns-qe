@@ -54,27 +54,13 @@ SUBROUTINE scf(ic)
                     CALL lschps_meta (2, zed, thresh, grid, nin, nn(n), ll(n),&
                          enl(n), vnew(1,is), vtaunew, psi(1,1,n), nstop)
                  ELSE
-                    write(*,*) 'Solving nonrelativistic nonmeta equation'
-                    write(*,*) 'nn = ', nn(n)
-                    write(*,*) 'll = ', ll(n)
-                    write(*,*) 'vnew = ', vnew(1,is)
-                    write(*,*) 'ze2 = ', ze2, ''
-                    write(*,*) 'thresh = ', thresh
-                    write(*,*) 'enl = ', enl(n)
                     
                     CALL ascheq(nn(n), ll(n), enl(n), grid%mesh, grid,&
                       vnew(1,is), & ! potential
                       ze2, thresh, psi(1,1,n), nstop)
-                    
-                    if(n == nwf) then
-                        do ii = 1,nwf
-                            write(*,*) 'enl = ', enl(ii)/2
-                            write(*,*) 'psi1 = ', psi(1,1,ii)
-                        enddo
-                        !stop 'ffr scf line 65'
-                    ENDIF
+            
                  
-                 END IF
+                 ENDIF
 
               ELSEIF (rel == 1) THEN
                  ! relativistic scalar calculation
@@ -149,8 +135,6 @@ SUBROUTINE scf(ic)
      CALL vpack(grid%mesh,ndmx,nspin,vnew,vpot,1)
      CALL dmixp(grid%mesh*nspin,vnew,vpot,beta,tr2,iter,id,eps0,conv,maxter)
      CALL vpack(grid%mesh,ndmx,nspin,vnew,vpot,-1)
-     
-     write(*,'(1x,I5,ES18.10)') iter, eps0
      
      !
      ! mix old and new metaGGA potential - use simple mixing
