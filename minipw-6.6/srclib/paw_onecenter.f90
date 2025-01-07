@@ -257,9 +257,9 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           write(*,*) 'Before calc ddd_paw: sum savedv_lm dn: (in Ha) = ', sum(savedv_lm(:,:,2))*0.5d0
         endif
 
-        write(*,*) '--------------------------'
-        write(*,*) 'ENTER Calculating ddd_paw:'
-        write(*,*) '--------------------------'
+        !write(*,*) '--------------------------'
+        !write(*,*) 'ENTER Calculating ddd_paw:'
+        !write(*,*) '--------------------------'
 
         !
         spins: DO is = 1, nspin_mag
@@ -316,9 +316,9 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           ENDDO ! nb
         ENDDO spins
 
-        write(*,*) '--------------------------'
-        write(*,*) 'EXIT Calculating ddd_paw:'
-        write(*,*) '--------------------------'
+        !write(*,*) '--------------------------'
+        !write(*,*) 'EXIT Calculating ddd_paw:'
+        !write(*,*) '--------------------------'
 
         IF( with_small_so ) THEN
           DEALLOCATE( msmall_lm )

@@ -105,25 +105,45 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   write(*,*) '************* Enter my_mix_rho *************'
   write(*,*)
 
-
   !
   ngm0 = ngms
   !
   mixrho_iter = iter
   !
   IF ( n_iter > maxmix ) CALL errore( 'mix_rho', 'n_iter too big', 1 )
+
   !
   ! define mix_type variables and copy scf_type variables there
   !
   call create_mix_type(rhout_m) 
   call create_mix_type(rhoin_m)
   !
+  ! copy several variables from scf_type to mix_type
   call assign_scf_to_mix_type(rhoin, rhoin_m)
   call assign_scf_to_mix_type(input_rhout, rhout_m)
   ! copy?
 
+  write(*,*)
+  write(*,*) 'sum rhoin%of_g up = ', sum(rhoin%of_g(:,1))
+  if(nspin == 2) then
+    write(*,*) 'sum rhoin%of_g dn = ', sum(rhoin%of_g(:,2))
+  endif
+  dr2 = rho_ddot( rhoin_m, rhoin_m, ngms )  ! must assign first ??
+  write(*,*) 'test rho_ddot(rhoin_m, rhoin_m) = ', dr2
+
+  write(*,*)
+  write(*,*) 'sum input_rhout%of_g up = ', sum(input_rhout%of_g(:,1))
+  if(nspin == 2) then
+    write(*,*) 'sum input_rhout%of_g dn = ', sum(input_rhout%of_g(:,2))
+  endif
+  dr2 = rho_ddot( rhout_m, rhout_m, ngms )
+  write(*,*) 'test rho_ddot(rhout_m, rhout_m) = ', dr2 
+
+
   ! compute differences
   call mix_type_AXPY( -1.d0, rhoin_m, rhout_m )  ! rhoout_m <- (-1)*rhoin_m + rhout_m
+
+
   ! Y <= A*X + Y
   !
   ! compute the "norm" ?

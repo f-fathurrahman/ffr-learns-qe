@@ -216,6 +216,8 @@ CONTAINS
    !
    TYPE(mix_type) :: rho
    !
+   !write(*,*) '*** Create mix_type with ngms = ', ngms
+   !
    ALLOCATE( rho%of_g(ngms,nspin) )
    !
    rho%of_g = 0._dp
@@ -665,7 +667,7 @@ CONTAINS
 ! ffr: defined between two mix_type objects
 ! but only rho%of_g and rho%el_dipole (and before rho%becsum) are used
 !-----------------------------------------------------------------------------------
-FUNCTION rho_ddot( rho1, rho2, gf )
+FUNCTION rho_ddot( rho1, rho2, gf ) result(res)
   !----------------------------------------------------------------------------------
   !! Calculates \(4\pi/G^2\ \rho_1(-G)\ \rho_2(G) = V1_\text{Hartree}(-G)\ \rho_2(G)\)
   !! used as an estimate of the self-consistency error on the energy.
@@ -687,7 +689,7 @@ FUNCTION rho_ddot( rho1, rho2, gf )
   !! second density matrix
   INTEGER, INTENT(IN) :: gf
   !! points delimiter
-  REAL(DP) :: rho_ddot
+  REAL(DP) :: res
   !! output: see function comments
   !
   ! ... local variables
@@ -695,49 +697,52 @@ FUNCTION rho_ddot( rho1, rho2, gf )
   REAL(DP) :: fac
   INTEGER  :: ig
 
-  !write(*,*) '*** Calling rho_ddot with gstart, gf (G final) = ', gstart, gf
+  write(*,*) '*** Calling rho_ddot with gstart, gf (G final) = ', gstart, gf
+
+  write(*,*) 'Pass here'
+  write(*,*) 'rho_ddot: sum rho1%of_g(:,1) = ', sum(rho1%of_g(:,1))
+  write(*,*) 'rho_ddot: sum rho2%of_g(:,1) = ', sum(rho2%of_g(:,1))
 
   !
   fac = e2 * fpi / tpiba2
   !
-  rho_ddot = 0.D0
+  res = 0.D0
   !
   DO ig = gstart, gf
-     rho_ddot = rho_ddot + REAL(CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP) / gg(ig)
+     res = res + REAL(CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP) / gg(ig)
   ENDDO
+  write(*,*) 'res before fac = ', res
   !
-  rho_ddot = fac*rho_ddot
+  res = fac*res
   !
-  IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+  IF ( gamma_only ) res = 2.D0 * res
   !
   IF ( nspin >= 2 )  THEN
      fac = e2*fpi / tpi**2  ! lambda=1 a.u.
      IF ( gstart == 2 ) THEN
-        rho_ddot = rho_ddot + &
-                fac * SUM(REAL(CONJG( rho1%of_g(1,2:nspin))*(rho2%of_g(1,2:nspin) ), DP))
+        res = res + fac * SUM(REAL(CONJG( rho1%of_g(1,2:nspin))*(rho2%of_g(1,2:nspin) ), DP))
      ENDIF
      !
      IF ( gamma_only ) fac = 2.D0 * fac
      !
      DO ig = gstart, gf
-        rho_ddot = rho_ddot + &
-              fac * SUM(REAL(CONJG( rho1%of_g(ig,2:nspin))*(rho2%of_g(ig,2:nspin) ), DP))
+        res = res + fac * SUM(REAL(CONJG( rho1%of_g(ig,2:nspin))*(rho2%of_g(ig,2:nspin) ), DP))
      ENDDO
   ENDIF
   !
-  rho_ddot = rho_ddot * omega * 0.5D0
+  res = res * omega * 0.5D0
   !
-  CALL mp_sum( rho_ddot, intra_bgrp_comm )
+  CALL mp_sum( res, intra_bgrp_comm )
   !
-  IF (dft_is_meta()) rho_ddot = rho_ddot + tauk_ddot( rho1, rho2, gf )
-  IF (lda_plus_u )   rho_ddot = rho_ddot + ns_ddot( rho1, rho2 )
+  IF (dft_is_meta()) res = res + tauk_ddot( rho1, rho2, gf )
+  IF (lda_plus_u )   res = res + ns_ddot( rho1, rho2 )
   ! 
   ! Beware: paw_ddot has a hidden parallelization on all processors
   !         it must be called on all processors or else it will hang
   ! Beware: commented out because it yields too often negative values
   ! IF (okpaw)         rho_ddot = rho_ddot + paw_ddot(rho1%bec, rho2%bec)
   !
-  IF (dipfield) rho_ddot = rho_ddot + (e2/2.0_DP)*(rho1%el_dipole * rho2%el_dipole)*omega/fpi
+  IF (dipfield) res = res + (e2/2.0_DP)*(rho1%el_dipole * rho2%el_dipole)*omega/fpi
   !
   RETURN
   !
