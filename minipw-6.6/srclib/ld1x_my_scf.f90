@@ -98,8 +98,8 @@ SUBROUTINE ld1x_my_scf(ic)
             !
             ! Dirac equation
             !
-            CALL dirsol(ndmx, grid%mesh, nn(n), ll(n), jj(n), iter, enl(n), &
-                      thresh, grid, psi(1,1,n), vnew(1,is), nstop)
+            CALL dirsol( ndmx, grid%mesh, nn(n), ll(n), jj(n), iter, enl(n), &
+                    &    thresh, grid, psi(1,1,n), vnew(1,is), nstop )
           ELSE
             CALL errore('scf', 'relativistic not programmed', 1)
           
@@ -152,7 +152,7 @@ SUBROUTINE ld1x_my_scf(ic)
     ! calculate new potential
     !
     CALL new_potential( ndmx, grid%mesh, grid, zed, vxt, &
-          lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
+       &                lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
     
     !
     ! calculate SIC correction potential (if present)

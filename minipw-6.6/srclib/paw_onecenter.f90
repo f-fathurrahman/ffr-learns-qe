@@ -182,6 +182,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           ! Compute rho spherical harmonics expansion from becsum and pfunc
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc, rho_lm )
           write(*,*)
+          write(*,*) 'i_what == AE, sum becsum up = ', sum(becsum(:,:,1))
+          if(nspin == 2) then
+            write(*,*) 'i_what == AE, sum becsum dn = ', sum(becsum(:,:,2))
+          endif
           write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
           !
           with_small_so = upf(i%t)%has_so .AND. nspin_mag==4
@@ -240,11 +244,18 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         IF( PRESENT(energy) .AND. mykey == 0 ) energy_tot = energy_tot + sgn*energy
         IF( PRESENT(e_cmp)  .AND. mykey == 0 ) e_cmp(ia, XC, i_what) = sgn*energy
         
-        write(*,*) 'sum v_lm after PAW_xc_potential (in Ha): ', sum(v_lm)*0.5d0
+        !write(*,*) 'sum v_lm after PAW_xc_potential (in Ha): ', sum(v_lm)*0.5d0
+        write(*,*) 'sum v_lm up after PAW_xc_potential (in Ha): ', sum(v_lm(:,:,1))*0.5d0
+        if(nspin == 2) then
+          write(*,*) 'sum v_lm dn after PAW_xc_potential (in Ha): ', sum(v_lm(:,:,2))*0.5d0
+        endif
 
         savedv_lm(:,:,:) = savedv_lm(:,:,:) + v_lm(:,:,:)
         
-        write(*,*) 'sum savedv_lm: (in Ha) = ', sum(savedv_lm)*0.5d0
+        write(*,*) 'Before calc ddd_paw: sum savedv_lm up: (in Ha) = ', sum(savedv_lm(:,:,1))*0.5d0
+        if(nspin == 2) then
+          write(*,*) 'Before calc ddd_paw: sum savedv_lm dn: (in Ha) = ', sum(savedv_lm(:,:,2))*0.5d0
+        endif
 
         write(*,*) '--------------------------'
         write(*,*) 'ENTER Calculating ddd_paw:'
@@ -269,8 +280,10 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
               ENDIF
               
               !write(*,*)
-              !write(*,'(1x,A,I3,A,F18.10)') 'nmb = ', nmb, ' sum(rho_lm) = ', sum(rho_lm)
-              
+              !write(*,'(1x,A,I3,A,F18.10)') 'nmb = ', nmb, ' sum(rho_lm) up = ', sum(rho_lm(:,:,1))
+              !if(nspin == 2) then
+              !  write(*,'(1x,A,I3,A,F18.10)') 'nmb = ', nmb, ' sum(rho_lm) up = ', sum(rho_lm(:,:,2))
+              !endif
               !
               ! Now I multiply the rho_lm and the potential, I can use
               ! rho_lm itself as workspace
@@ -313,7 +326,13 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
         ENDIF
       
       ENDDO whattodo
-      
+
+
+      write(*,*) 'ia = ', ia, ' sum ddd_paw up = ', sum(d(:,i%a,1))*0.5d0
+      if(nspin == 2) then
+        write(*,*) 'ia = ', ia, ' sum ddd_paw dn = ', sum(d(:,i%a,2))*0.5d0
+      endif
+
       ! cleanup
       DEALLOCATE( rho_lm    )
       DEALLOCATE( savedv_lm )
@@ -1227,9 +1246,9 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
   !                 output from the h.s. --> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   v_lm = 0.0_DP
   
-  write(*,*) 'Enter PAW_h_potential'
-  write(*,*) 'grid.dx = ', g(i%t)%dx
-  write(*,*) 'grid.mesh  = ', g(i%t)%mesh
+  !write(*,*) 'Enter PAW_h_potential'
+  !write(*,*) 'grid.dx = ', g(i%t)%dx
+  !write(*,*) 'grid.mesh  = ', g(i%t)%mesh
 
   !
   DO lm = 1, i%l**2
@@ -1239,9 +1258,8 @@ SUBROUTINE PAW_h_potential( i, rho_lm, v_lm, energy )
       aux(k) = pref * SUM(rho_lm(k,lm,1:nspin_lsda))
     ENDDO
     !
-    write(*,*)
     CALL hartree( l, 2*l+2, i%m, g(i%t), aux(:), v_lm(:,lm) )
-    write(*,*) 'lm = ', lm, ' sum v_lm(:,lm) in Ha = ', sum(v_lm(:,lm))*0.5d0
+    !write(*,*) 'lm = ', lm, ' sum v_lm(:,lm) in Ha = ', sum(v_lm(:,lm))*0.5d0
   ENDDO
   !
   ! compute energy if required:

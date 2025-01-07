@@ -191,9 +191,13 @@ SUBROUTINE PAW_atomic_becsum()
   ! ... copy becsum in scf structure and symmetrize it
   rho%bec(:,:,:) = becsum(:,:,:)
 
-  write(*,*) 'PAW_atomic_becsum: sum(becsum) before PAW_symmetrize = ', sum(becsum)
-  write(*,*) 'becsum(1,1,1) before = ', becsum(1,1,1)
-  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+  write(*,*) 'PAW_atomic_becsum: sum(becsum) before PAW_symmetrize = ', sum(rho%bec)
+  write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
+  write(*,*) 'becsum(2,1,1) before = ', rho%bec(2,1,1)
+  if(nspin == 2) then
+    write(*,*) 'becsum(1,1,2) before = ', rho%bec(1,1,2)
+    write(*,*) 'becsum(2,1,2) before = ', rho%bec(2,1,2)
+  endif
   
   ! Write for comparison
   !write(101,*) becsum
@@ -204,8 +208,12 @@ SUBROUTINE PAW_atomic_becsum()
   !write(102,*) rho%bec
 
   write(*,*) 'PAW_atomic_becsum: sum(becsum) after PAW_symmetrize = ', sum(rho%bec)
-  write(*,*) 'becsum(1,1,1) before = ', rho%bec(1,1,1)
-  write(*,*) 'becsum(1,2,1) before = ', becsum(1,2,1)
+  write(*,*) 'becsum(1,1,1) after = ', rho%bec(1,1,1)
+  write(*,*) 'becsum(2,1,1) after = ', rho%bec(2,1,1)
+  if(nspin == 2) then
+    write(*,*) 'becsum(1,1,2) after = ', rho%bec(1,1,2)
+    write(*,*) 'becsum(2,1,2) after = ', rho%bec(2,1,2)
+  endif
 
   write(*,*)
   write(*,*) '------------------------------------------------------------'

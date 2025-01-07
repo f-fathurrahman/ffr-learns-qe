@@ -67,7 +67,7 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   rhoneg = 0.D0
   !
   !
-  rho%of_r(:,1) = rho%of_r(:,1) + rho_core(:)
+  rho%of_r(:,1) = rho%of_r(:,1) + rho_core(:) ! XXX add to up only?
   
   write(*,*) 'my_v_xc: sum rho_core: ', sum(rho_core)
 
@@ -104,11 +104,14 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
      ! ... spin-polarized case
      !
      CALL xc( dfftp%nnr, 2, 2, rho%of_r, ex, ec, vx, vc )
+     ! note that rho%of_r contains rho_core contribution?
      !
      DO ir = 1, dfftp%nnr   !OMP ?
-        v(ir,:) = e2*( vx(ir,:) + vc(ir,:) )
+        v(ir,:) = e2*( vx(ir,:) + vc(ir,:) ) ! convert to Ry?
         etxc = etxc + e2*( (ex(ir) + ec(ir))*rho%of_r(ir,1) )
-        rho%of_r(ir,1) = rho%of_r(ir,1) - rho_core(ir)
+        !
+        rho%of_r(ir,1) = rho%of_r(ir,1) - rho_core(ir)  ! recover original rhoe
+        !
         vtxc = vtxc + ( ( v(ir,1) + v(ir,2) )*rho%of_r(ir,1) + &
                         ( v(ir,1) - v(ir,2) )*rho%of_r(ir,2) )
         !

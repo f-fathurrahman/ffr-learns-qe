@@ -42,6 +42,7 @@ SUBROUTINE add_paw_to_deeq( deeq )
         ENDDO
       ENDDO
     ENDDO
+    write(*,*) 'sum deeq = ', sum(deeq)*0.5d0
   ENDIF
   !
   RETURN
