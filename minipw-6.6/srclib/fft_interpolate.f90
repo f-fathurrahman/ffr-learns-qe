@@ -28,25 +28,26 @@ subroutine fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
 
   call start_clock ('interpolate')
 
-  write(*,*)
-  write(*,*) 'fft_interpolate_real: shape v_in = ', shape(v_in)
-  write(*,*) 'fft_interpolate_real: shape v_out = ', shape(v_out)
-  write(*,*)
-  write(*,*) 'dfft_in%nnr  = ', dfft_in%nnr
-  write(*,*) 'dfft_out%nnr = ', dfft_out%nnr
-  write(*,*)
+  !write(*,*)
+  !write(*,*) 'fft_interpolate_real: shape v_in = ', shape(v_in)
+  !write(*,*) 'fft_interpolate_real: shape v_out = ', shape(v_out)
+  !write(*,*)
+  !write(*,*) 'dfft_in%nnr  = ', dfft_in%nnr
+  !write(*,*) 'dfft_out%nnr = ', dfft_out%nnr
+  !write(*,*)
 
 
   IF( dfft_out%grid_id == dfft_in%grid_id ) THEN
      
-    write(*,*) 'fft_interpolate_real: simply copy' 
+    !write(*,*) 'fft_interpolate_real: simply copy' 
+    !
     v_out (1:dfft_in%nnr) = v_in (1:dfft_in%nnr)
 
   ELSE
      
-    write(*,*) 'fft_interpolate_real: two different grids'
-    write(*,*) 'fft_interpolate_real: dfft_in%nnr = ', dfft_in%nnr
-    write(*,*) 'fft_interpolate_real: dfft_out%nnr = ', dfft_out%nnr
+    !write(*,*) 'fft_interpolate_real: two different grids'
+    !write(*,*) 'fft_interpolate_real: dfft_in%nnr = ', dfft_in%nnr
+    !write(*,*) 'fft_interpolate_real: dfft_out%nnr = ', dfft_out%nnr
 
     if (dfft_in%lgamma .neqv. dfft_out%lgamma) &
        call fftx_error__ ('fft_interpolate_real','two grids with inconsistent lgamma values', 1)
@@ -141,10 +142,10 @@ subroutine fft_interpolate_complex(dfft_in, v_in, dfft_out, v_out )
 
   ELSE
 
-    write(*,*)
-    write(*,*) '@@@@ fft_interpolate_complex: two different grids'
-    write(*,*) '@@@@ fft_interpolate_complex: dfft_in%nnr = ', dfft_in%nnr
-    write(*,*) '@@@@ fft_interpolate_complex: dfft_out%nnr = ', dfft_out%nnr
+    !write(*,*)
+    !write(*,*) 'fft_interpolate_complex: two different grids'
+    !write(*,*) 'fft_interpolate_complex: dfft_in%nnr = ', dfft_in%nnr
+    !write(*,*) 'fft_interpolate_complex: dfft_out%nnr = ', dfft_out%nnr
 
 
      ALLOCATE(aux_in( dfft_in%nnr))

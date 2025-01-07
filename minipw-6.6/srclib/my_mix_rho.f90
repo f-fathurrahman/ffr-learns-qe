@@ -83,6 +83,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   INTEGER, SAVE :: mixrho_iter = 0    ! history of mixing
 
+  ! XXX Uh-oh saved variables ....
   TYPE(mix_type), ALLOCATABLE, SAVE :: &
     df(:),        &! information from preceding iterations
     dv(:)          !     "  "       "     "        "  "
@@ -94,6 +95,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   INTEGER, EXTERNAL :: find_free_unit
 
+  ! XXX Uh-oh saved variables ....
   COMPLEX(DP), ALLOCATABLE, SAVE :: df_nsg(:,:,:,:,:,:), dv_nsg(:,:,:,:,:,:)
 
   ! LDA+U stuffs are removed
@@ -113,20 +115,22 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   ! define mix_type variables and copy scf_type variables there
   !
-  call create_mix_type(rhout_m)
+  call create_mix_type(rhout_m) 
   call create_mix_type(rhoin_m)
-
-  
   !
   call assign_scf_to_mix_type(rhoin, rhoin_m)
   call assign_scf_to_mix_type(input_rhout, rhout_m)
+  ! copy?
 
-  call mix_type_AXPY( -1.d0, rhoin_m, rhout_m )
+  ! compute differences
+  call mix_type_AXPY( -1.d0, rhoin_m, rhout_m )  ! rhoout_m <- (-1)*rhoin_m + rhout_m
+  ! Y <= A*X + Y
   !
+  ! compute the "norm" ?
   dr2 = rho_ddot( rhout_m, rhout_m, ngms )  !!!! this used to be ngm NOT ngms
 
   !
-  IF (dr2 < 0.0_DP) CALL errore('mix_rho','negative dr2',1)
+  IF (dr2 < 0.0_DP) CALL errore('mix_rho', 'negative dr2', 1)
   !
   conv = ( dr2 < tr2 )
   write(*,'(1x,A,2ES18.10)') 'my_mix_rho: dr2, tr2, conv = ', dr2, tr2
@@ -160,6 +164,10 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     RETURN
   ENDIF
 
+  !
+  ! Not yet converged ....
+  !
+
   IF( .NOT. ALLOCATED( df ) ) THEN
     ALLOCATE( df( n_iter ) )
     DO i=1,n_iter
@@ -189,11 +197,12 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   ipos = mixrho_iter - 1 - ( ( mixrho_iter - 2 ) / n_iter ) * n_iter
   !
   IF ( mixrho_iter > 1 ) THEN
-     CALL davcio_mix_type( df(ipos), iunmix, 1, read_ )
-     CALL davcio_mix_type( dv(ipos), iunmix, 2, read_ )
-     !
-     call mix_type_AXPY( -1.d0, rhout_m, df(ipos) )
-     call mix_type_AXPY( -1.d0, rhoin_m, dv(ipos) )
+    ! IO stuffs (using disk?)
+    CALL davcio_mix_type( df(ipos), iunmix, 1, read_ )
+    CALL davcio_mix_type( dv(ipos), iunmix, 2, read_ )
+    !
+    call mix_type_AXPY( -1.d0, rhout_m, df(ipos) )
+    call mix_type_AXPY( -1.d0, rhoin_m, dv(ipos) )
   ENDIF
   !
   DO i = 1, iter_used
@@ -207,10 +216,9 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   CALL davcio_mix_type( rhoin_m, iunmix, 2, write_ )
   !
   IF ( mixrho_iter > 1 ) THEN
-     CALL davcio_mix_type( df(ipos), iunmix, 2*ipos+1, write_ )
-     CALL davcio_mix_type( dv(ipos), iunmix, 2*ipos+2, write_ )
-  END IF
-
+    CALL davcio_mix_type( df(ipos), iunmix, 2*ipos+1, write_ )
+    CALL davcio_mix_type( dv(ipos), iunmix, 2*ipos+2, write_ )
+  ENDIF
 
   !
   ! Nothing else to do on first iteration
@@ -331,6 +339,8 @@ SUBROUTINE my_approx_screening( drho )
   type (mix_type), intent(INOUT) :: drho ! (in/out)
   !
   REAL(DP) :: rs, agg0
+
+  write(*,*) 'Calling my_approx_screening'
   !
   rs = ( 3.D0 * omega / fpi / nelec )**( 1.D0 / 3.D0 )
   !

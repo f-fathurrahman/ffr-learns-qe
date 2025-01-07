@@ -393,6 +393,9 @@ FUNCTION PAW_ddot( bec1, bec2 )
   REAL(DP) :: i_sign    ! +1 for AE, -1 for PS
   REAL(DP) :: integral  ! workspace
   TYPE(paw_info) :: i
+
+  write(*,*) '*** Calling PAW_ddot'
+
   !
   CALL start_clock( 'PAW_ddot' )
   ! initialize 

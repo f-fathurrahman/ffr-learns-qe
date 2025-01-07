@@ -49,9 +49,9 @@ SUBROUTINE my_sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
   INTEGER :: npw, ikb, jkb, ih, jh, ijh, na, np, is, js
 
 
-  write(*,*)
-  write(*,*) '>>>> Calling my_sum_bec'
-  write(*,*)
+  !write(*,*)
+  !write(*,*) '>>>> Calling my_sum_bec'
+  !write(*,*)
 
   ! ffr: tqr is disabled
 
@@ -138,7 +138,7 @@ SUBROUTINE my_sum_bec ( ik, current_spin, ibnd_start, ibnd_end, this_bgrp_nbnd )
     ENDIF
   ENDDO
 
-  write(*,*) 'my_sum_bec: sum(becsum) = ', sum(becsum)
+  !write(*,*) 'my_sum_bec: sum(becsum) = ', sum(becsum)
 
   !
 END SUBROUTINE my_sum_bec

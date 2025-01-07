@@ -139,6 +139,13 @@ CONTAINS
    ! ... local variable
    !
    LOGICAL :: allocate_becsum ! PAW hack
+
+   !write(*,*)
+   !write(*,*) 'create_scf_type: do_not_allocate_becsum = ', do_not_allocate_becsum
+   !write(*,*)
+   ! do_not_allocate_becsum is false when used for potentials
+   ! do_not_allocate_becsum is true when used for densities
+
    !
    ALLOCATE( rho%of_r(dfftp%nnr,nspin) )
    ALLOCATE( rho%of_g(ngm,nspin) )
@@ -398,6 +405,9 @@ CONTAINS
   REAL(DP) :: A
   TYPE(mix_type), INTENT(IN)    :: X
   TYPE(mix_type), INTENT(INOUT) :: Y
+
+  !write(*,*) '*** Calling mix_type_AXPY with A = ', A
+
   !
   Y%of_g = Y%of_g  + A * X%of_g
   !
@@ -493,15 +503,15 @@ CONTAINS
       !
       write(*,*) 'high_frequency_mixing is active'
       !
-      rhoin%of_g = rhoin%of_g + alphamix * (input_rhout%of_g-rhoin%of_g)
-      rhoin%of_g(1:ngms,1:nspin) = (0.d0,0.d0)
+      rhoin%of_g = rhoin%of_g + alphamix * (input_rhout%of_g-rhoin%of_g) ! Linear mixing
+      rhoin%of_g(1:ngms,1:nspin) = (0.d0,0.d0) ! set low g to zero
       ! define rho_s%of_r 
       DO is = 1, nspin
          psic(:) = ( 0.D0, 0.D0 )
          psic(dfftp%nl(:)) = rhoin%of_g(:,is)
          IF ( gamma_only ) psic(dfftp%nlm(:)) = CONJG( rhoin%of_g(:,is) )
          CALL invfft( 'Rho', psic, dfftp )
-         rhoin%of_r(:,is) = psic(:)
+         rhoin%of_r(:,is) = psic(:) ! set output !!!!!
       ENDDO
       !
       IF (dft_is_meta() .OR. lxdm) THEN
@@ -650,9 +660,11 @@ CONTAINS
    ENDIF
    !
  END SUBROUTINE davcio_mix_type
- !
- !
- !-----------------------------------------------------------------------------------
+!
+!
+! ffr: defined between two mix_type objects
+! but only rho%of_g and rho%el_dipole (and before rho%becsum) are used
+!-----------------------------------------------------------------------------------
 FUNCTION rho_ddot( rho1, rho2, gf )
   !----------------------------------------------------------------------------------
   !! Calculates \(4\pi/G^2\ \rho_1(-G)\ \rho_2(G) = V1_\text{Hartree}(-G)\ \rho_2(G)\)
@@ -682,6 +694,9 @@ FUNCTION rho_ddot( rho1, rho2, gf )
   !
   REAL(DP) :: fac
   INTEGER  :: ig
+
+  !write(*,*) '*** Calling rho_ddot with gstart, gf (G final) = ', gstart, gf
+
   !
   fac = e2 * fpi / tpiba2
   !
