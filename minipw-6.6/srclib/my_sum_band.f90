@@ -150,13 +150,14 @@ SUBROUTINE my_sum_band()
      !
      IF ( okpaw ) THEN
         rho%bec(:,:,:) = becsum(:,:,:)
+        write(*,*) 'sum becsum before symmetrize = ', sum(rho%bec)
         CALL PAW_symmetrize(rho%bec)
+        write(*,*) 'sum becsum after symmetrize (only for PAW) = ', sum(rho%bec)
      END IF
-     write(*,*) 'sum becsum = ', sum(becsum)
      !
      ! ... Here we add the (unsymmetrized) Ultrasoft contribution to the charge
      !
-     CALL my_addusdens( rho%of_g(:,:) )
+     CALL my_addusdens( rho%of_g(:,:) ) ! this use unsymmetrized becsum, not rho%bec
   ENDIF
 
   ! symmetrize rho(G) 

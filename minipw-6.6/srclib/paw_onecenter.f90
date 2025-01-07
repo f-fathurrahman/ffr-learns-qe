@@ -182,11 +182,17 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           ! Compute rho spherical harmonics expansion from becsum and pfunc
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%pfunc, rho_lm )
           write(*,*)
+          write(*,*) 'i_what == AE, sum becsum total = ', sum(becsum)
           write(*,*) 'i_what == AE, sum becsum up = ', sum(becsum(:,:,1))
           if(nspin == 2) then
             write(*,*) 'i_what == AE, sum becsum dn = ', sum(becsum(:,:,2))
           endif
-          write(*,*) 'i_what == AE, sum rho_lm = ', sum(rho_lm)
+          !
+          write(*,*) 'i_what == AE, sum rho_lm total = ', sum(rho_lm)
+          write(*,*) 'i_what == AE, sum rho_lm up = ', sum(rho_lm(:,:,1))
+          if(nspin == 2) then
+            write(*,*) 'i_what == AE, sum rho_lm dn = ', sum(rho_lm(:,:,2))
+          endif
           !
           with_small_so = upf(i%t)%has_so .AND. nspin_mag==4
           IF (with_small_so) THEN
@@ -204,7 +210,18 @@ SUBROUTINE PAW_potential( becsum, d, energy, e_cmp )
           CALL PAW_rho_lm( i, becsum, upf(i%t)%paw%ptfunc, rho_lm, upf(i%t)%qfuncl )
           !          optional argument for pseudo part (aug. charge) --> ^^^
           write(*,*)
-          write(*,*) 'i_what == PS, sum rho_lm = ', sum(rho_lm)
+          write(*,*) 'i_what == PS, sum becsum total = ', sum(becsum)
+          write(*,*) 'i_what == PS, sum becsum up = ', sum(becsum(:,:,1))
+          if(nspin == 2) then
+            write(*,*) 'i_what == PS, sum becsum dn = ', sum(becsum(:,:,2))
+          endif
+          !
+          write(*,*) 'i_what == PS, sum rho_lm total = ', sum(rho_lm)
+          write(*,*) 'i_what == PS, sum rho_lm up = ', sum(rho_lm(:,:,1))
+          if(nspin == 2) then
+            write(*,*) 'i_what == PS, sum rho_lm dn = ', sum(rho_lm(:,:,2))
+          endif
+          !
           rho_core => upf(i%t)%rho_atc ! as before
           sgn = -1._DP                 ! as before
           with_small_so = .FALSE.

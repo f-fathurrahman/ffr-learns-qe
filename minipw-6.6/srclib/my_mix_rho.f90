@@ -129,7 +129,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     write(*,*) 'sum rhoin%of_g dn = ', sum(rhoin%of_g(:,2))
   endif
   dr2 = rho_ddot( rhoin_m, rhoin_m, ngms )  ! must assign first ??
-  write(*,*) 'test rho_ddot(rhoin_m, rhoin_m) = ', dr2
+  write(*,*) 'test rho_ddot(rhoin_m, rhoin_m) (in Ha) = ', dr2*0.5d0
 
   write(*,*)
   write(*,*) 'sum input_rhout%of_g up = ', sum(input_rhout%of_g(:,1))
@@ -137,7 +137,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     write(*,*) 'sum input_rhout%of_g dn = ', sum(input_rhout%of_g(:,2))
   endif
   dr2 = rho_ddot( rhout_m, rhout_m, ngms )
-  write(*,*) 'test rho_ddot(rhout_m, rhout_m) = ', dr2 
+  write(*,*) 'test rho_ddot(rhout_m, rhout_m) = ', dr2*0.5d0
 
 
   ! compute differences
