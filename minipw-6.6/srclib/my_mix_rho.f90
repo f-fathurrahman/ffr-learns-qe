@@ -37,14 +37,10 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   ! ... First the I/O variable
   !
-  INTEGER, INTENT(IN) :: iter
-  !! counter of the number of iterations
-  INTEGER, INTENT(IN) :: n_iter
-  !! number of iterations used in mixing
-  INTEGER, INTENT(IN) :: iunmix
-  !! I/O unit where data from previous iterations is stored
-  REAL(DP), INTENT(IN) :: alphamix
-  !! mixing factor
+  INTEGER, INTENT(IN) :: iter !! counter of the number of iterations
+  INTEGER, INTENT(IN) :: n_iter !! number of iterations used in mixing
+  INTEGER, INTENT(IN) :: iunmix !! I/O unit where data from previous iterations is stored
+  REAL(DP), INTENT(IN) :: alphamix !! mixing factor
   REAL(DP), INTENT(IN) :: tr2_min
   !! estimated error in diagonalization. If the estimated
   !! scf error is smaller than this, exit: a more accurate 
@@ -95,9 +91,6 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   INTEGER, EXTERNAL :: find_free_unit
 
-  ! XXX Uh-oh saved variables ....
-  COMPLEX(DP), ALLOCATABLE, SAVE :: df_nsg(:,:,:,:,:,:), dv_nsg(:,:,:,:,:,:)
-
   ! LDA+U stuffs are removed
 
 
@@ -123,21 +116,24 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   call assign_scf_to_mix_type(input_rhout, rhout_m)
   ! copy?
 
-  write(*,*)
-  write(*,*) 'sum rhoin%of_g up = ', sum(rhoin%of_g(:,1))
-  if(nspin == 2) then
-    write(*,*) 'sum rhoin%of_g dn = ', sum(rhoin%of_g(:,2))
-  endif
-  dr2 = rho_ddot( rhoin_m, rhoin_m, ngms )  ! must assign first ??
-  write(*,*) 'test rho_ddot(rhoin_m, rhoin_m) (in Ha) = ', dr2*0.5d0
+  ! This is used to test rho_ddot
+  ! TODO: move this to separate/dedicated subroutine
 
-  write(*,*)
-  write(*,*) 'sum input_rhout%of_g up = ', sum(input_rhout%of_g(:,1))
-  if(nspin == 2) then
-    write(*,*) 'sum input_rhout%of_g dn = ', sum(input_rhout%of_g(:,2))
-  endif
-  dr2 = rho_ddot( rhout_m, rhout_m, ngms )
-  write(*,*) 'test rho_ddot(rhout_m, rhout_m) = ', dr2*0.5d0
+!  write(*,*)
+!  write(*,*) 'sum rhoin%of_g up = ', sum(rhoin%of_g(:,1))
+!  if(nspin == 2) then
+!    write(*,*) 'sum rhoin%of_g dn = ', sum(rhoin%of_g(:,2))
+!  endif
+!  dr2 = rho_ddot( rhoin_m, rhoin_m, ngms )  ! must assign first ??
+!  write(*,*) 'test rho_ddot(rhoin_m, rhoin_m) (in Ha) = ', dr2*0.5d0
+!
+!  write(*,*)
+!  write(*,*) 'sum input_rhout%of_g up = ', sum(input_rhout%of_g(:,1))
+!  if(nspin == 2) then
+!    write(*,*) 'sum input_rhout%of_g dn = ', sum(input_rhout%of_g(:,2))
+!  endif
+!  dr2 = rho_ddot( rhout_m, rhout_m, ngms )
+!  write(*,*) 'test rho_ddot(rhout_m, rhout_m) = ', dr2*0.5d0
 
 
   ! compute differences
@@ -148,7 +144,6 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   ! compute the "norm" ?
   dr2 = rho_ddot( rhout_m, rhout_m, ngms )  !!!! this used to be ngm NOT ngms
-
   !
   IF (dr2 < 0.0_DP) CALL errore('mix_rho', 'negative dr2', 1)
   !
@@ -156,6 +151,8 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   write(*,'(1x,A,2ES18.10)') 'my_mix_rho: dr2, tr2, conv = ', dr2, tr2
   write(*,*) 'my_mix_rho: conv = ', conv
 
+  !
+  ! This is the case when convergence is achieved
   !
   IF( conv .OR. dr2 < tr2_min ) THEN
     !
@@ -179,20 +176,19 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     call destroy_mix_type(rhoin_m)
     call destroy_mix_type(rhout_m)
     !
-    IF ( ALLOCATED( dv_nsg ) ) DEALLOCATE( dv_nsg )
-    IF ( ALLOCATED( df_nsg ) ) DEALLOCATE( df_nsg )
     RETURN
   ENDIF
 
   !
   ! Not yet converged ....
   !
-
+  ! We allocate vectors of mix_type's: df and dv
+  !
   IF( .NOT. ALLOCATED( df ) ) THEN
     ALLOCATE( df( n_iter ) )
-    DO i=1,n_iter
+    DO i = 1,n_iter
       CALL create_mix_type( df(i) )
-    END DO
+    ENDDO
   ENDIF
   
   IF( .NOT. ALLOCATED( dv ) ) THEN
@@ -207,14 +203,16 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   iter_used = MIN( ( mixrho_iter - 1 ), n_iter )
   !
-  write(*,*) 'my_mix_rho: n_iter = ', n_iter
-  write(*,*) 'my_mix_rho: mixrho_iter = ', mixrho_iter
-  write(*,*) 'my_mix_rho: iter_used = ', iter_used
-  !
   ! ipos is the position in which results from the present iteration
   ! are stored. ipos=mixrho_iter-1 until ipos=n_iter, then back to 1,2,...
   !
   ipos = mixrho_iter - 1 - ( ( mixrho_iter - 2 ) / n_iter ) * n_iter
+  !
+  write(*,*) 'my_mix_rho: n_iter      = ', n_iter
+  write(*,*) 'my_mix_rho: mixrho_iter = ', mixrho_iter
+  write(*,*) 'my_mix_rho: iter_used   = ', iter_used
+  write(*,*) 'my_mix_rho: ipos        = ', ipos
+  !
   !
   IF ( mixrho_iter > 1 ) THEN
     ! IO stuffs (using disk?)
@@ -242,6 +240,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
 
   !
   ! Nothing else to do on first iteration
+  ! FIXME: Is this label used?
   skip_on_first: &
   IF (iter_used > 0) THEN
     !
@@ -329,6 +328,8 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   call destroy_mix_type(rhout_m)
   call destroy_mix_type(rhoin_m)
+
+  ! Final output is rhoin
 
   write(*,*)
   write(*,*) '*********** Exit my_mix_rho ************'

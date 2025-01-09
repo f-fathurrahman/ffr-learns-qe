@@ -722,6 +722,7 @@ FUNCTION rho_ddot( rho1, rho2, gf ) result(res)
     IF ( gstart == 2 ) THEN
       res = res + fac * SUM(REAL(CONJG( rho1%of_g(1,2:nspin))*(rho2%of_g(1,2:nspin) ), DP))
     ENDIF
+    write(*,*) 'rho1%of_g(1,2) = ', rho1%of_g(1,2)
     write(*,*) 'res line 725 (in Ha) = ', res*0.5d0
     !
     IF ( gamma_only ) fac = 2.D0 * fac
