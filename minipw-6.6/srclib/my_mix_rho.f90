@@ -208,6 +208,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   ipos = mixrho_iter - 1 - ( ( mixrho_iter - 2 ) / n_iter ) * n_iter
   !
+  write(*,*) 'my_mix_rho: iter        = ', iter
   write(*,*) 'my_mix_rho: n_iter      = ', n_iter
   write(*,*) 'my_mix_rho: mixrho_iter = ', mixrho_iter
   write(*,*) 'my_mix_rho: iter_used   = ', iter_used
@@ -216,23 +217,31 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   !
   IF ( mixrho_iter > 1 ) THEN
     ! IO stuffs (using disk?)
-    CALL davcio_mix_type( df(ipos), iunmix, 1, read_ )
-    CALL davcio_mix_type( dv(ipos), iunmix, 2, read_ )
+    CALL davcio_mix_type( df(ipos), iunmix, 1, read_ ) ! read ?? rhout_m previous
+    CALL davcio_mix_type( dv(ipos), iunmix, 2, read_ ) ! read ?? rhoin_m previous
+    !write(200+iter,*) df(ipos)%of_g
+    !write(300+iter,*) dv(ipos)%of_g
     !
     call mix_type_AXPY( -1.d0, rhout_m, df(ipos) )
     call mix_type_AXPY( -1.d0, rhoin_m, dv(ipos) )
   ENDIF
   !
+  ! load data other dat for df and dv at positions other than ipos
   DO i = 1, iter_used
     IF ( i /= ipos ) THEN
+      !write(*,'(1x,A,3I4)') 'iter, iter_used, will_read i = ', iter, iter_used, i
       CALL davcio_mix_type( df(i), iunmix, 2*i+1, read_ )
       CALL davcio_mix_type( dv(i), iunmix, 2*i+2, read_ )
     ENDIF
   ENDDO
   !
-  CALL davcio_mix_type( rhout_m, iunmix, 1, write_ )
+  ! write data for next iter?
+  CALL davcio_mix_type( rhout_m, iunmix, 1, write_ )  ! will be read as df(ipos) ?
+  !write(400+iter,*) rhout_m%of_g
   CALL davcio_mix_type( rhoin_m, iunmix, 2, write_ )
+  !write(500+iter,*) rhoin_m%of_g
   !
+  ! write for next iter?
   IF ( mixrho_iter > 1 ) THEN
     CALL davcio_mix_type( df(ipos), iunmix, 2*ipos+1, write_ )
     CALL davcio_mix_type( dv(ipos), iunmix, 2*ipos+2, write_ )
@@ -253,6 +262,8 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
         betamix(j,i) = betamix(i,j)
       ENDDO
     ENDDO
+    !write(100+iter,*) betamix(1:iter_used,1:iter_used)
+    !write(*,*) 'betamix written to files'
     !
     ! allocate(e(iter_used), v(iter_used, iter_used))
     ! CALL rdiagh(iter_used, betamix, iter_used, e, v)
@@ -278,6 +289,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     DO i = 1, iter_used
       !
       gamma0 = DOT_PRODUCT( betamix(1:iter_used,i), work(1:iter_used) )
+      !write(*,*) 'gamma0 = ', gamma0
       !
       call mix_type_AXPY( -gamma0, dv(i), rhoin_m )
       call mix_type_AXPY( -gamma0, df(i), rhout_m )
