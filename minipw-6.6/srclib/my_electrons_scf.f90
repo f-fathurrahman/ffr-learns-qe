@@ -224,8 +224,11 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       ! tr2_min is set to an estimate of the error on the energy
       ! due to diagonalization - used only for the first scf iteration
       tr2_min = 0.D0
-
       IF ( first ) tr2_min = ethr*MAX( 1.D0, nelec ) 
+
+      write(*,*) 'first = ', first
+      write(*,*) 'tr2_min = ', tr2_min
+      write(*,*) 'ethr = ', ethr
 
       !
       ! diagonalization of the KS hamiltonian

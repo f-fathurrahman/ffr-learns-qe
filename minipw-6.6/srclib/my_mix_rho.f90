@@ -148,7 +148,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   IF (dr2 < 0.0_DP) CALL errore('mix_rho', 'negative dr2', 1)
   !
   conv = ( dr2 < tr2 )
-  write(*,'(1x,A,2ES18.10)') 'my_mix_rho: dr2, tr2, conv = ', dr2, tr2
+  write(*,'(1x,A,2ES18.10)') 'my_mix_rho: dr2, tr2 ', dr2, tr2
   write(*,*) 'my_mix_rho: conv = ', conv
 
   !
