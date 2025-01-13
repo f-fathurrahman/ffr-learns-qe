@@ -697,11 +697,10 @@ FUNCTION rho_ddot( rho1, rho2, gf ) result(res)
   REAL(DP) :: fac
   INTEGER  :: ig
 
-  write(*,*) '*** Calling rho_ddot with gstart, gf (G final) = ', gstart, gf
-
-  write(*,*) 'Pass here'
-  write(*,*) 'rho_ddot: sum rho1%of_g(:,1) = ', sum(rho1%of_g(:,1))
-  write(*,*) 'rho_ddot: sum rho2%of_g(:,1) = ', sum(rho2%of_g(:,1))
+!  write(*,*) '*** Calling rho_ddot with gstart, gf (G final) = ', gstart, gf
+!  write(*,*) 'Pass here'
+!  write(*,*) 'rho_ddot: sum rho1%of_g(:,1) = ', sum(rho1%of_g(:,1))
+!  write(*,*) 'rho_ddot: sum rho2%of_g(:,1) = ', sum(rho2%of_g(:,1))
 
   !
   fac = e2 * fpi / tpiba2  ! XXX: result is is Ry due to e2 factor
@@ -713,7 +712,7 @@ FUNCTION rho_ddot( rho1, rho2, gf ) result(res)
   ENDDO
   !
   res = fac*res
-  write(*,*) 'res in rho_ddot after fac rhoe total (in Ha) = ', res*0.5d0
+!  write(*,*) 'res in rho_ddot after fac rhoe total (in Ha) = ', res*0.5d0
   !
   IF ( gamma_only ) res = 2.D0 * res
   !
@@ -722,19 +721,19 @@ FUNCTION rho_ddot( rho1, rho2, gf ) result(res)
     IF ( gstart == 2 ) THEN
       res = res + fac * SUM(REAL(CONJG( rho1%of_g(1,2:nspin))*(rho2%of_g(1,2:nspin) ), DP))
     ENDIF
-    write(*,*) 'rho1%of_g(1,2) = ', rho1%of_g(1,2)
-    write(*,*) 'res line 725 (in Ha) = ', res*0.5d0
+    !write(*,*) 'rho1%of_g(1,2) = ', rho1%of_g(1,2)
+    !write(*,*) 'res line 725 (in Ha) = ', res*0.5d0
     !
     IF ( gamma_only ) fac = 2.D0 * fac
     !
     DO ig = gstart, gf
       res = res + fac * SUM(REAL(CONJG( rho1%of_g(ig,2:nspin))*(rho2%of_g(ig,2:nspin) ), DP))
     ENDDO
-    write(*,*) 'res line 732 (in Ha) = ', res*0.5d0
+    !write(*,*) 'res line 732 (in Ha) = ', res*0.5d0
   ENDIF
   !
   res = res * omega * 0.5D0
-  write(*,*) 'res in rho_ddot after magn (in Ha) = ', res*0.5d0
+  !write(*,*) 'res in rho_ddot after magn (in Ha) = ', res*0.5d0
   !
   CALL mp_sum( res, intra_bgrp_comm )
   !
