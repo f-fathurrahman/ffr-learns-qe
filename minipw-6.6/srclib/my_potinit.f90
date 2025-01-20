@@ -30,6 +30,7 @@ SUBROUTINE my_potinit()
   USE basis,                ONLY : starting_pot
   USE klist,                ONLY : nelec
   USE lsda_mod,             ONLY : lsda, nspin
+  USE lsda_mod,             ONLY : starting_magnetization
   USE fft_base,             ONLY : dfftp, dffts
   USE gvect,                ONLY : ngm, gstart, g, gg, ig_l2g
   USE gvecs,                ONLY : doublegrid
@@ -127,6 +128,9 @@ SUBROUTINE my_potinit()
       WRITE( stdout, '(/,5X,"Starting from uniform charge")')
       rho%of_g(:,1:nspin) = (0.0_dp,0.0_dp)
       IF( gstart == 2 ) rho%of_g(1,1) = nelec / omega
+      if(nspin == 2) then
+        rho%of_g(1,2) = sum(starting_magnetization(:))
+      endif
     ENDIF
     !
   ELSEIF( .NOT. lscf .AND. ABS( charge - nelec ) > (1.D-3 * charge ) ) THEN
