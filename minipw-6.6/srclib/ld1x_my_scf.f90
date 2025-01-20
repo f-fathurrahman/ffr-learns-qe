@@ -76,7 +76,7 @@ SUBROUTINE ld1x_my_scf(ic)
               ! Non meta-GGA
               !
               ! This is the "normal" case
-              CALL ascheq( nn(n), ll(n), enl(n), grid%mesh, grid, vnew(:,is), & ! potential
+              CALL my_ascheq( nn(n), ll(n), enl(n), grid%mesh, grid, vnew(:,is), & ! potential
                     &  ze2, thresh, psi(:,:,n), nstop )
                
             ENDIF ! meta
@@ -89,7 +89,7 @@ SUBROUTINE ld1x_my_scf(ic)
               CALL lschps_meta( 1, zed, thresh, grid, nin, nn(n), ll(n), &
                              &  enl(n), vnew(:,is), vtaunew, psi(:,:,n), nstop)
             ELSE
-              CALL lschps( 1, zed, thresh, grid, nin, nn(n), ll(n), &
+              CALL my_lschps( 1, zed, thresh, grid, nin, nn(n), ll(n), &
                         &  enl(n), vnew(:,is), psi(:,:,n), nstop)
             ENDIF
             IF( nstop > 0 .and. oc(n) < 1.e-10_DP) nstop=0

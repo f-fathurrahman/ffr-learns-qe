@@ -63,7 +63,16 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   INTEGER:: i, it, mmax, n_it, node, mch, ierr
   !
   !
-  nstop=0
+
+  write(*,*)
+  write(*,*) 'Enter my_lschps'
+  write(*,*) 'z = ', z
+  write(*,*) 'mode = ', mode
+  write(*,*) 'cau_fact = ', cau_fact
+  write(*,*) 'nin = ', nin
+  write(*,*) 'n, l = ', n, l
+
+  nstop = 0
   al   = grid%dx
   mmax = grid%mesh
 
@@ -78,53 +87,67 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   !
   !
   IF(mode == 1 .or. mode == 3) THEN
-     !     relativistic calculation
-     !     fss=(1.0_dp/137.036_dp)**2
-     fss=(1.0_dp/cau_fact)**2
-     IF(l == 0) THEN
-        gamma=sqrt(1.0_dp-fss*z**2)
-     ELSE
-        gamma=(l*sqrt(l**2-fss*z**2) + &
-             (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
-     ENDIF
+    ! relativistic calculation
+    !     fss=(1.0_dp/137.036_dp)**2
+    fss = (1.0_dp/cau_fact)**2
+    IF(l == 0) THEN
+       gamma = sqrt(1.0_dp-fss*z**2)
+    ELSE
+       gamma = (l*sqrt(l**2-fss*z**2) + &
+            (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
+    ENDIF
   ELSE
-     !     non-relativistic calculation
-     fss=1.0e-20_dp
-     gamma=l+1
+     ! non-relativistic calculation
+     fss = 1.0e-20_dp
+     gamma = l+1
   ENDIF
+  write(*,*) 'fss = ', fss
+  write(*,*) 'gamma = ', gamma
+
+
   !
   sls=l*(l+1)
   !
   ! emin, emax = estimated bounds for e
   !
   IF(mode == 1 .or. mode == 2) THEN
-     emax=v(mmax)+sls/grid%r(mmax)**2
-     emin=0.0_dp
-     DO i=1,mmax
-        emin=min(emin,v(i)+sls/grid%r(i)**2)
-     ENDDO
-     IF(e > emax) e=1.25_dp*emax
-     IF(e < emin) e=0.75_dp*emin
-     IF(e > emax) e=0.5_dp*(emax+emin)
+    emax = v(mmax) + sls/grid%r(mmax)**2
+    emin = 0.0_dp
+    DO i = 1,mmax
+      emin = min(emin, v(i) + sls/grid%r(i)**2)
+    ENDDO
+    IF(e > emax) e = 1.25_dp*emax
+    IF(e < emin) e = 0.75_dp*emin
+    IF(e > emax) e = 0.5_dp*(emax + emin)
   ELSEIF(mode == 4) THEN
-     emax=e + 10.0_dp
-     emin=e - 10.0_dp
+    emax = e + 10.0_dp
+    emin = e - 10.0_dp
   ENDIF
   !
-  DO i=1,4
-     u(i)=0.0_dp
-     up(i)=0.0_dp
-     upp(i)=0.0_dp
-  ENDDO
-  als=al**2
+  write(*,*) 'emin, emax (in Ha) = ', emin/2, emax/2
+  !stop 134
   !
+  DO i = 1,4
+    u(i) = 0.0_dp
+    up(i) = 0.0_dp
+    upp(i) = 0.0_dp
+  ENDDO
+
+  als = al**2
+  ! 
   ! calculate dv/dr for darwin correction
   !
   CALL my_lschps_derv(mmax, al, grid%r, v, dv )
+  write(*,*) 'dv(1) (in Ry) = ', dv(1)
+  write(*,*) 'dv(100) (in Ry) = ', dv(100)
+  write(*,*) 'dv(500) (in Ry) = ', dv(500)
+  !
   !
   !     starting of loop on energy for bound state
   !
   DO n_it = 1, maxter
+
+    write(*,*) 'iter, e = ', n_it, e
      !
      ! coefficient array for u in differential eq.
      DO i=1,mmax
@@ -134,19 +157,19 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
      ! find classical turning point for matching
      !
      IF(mode == 1 .or. mode == 2) THEN
-        DO i=mmax,2,-1
-           IF(cf(i-1) <= 0.0_dp .and. cf(i) > 0.0_dp) THEN
-              mch=i
-              GOTO 40
-           ENDIF
-        ENDDO
-        !PRINT '('' warning: wfc '',2i2,'' no turning point'')', n, l
-        e=0.0_dp
-        DO i=1,mmax
-           u (i)=0.0_dp
-        ENDDO
-        nstop=1
-        GOTO 999
+      DO i=mmax,2,-1
+        IF( cf(i-1) <= 0.0_dp .and. cf(i) > 0.0_dp ) THEN
+          mch = i
+          GOTO 40
+        ENDIF
+      ENDDO
+      !PRINT '('' warning: wfc '',2i2,'' no turning point'')', n, l
+      e = 0.0_dp
+      DO i = 1,mmax
+        u(i) = 0.0_dp
+      ENDDO
+      nstop = 1
+      GOTO 999
      ELSE
         mch=nin
      ENDIF
@@ -294,6 +317,12 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   ! deallocate arrays and exit
   !
 999 CONTINUE
+
+  write(*,*) 'Final results: e, nin = ', e, nin
+
+  !stop 323
+
+
   DEALLOCATE(frp)
   DEALLOCATE(fr)
   DEALLOCATE(dv)

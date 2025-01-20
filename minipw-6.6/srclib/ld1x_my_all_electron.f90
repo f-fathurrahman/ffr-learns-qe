@@ -23,11 +23,11 @@ SUBROUTINE my_all_electron(ild,ic)
   WRITE(*,*) '***** ENTER my_all_electron *****'
   WRITE(*,*)
 
-!  WRITE(*,*) 'ndmx = ', ndmx
-!  WRITE(*,*) 'zed = ', zed, ''
-!  WRITE(*,*) 'zval = ', zval
-!  WRITE(*,*) 'nwfx = ', size(oc)
-!  WRITE(*,*) 'nwf = ', nwf
+  WRITE(*,*) 'ndmx = ', ndmx
+  WRITE(*,*) 'zed = ', zed, ''
+  WRITE(*,*) 'zval = ', zval
+  WRITE(*,*) 'nwfx = ', size(oc)
+  WRITE(*,*) 'nwf = ', nwf
 !  do i = 1,nwf
 !    write(*,*)
 !    write(*,'(1x,A,A)') 'el = ', el(i)
@@ -57,12 +57,12 @@ SUBROUTINE my_all_electron(ild,ic)
   CALL starting_potential( ndmx, grid%mesh, zval, zed, nwf, oc, nn, ll,&
                            grid%r, enl, v0, vxt, vpot, enne, nspin )
   
-  !WRITE(*,*) 'After starting_potential: (Ha unit)'
-  !WRITE(*,*) 'v0   = ', v0(1:2)*0.5
-  !WRITE(*,*) 'vxt  = ', vxt(1:2)*0.5
-  !WRITE(*,*) 'vpot1 = ', vpot(1:2,1)*0.5
-  !WRITE(*,*) 'vpot2 = ', vpot(1:2,2)*0.5
-  !WRITE(*,*) 'enl = ', enl(1:nwf)*0.5
+  WRITE(*,*) 'After starting_potential: (Ha unit)'
+  WRITE(*,*) 'v0   = ', v0(1:2)*0.5
+  WRITE(*,*) 'vxt  = ', vxt(1:2)*0.5
+  WRITE(*,*) 'vpot1 = ', vpot(1:2,1)*0.5
+  WRITE(*,*) 'vpot2 = ', vpot(1:2,2)*0.5
+  WRITE(*,*) 'enl = ', enl(1:nwf)*0.5
 
 
   !
@@ -79,8 +79,8 @@ SUBROUTINE my_all_electron(ild,ic)
   !
   ! solve the eigenvalue self-consistent equation
   !
-  call scf(ic)
-  !call ld1x_my_scf(ic)
+  !call scf(ic)
+  call ld1x_my_scf(ic)
 
   !
   ! compute relativistic corrections to the eigenvalues

@@ -26,6 +26,7 @@ ld1x_my_gener_pseudo.o \
 ld1x_my_run_test.o \
 ld1x_my_scf.o \
 ld1x_my_lschps.o \
+ld1x_my_ascheq.o \
 ld1x_prepare_all.o \
 ld1x_driver_starting_potential.o \
 exposed_ld1x_ffr.o
