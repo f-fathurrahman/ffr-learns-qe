@@ -137,12 +137,11 @@ SUBROUTINE ld1x_my_scf(ic)
         & oc(n)*( psi(1:grid%mesh,1,n)**2 + psi(1:grid%mesh,2,n)**2 )
     ENDDO
     CALL simpson(grid%mesh, rho(1:grid%mesh,1), grid%rab, integRho) 
+    ! XXX: Only integrate up spin?
     WRITE(*,*)
     WRITE(*,*) 'SCF: integrated rho = ', integRho
-
-
     !
-    ! Calculate kinetc energy density (spherical approximation) if needed
+    ! Calculate kinetic energy density (spherical approximation) if needed
     !
     IF( meta ) then
       CALL kin_e_density(ndmx, grid%mesh, nwf, ll, oc, psi, grid%r, grid%r2, grid%dx, tau)
