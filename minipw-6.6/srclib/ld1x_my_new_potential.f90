@@ -52,10 +52,15 @@ SUBROUTINE my_new_potential &
     enddo
   endif
 
-  call hartree(0, 2, mesh, grid, rhotot, vh)
+  !call hartree(0, 2, mesh, grid, rhotot, vh)
+  write(*,*) 'Input for poisson_solve_radial: sum(rhotot) = ', sum(rhotot)
+  call poisson_solve_radial(0, 2, mesh, grid, rhotot, vh)
   ! this subroutine is defined in radial_grids:
   ! hartree(k, nst, mesh, grid, f, vh)
   deallocate(rhotot)
+
+  write(*,*) 'sum(vh) (in Ha) = ', sum(vh)*0.5d0
+
   !
   ! add exchange and correlation potential: LDA or LSDA only
   !

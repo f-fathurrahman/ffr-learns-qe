@@ -5,29 +5,27 @@ SUBROUTINE ld1x_debug_v01()
   USE kinds, ONLY : DP
   USE radial_grids, ONLY: ndmx
   USE constants, ONLY: e2  
-  USE ld1inc, ONLY: isic, grid, rho, enne, vpot, vxt, enl, &
-                 & deld, encl, etot, ecxc, evxt, ehrt, ekin, &
-                 & vh, nspin, nn, ll, oc, nwf, &
-                 & zed, zval, vxc, exc, excgga, v0, &
-                 & relpert, evel, edar, eso, egc, el, &
-                 & isw, core_state, rel, frozen_core, psi
+  USE ld1inc, ONLY: grid, enne, vpot, vxt, enl, &
+                    nspin, nn, ll, oc, nwf, zed, zval, v0, el, &
+                    isw, psi, rho, &
+                    lsd, vh, latt
   IMPLICIT NONE
   !
   ! automatic arrays
   REAL(DP) :: vnew(ndmx,2)
+  real(dp) :: rhoc1(ndmx)
   ! originally arguments
   INTEGER :: ic
   LOGICAL :: ild
   !
-  integer :: iwf, ispin
-  integer :: nstop, nerr
+  integer :: iwf
   real(dp) :: ze2
-  INTEGER, PARAMETER :: maxter=200
-  REAL(DP), PARAMETER :: thresh=1.0e-10_dp
-  integer :: nin
+  INTEGER, PARAMETER :: MAXTER = 200
+  REAL(DP), PARAMETER :: THRESH = 1.0e-10_dp
+  real(dp) :: integRho
 
   ! what? convert to Ry and change the sign
-  ze2 = -zed * e2
+  ze2 = -zed*e2
   ! This is used in ascheq
 
   ic = 1
@@ -58,6 +56,83 @@ SUBROUTINE ld1x_debug_v01()
 
   vnew = vpot
 
+  call ld1x_driver_solve_sch( vnew )
+
+  WRITE(*,*)
+  WRITE(*,*) 'Energy eigenvalues (in Ha): '
+  DO iwf = 1,nwf
+    WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(iwf)/2
+  ENDDO
+
+  !
+  ! calculate charge density (spherical approximation)
+  !
+  rho = 0.0_dp
+  !IF( noscf ) GOTO 500
+  !
+  DO iwf = 1,nwf
+    rho(1:grid%mesh,isw(iwf)) = rho(1:grid%mesh,isw(iwf)) + &
+                                oc(iwf)*( psi(1:grid%mesh,1,iwf)**2 + &
+                                          psi(1:grid%mesh,2,iwf)**2 )
+  ENDDO
+  CALL simpson(grid%mesh, rho(1:grid%mesh,1), grid%rab, integRho) 
+  ! XXX: Only integrate up spin?
+  WRITE(*,*)
+  WRITE(*,*) 'SCF: integrated rho = ', integRho
+
+
+  !
+  ! calculate new potential
+  !
+  write(*,*) 'latt = ', latt
+  CALL my_new_potential( ndmx, grid%mesh, grid, zed, vxt, &
+                       & lsd, .false., latt, enne, rhoc1, rho, &
+                       & vh, vnew, 1 )
+
+
+
+  WRITE(*,*)
+  WRITE(*,*) '***** EXIT ld1x_debug_v01 *****'
+  WRITE(*,*)
+
+  RETURN
+  !
+END SUBROUTINE
+
+
+
+! a driver for solving radial Schroedinger or Dirac (not yet implemented)
+!---------------------------------------
+subroutine ld1x_driver_solve_sch( vnew )
+!---------------------------------------
+  USE kinds, ONLY : DP
+  USE radial_grids, ONLY: ndmx
+  USE constants, ONLY: e2  
+  USE ld1inc, ONLY: grid, enl, &
+                 & nn, ll, oc, nwf, &
+                 & zed, &
+                 & isw, core_state, rel, frozen_core, psi
+  implicit none
+  !
+  ! automatic arrays
+  REAL(DP) :: vnew(ndmx,2)
+  ! originally arguments
+  INTEGER :: ic
+  LOGICAL :: ild
+  !
+  integer :: iwf, ispin
+  integer :: nstop, nerr
+  real(dp) :: ze2
+  INTEGER, PARAMETER :: maxter=200
+  REAL(DP), PARAMETER :: thresh=1.0e-10_dp
+  integer :: nin
+
+  ! what? convert to Ry and change the sign
+  ze2 = -zed * e2
+  ! This is used in ascheq
+
+  ic = 1
+  ild = .false.
 
   ! loop over all states (number of wavefunctions)
   DO iwf = 1,nwf
@@ -111,18 +186,7 @@ SUBROUTINE ld1x_debug_v01()
     
   ENDDO ! loop over Nwf
 
-  WRITE(*,*)
-  WRITE(*,*) 'Energy eigenvalues (in Ha): '
-  DO iwf = 1,nwf
-    WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(iwf)/2
-  ENDDO
 
 
-  WRITE(*,*)
-  WRITE(*,*) '***** EXIT ld1x_debug_v01 *****'
-  WRITE(*,*)
-
-  RETURN
-  !
-END SUBROUTINE 
+end subroutine
 
