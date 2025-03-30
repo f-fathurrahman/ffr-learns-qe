@@ -2,13 +2,6 @@
 SUBROUTINE ld1x_debug_v01()
 !---------------------------------------------------------------
   ! modeled after ld1x_all_electron
-
-
-  !
-  !  this routine is a driver to an all-electron calculation
-  !  with the parameters given in input
-  !
-  !
   USE kinds, ONLY : DP
   USE radial_grids, ONLY: ndmx
   USE constants, ONLY: e2  
@@ -33,8 +26,9 @@ SUBROUTINE ld1x_debug_v01()
   REAL(DP), PARAMETER :: thresh=1.0e-10_dp
   integer :: nin
 
-  ! what?
+  ! what? convert to Ry and change the sign
   ze2 = -zed * e2
+  ! This is used in ascheq
 
   ic = 1
   ild = .false.
@@ -90,6 +84,8 @@ SUBROUTINE ld1x_debug_v01()
           !
           CALL my_lschps( 1, zed, thresh, grid, nin, nn(iwf), ll(iwf), &
                         &  enl(iwf), vnew(:,ispin), psi(:,:,iwf), nstop)
+          ! mode = 1 find energy and wavefunction of bound states,
+          !          scalar-relativistic (all-electron)
           ! XXX what's this?
           IF( nstop > 0 .and. oc(iwf) < 1.e-10_DP) then
             nstop = 0
@@ -106,12 +102,11 @@ SUBROUTINE ld1x_debug_v01()
       ENDIF
         !  
     ELSE
-        !
-        ! Case oc(n) is negative, zero out energies and psi
-        !
-        enl(iwf) = 0.0_dp
-        psi(:,:,iwf) = 0.0_dp
-      
+      !
+      ! Case oc(n) is negative, zero out energies and psi
+      !
+      enl(iwf) = 0.d0
+      psi(:,:,iwf) = 0.d0
     ENDIF
     
   ENDDO ! loop over Nwf
