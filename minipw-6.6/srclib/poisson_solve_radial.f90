@@ -3,7 +3,7 @@
 !
 ! debug version of subroutine hartree in radial_grids.f90
 !---------------------------------------------------------------
-subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
+subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
 !---------------------------------------------------------------
   !
   use upf_kinds, only : DP
@@ -63,6 +63,9 @@ subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
   !
   k21 = 2*k + 1
   nk1 = nst - k - 1
+  write(*,*) 'poisson_solve_radial: mesh = ', mesh
+  write(*,*) 'poisson_solve_radial: k21 = ', k21
+  write(*,*) 'poisson_solve_radial: nk1 = ', nk1
   if(nk1 <= 0) then
     write(6,100) k,nst
     100 format(5x,'stop in "hartree": k=',i3,'  nst=',i3)
@@ -76,11 +79,14 @@ subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
     e(1) = 0.d0
     do i = 1,4
       d(i) = -k21*f(i) / grid%r(i)**nst
-    end do
+    enddo
     call series(d, grid%r, grid%r2, e(nk1))
     c2 = e(1) / (4.d0*k + 6.d0)
     c3 = e(2) / (6.d0*k + 12.d0)
   endif
+  write(*,*) 'After series: e(1:4) = ', e(1:4)
+  write(*,*) 'c2 = ', c2
+  write(*,*) 'c3 = ', c3
   !
   ! Set the main auxiliary parameters
   !
@@ -88,14 +94,18 @@ subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
   xkh2 = ch*(DBLE(k) + 0.5d0)**2
   ei = 1.d0  - xkh2
   di = -(2.d0 + 10.d0*xkh2)
+  write(*,*) 'poisson_solve_radial: ch = ', ch
+  write(*,*) 'poisson_solve_radial: xkh2 = ', xkh2
+  write(*,*) 'poisson_solve_radial: ei = ', ei
+  write(*,*) 'poisson_solve_radial: di = ', di
   !
   ! Set the diagonal and the off diagonal elements of the 
   ! linear system, compute a part of the right hand side 
   !
   do i = 2,mesh
-     d(i) = -di
-     e(i) = -ei
-     vh(i) = k21*ch*grid%sqr(i) * f(i)
+    d(i) = -di
+    e(i) = -ei
+    vh(i) = k21*ch*grid%sqr(i) * f(i)
   enddo
   !
   ! Use the boundary condition to eliminate the value of the 
@@ -103,17 +113,20 @@ subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
   ! part for the diagonal element
   !
   f1 = ( grid%sqr(1)/grid%sqr(2) )**k21
+  write(*,*) 'poisson_solve_radial: f1 = ', f1
   d(2) = d(2) - ei*f1
   !
   ! Use the boundary condition to eliminate the value of the 
   ! solution in the last point from the last equation
   !
   fn = ( grid%sqr(mesh-1)/grid%sqr(mesh) )**k21
+  write(*,*) 'poisson_solve_radial: fn = ', fn
   d(mesh-1) = d(mesh-1) - ei*fn
   !
   ! In the first point vh(1) has the same definition as in the other points
   !
   vhim1 = k21 * ch * grid%sqr(1) * f(1)
+  write(*,*) 'poisson_solve_radial: vhim1 = ', vhim1
   !
   ! Compute the right hand side using the auxiliary quantity vh(i).
   !
@@ -138,30 +151,34 @@ subroutine poisson_solve_radial(k,nst,mesh,grid,f,vh)
   !
   ! solve the linear system with lapack routine dptsv
   !
-  call dptsv(mesh-2,1,d(2),e(2),vh(2),mesh-2,ierr)
-  if (ierr.ne.0) call upf_error('hartree', 'error in lapack', ierr)
+  call dptsv(mesh-2, 1, d(2), e(2), vh(2), mesh-2, ierr)
+  if( ierr /= 0 ) then
+    call upf_error('poisson_solve_radial', 'error in lapack', ierr)
+  endif
   !
   ! Set the value of the solution at the first and last point
   ! First, find c0 from the solution in the second point
   !
-  c0=vh(2)/grid%sqr(2)**k21-c2*grid%r2(2)-c3*grid%r(2)*grid%r2(2)
+  c0 = vh(2)/grid%sqr(2)**k21 - c2*grid%r2(2) - c3*grid%r(2)*grid%r2(2)
   !
   ! and then use the series expansion at the first point
   !
-  vh(1)=grid%sqr(1)**k21*(c0+c2*grid%r2(1)+c3*grid%r(1)**3)
+  vh(1) = grid%sqr(1)**k21 * ( c0 + c2*grid%r2(1) + c3*grid%r(1)**3 )
   !
   ! the solution at the last point is given  by the boundary 
   ! condition
   !
-  vh(mesh)=vh(mesh-1)*fn
+  vh(mesh) = vh(mesh-1)*fn
   !
   ! The solution must be divided by r (from the equation) 
   ! and multiplied by the square root of r (from the log 
   ! mesh transformation)
   !
-  do i=1,mesh
-     vh(i)= vh(i) / grid%sqr(i)
-  end do
+  do i = 1,mesh
+     vh(i) = vh(i) / grid%sqr(i)
+  enddo
+  ! final vh
+  write(1114,*) vh
 
   deallocate(e)
   deallocate(d)
