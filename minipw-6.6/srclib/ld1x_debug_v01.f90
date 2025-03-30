@@ -11,19 +11,30 @@ SUBROUTINE ld1x_debug_v01()
   !
   USE kinds, ONLY : DP
   USE radial_grids, ONLY: ndmx
+  USE constants, ONLY: e2  
   USE ld1inc, ONLY: isic, grid, rho, enne, vpot, vxt, enl, &
                  & deld, encl, etot, ecxc, evxt, ehrt, ekin, &
-                 & vh, nspin, vdw, nn, ll, oc, nwf, &
-                 & zed, zval, vxc, exc, excgga, v0, verbosity, &
-                 & relpert, evel, edar, eso, vsic, vsicnew, vhn1, egc, el, &
-                 & isw
+                 & vh, nspin, nn, ll, oc, nwf, &
+                 & zed, zval, vxc, exc, excgga, v0, &
+                 & relpert, evel, edar, eso, egc, el, &
+                 & isw, core_state, rel, frozen_core, psi
   IMPLICIT NONE
-
+  !
+  ! automatic arrays
+  REAL(DP) :: vnew(ndmx,2)
   ! originally arguments
   INTEGER :: ic
   LOGICAL :: ild
   !
-  integer :: iwf
+  integer :: iwf, ispin
+  integer :: nstop, nerr
+  real(dp) :: ze2
+  INTEGER, PARAMETER :: maxter=200
+  REAL(DP), PARAMETER :: thresh=1.0e-10_dp
+  integer :: nin
+
+  ! what?
+  ze2 = -zed * e2
 
   ic = 1
   ild = .false.
@@ -47,85 +58,69 @@ SUBROUTINE ld1x_debug_v01()
                            grid%r, enl, v0, vxt, vpot, enne, nspin )
 
   !
-  ! isic stuffs are removed
-  !
+  ! XXX: isic stuffs are removed
+  ! XXX: metaGGA version is removed
+
+
+  vnew = vpot
+
 
   ! loop over all states (number of wavefunctions)
-  DO n = 1,nwf
+  DO iwf = 1,nwf
     !
     ! Solve one-particle equation (Schroedinger or Dirac)
     !
     ! only solve when occupation is not zero
-    IF( oc(n) >= 0.0_dp ) THEN
-    
-        IF( ic==1 .or. .not. frozen_core .or. .not. core_state(iwf) ) THEN
+    IF( oc(iwf) >= 0.0_dp ) THEN
+      ! 
+      IF( ic==1 .or. .not. frozen_core .or. .not. core_state(iwf) ) THEN
+        !
+        ispin = isw(iwf) ! spin index
+        !    
+        IF( rel == 0 ) THEN
           !
-          is = isw(n) ! spin index
+          ! nonrelativistic calculation
           !
-          IF( isic /= 0 .and. iter > 1 ) THEN
-            vnew(:,is) = vpot(:,is) - vsic(:,n)
-          ENDIF 
-          !    
-          IF( rel == 0 ) THEN
-            !
-            ! nonrelativistic calculation
-            !
-            IF( meta ) THEN
-              !
-              ! Meta-GGA version of lschps
-              !
-              CALL lschps_meta( 2, zed, thresh, grid, nin, nn(n), ll(n),&
-                         enl(n), vnew(:,is), vtaunew, psi(:,:,n), nstop )
-            ELSE
-              !
-              ! Non meta-GGA
-              !
-              ! This is the "normal" case
-              CALL my_ascheq( nn(n), ll(n), enl(n), grid%mesh, grid, vnew(:,is), & ! potential
-                    &  ze2, thresh, psi(:,:,n), nstop )
-               
-            ENDIF ! meta
-            !
-          ELSEIF( rel == 1 ) THEN
-            !
-            ! relativistic scalar calculation
-            !
-            IF( meta ) THEN
-              CALL lschps_meta( 1, zed, thresh, grid, nin, nn(n), ll(n), &
-                             &  enl(n), vnew(:,is), vtaunew, psi(:,:,n), nstop)
-            ELSE
-              CALL my_lschps( 1, zed, thresh, grid, nin, nn(n), ll(n), &
-                        &  enl(n), vnew(:,is), psi(:,:,n), nstop)
-            ENDIF
-            IF( nstop > 0 .and. oc(n) < 1.e-10_DP) nstop=0
-            !
-          ELSEIF( rel == 2 ) THEN
-            !
-            ! Dirac equation
-            !
-            CALL dirsol( ndmx, grid%mesh, nn(n), ll(n), jj(n), iter, enl(n), &
-                    &    thresh, grid, psi(1,1,n), vnew(1,is), nstop )
-          ELSE
-            CALL errore('scf', 'relativistic not programmed', 1)
-          
-          ENDIF
-          !      write(6,*) nn(n),ll(n),enl(n)
+          CALL my_ascheq( nn(iwf), ll(iwf), enl(iwf), grid%mesh, grid, vnew(:,ispin), & ! potential
+                      &  ze2, thresh, psi(:,:,iwf), nstop )
+          !
+        ELSEIF( rel == 1 ) THEN
+          !
+          ! scalar relativistic
+          !
+          CALL my_lschps( 1, zed, thresh, grid, nin, nn(iwf), ll(iwf), &
+                        &  enl(iwf), vnew(:,ispin), psi(:,:,iwf), nstop)
+          ! XXX what's this?
+          IF( nstop > 0 .and. oc(iwf) < 1.e-10_DP) then
+            nstop = 0
+          endif
+          !
+        ELSE
+          !
+          CALL errore('ld1x_debug_v01', 'relativistic not programmed', 1)
+          !  
+        ENDIF
+          ! write(6,*) nn(n),ll(n),enl(n)
           ! if (nstop /= 0) write(6,'(4i6)') iter,nn(n),ll(n),nstop
           nerr = nerr + nstop
-        ENDIF
+      ENDIF
         !  
-      ELSE
+    ELSE
         !
         ! Case oc(n) is negative, zero out energies and psi
         !
-        enl(n) = 0.0_dp
-        psi(:,:,n) = 0.0_dp
+        enl(iwf) = 0.0_dp
+        psi(:,:,iwf) = 0.0_dp
       
-      ENDIF
+    ENDIF
     
-    ENDDO ! loop over Nwf
+  ENDDO ! loop over Nwf
 
-
+  WRITE(*,*)
+  WRITE(*,*) 'Energy eigenvalues (in Ha): '
+  DO iwf = 1,nwf
+    WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(iwf)/2
+  ENDDO
 
 
   WRITE(*,*)
