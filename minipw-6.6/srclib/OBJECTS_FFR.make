@@ -33,6 +33,8 @@ ld1x_driver_starting_potential.o \
 ld1x_debug_v01.o \
 ld1x_debug_solve_sch.o \
 poisson_solve_radial.o \
+ld1x_my_vpack.o \
+ld1x_my_dmixp.o \
 exposed_ld1x_ffr.o
 
 
