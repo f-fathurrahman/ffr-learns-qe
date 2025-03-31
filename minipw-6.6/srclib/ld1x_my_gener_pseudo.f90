@@ -81,13 +81,13 @@ subroutine my_gener_pseudo()
 
 
   if (lpaw) then
-     write(stdout, '(/,5x,21(''-''),'' Generating PAW atomic setup '',20(''-''),/)')
+    write(stdout, '(/,5x,21(''-''),'' Generating PAW atomic setup '',20(''-''),/)')
   elseif (pseudotype == 1.or.pseudotype == 2) then
-     write(stdout, '(/,5x,21(''-''),'' Generating NC pseudopotential '',21(''-''),/)')
+    write(stdout, '(/,5x,21(''-''),'' Generating NC pseudopotential '',21(''-''),/)')
   elseif (pseudotype == 3) then
-     write(stdout, '(/,5x,21(''-''),'' Generating US pseudopotential '',21(''-''),/)')
+    write(stdout, '(/,5x,21(''-''),'' Generating US pseudopotential '',21(''-''),/)')
   else
-     call errore('gener_pseudo', 'pseudotype not programmed',1)
+    call errore('gener_pseudo', 'pseudotype not programmed',1)
   endif
 
   if( pseudotype == 1.and.rel == 2 ) then
@@ -103,11 +103,11 @@ subroutine my_gener_pseudo()
   !
   ! compute the local potential from the all-electron potential
   !
-  call pseudovloc()
+  call my_pseudovloc()
   !
   ! initialize total potential for PAW generation
   if( lpaw ) then
-    if (.not. lnc2paw) then
+    if( .not. lnc2paw ) then
       vpotpaw(1:grid%mesh) = vpot(1:grid%mesh,1)
     else
       vpotpaw(1:grid%mesh) = vpsloc(1:grid%mesh)
@@ -117,13 +117,14 @@ subroutine my_gener_pseudo()
   ! if nlcc is true compute here the core charge
   ! the core charge is needed also for the PAW dataset
   !
-  if( nlcc .or. lpaw ) call set_rho_core()
-  
+  if( nlcc .or. lpaw ) then
+    call set_rho_core()
+  endif
   !
   ! set the appropriate energies and the correspondence all-electron
   ! pseudo
   !
-  do n=1,nwfs
+  do n = 1,nwfs
     if( enls(n) == 0.0_dp ) then
       enls(n) = enl(nstoae(n))
     endif
@@ -158,18 +159,18 @@ subroutine my_gener_pseudo()
     endif
     
     if( mod(ikloc,2) == 0) then
-      ikloc=ikloc+1
+      ikloc = ikloc + 1
     endif
     
     if( ik(ns) > grid%mesh) then
       call errore('gener_pseudo','ik is wrong ',ns)
     endif
     
-    if( ikus(ns)+10 > grid%mesh) then
+    if( ikus(ns) + 10 > grid%mesh) then
       call errore('gener_pseudo','ikus is wrong ',ns)
     endif
     
-    if( ikloc+5 > grid%mesh) then
+    if( ikloc + 5 > grid%mesh) then
       call errore('gener_pseudo','ikloc is wrong ',ns)
     endif
 

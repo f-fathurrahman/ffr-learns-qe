@@ -29,12 +29,19 @@ PROGRAM main_ld1x_debug_v01
   IF( iswitch == 1 ) THEN
     
     WRITE(*,*) 'DEBUG STARTS HERE'
-    !CALL ld1x_debug_v01()
+    CALL ld1x_debug_v01()
 
   ELSEIF( iswitch == 2) THEN
     call errore('debug_ld1x_v01', 'iswitch = 2 is not supported', 1)
   ELSEIF( iswitch == 3 ) THEN
-    call errore('debug_ld1x_v01', 'iswitch = 3 is not supported', 1)
+     !
+     !  pseudopotential generation and test
+     !
+     CALL all_electron(.FALSE., 1) ! do not compute log-deriv
+     CALL my_gener_pseudo()
+     !if(.not. lgipaw_reconstruction) 
+     CALL my_run_test()
+     CALL ld1_writeout()
   ELSEIF( iswitch == 4 ) THEN
     call errore('debug_ld1x_v01', 'iswitch = 4 is not supported', 1)
   ELSE 
