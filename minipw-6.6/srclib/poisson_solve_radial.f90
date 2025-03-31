@@ -44,7 +44,7 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
        e(:)          ! the off diagonal elements 
                      ! of the trid. sys.
   
-  write(*,*) 'Enter poisson_solve_radial'
+  !write(*,*) 'Enter poisson_solve_radial'
 
   !
   ! Allocate space for the diagonal and off diagonal elements
@@ -63,9 +63,9 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
   !
   k21 = 2*k + 1
   nk1 = nst - k - 1
-  write(*,*) 'poisson_solve_radial: mesh = ', mesh
-  write(*,*) 'poisson_solve_radial: k21 = ', k21
-  write(*,*) 'poisson_solve_radial: nk1 = ', nk1
+  !write(*,*) 'poisson_solve_radial: mesh = ', mesh
+  !write(*,*) 'poisson_solve_radial: k21 = ', k21
+  !write(*,*) 'poisson_solve_radial: nk1 = ', nk1
   if(nk1 <= 0) then
     write(6,100) k,nst
     100 format(5x,'stop in "hartree": k=',i3,'  nst=',i3)
@@ -84,9 +84,9 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
     c2 = e(1) / (4.d0*k + 6.d0)
     c3 = e(2) / (6.d0*k + 12.d0)
   endif
-  write(*,*) 'After series: e(1:4) = ', e(1:4)
-  write(*,*) 'c2 = ', c2
-  write(*,*) 'c3 = ', c3
+  !write(*,*) 'After series: e(1:4) = ', e(1:4)
+  !write(*,*) 'c2 = ', c2
+  !write(*,*) 'c3 = ', c3
   !
   ! Set the main auxiliary parameters
   !
@@ -94,10 +94,10 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
   xkh2 = ch*(DBLE(k) + 0.5d0)**2
   ei = 1.d0  - xkh2
   di = -(2.d0 + 10.d0*xkh2)
-  write(*,*) 'poisson_solve_radial: ch = ', ch
-  write(*,*) 'poisson_solve_radial: xkh2 = ', xkh2
-  write(*,*) 'poisson_solve_radial: ei = ', ei
-  write(*,*) 'poisson_solve_radial: di = ', di
+  !write(*,*) 'poisson_solve_radial: ch = ', ch
+  !write(*,*) 'poisson_solve_radial: xkh2 = ', xkh2
+  !write(*,*) 'poisson_solve_radial: ei = ', ei
+  !write(*,*) 'poisson_solve_radial: di = ', di
   !
   ! Set the diagonal and the off diagonal elements of the 
   ! linear system, compute a part of the right hand side 
@@ -120,13 +120,13 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
   ! solution in the last point from the last equation
   !
   fn = ( grid%sqr(mesh-1)/grid%sqr(mesh) )**k21
-  write(*,*) 'poisson_solve_radial: fn = ', fn
+  !write(*,*) 'poisson_solve_radial: fn = ', fn
   d(mesh-1) = d(mesh-1) - ei*fn
   !
   ! In the first point vh(1) has the same definition as in the other points
   !
   vhim1 = k21 * ch * grid%sqr(1) * f(1)
-  write(*,*) 'poisson_solve_radial: vhim1 = ', vhim1
+  !write(*,*) 'poisson_solve_radial: vhim1 = ', vhim1
   !
   ! Compute the right hand side using the auxiliary quantity vh(i).
   !
@@ -143,11 +143,11 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
             c2*( grid%r2(2) - grid%r2(1) ) + &
             c3*( grid%r(2)**3 - grid%r(1)**3 ) &
           )
-  write(*,*) 'sum d(2:mesh-1) = ', sum(d(2:mesh-1))
-  write(*,*) 'sum e(2:mesh-1) = ', sum(e(2:mesh-1))
-  write(1111,*) d
-  write(1112,*) e
-  write(1113,*) vh
+  !write(*,*) 'sum d(2:mesh-1) = ', sum(d(2:mesh-1))
+  !write(*,*) 'sum e(2:mesh-1) = ', sum(e(2:mesh-1))
+  !write(1111,*) d
+  !write(1112,*) e
+  !write(1113,*) vh
   !
   ! solve the linear system with lapack routine dptsv
   !
@@ -178,7 +178,7 @@ subroutine poisson_solve_radial(k, nst, mesh, grid, f, vh)
      vh(i) = vh(i) / grid%sqr(i)
   enddo
   ! final vh
-  write(1114,*) vh
+  !write(1114,*) vh
 
   deallocate(e)
   deallocate(d)

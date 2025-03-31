@@ -8,7 +8,12 @@ SUBROUTINE ld1x_debug_v01()
   USE ld1inc, ONLY: grid, enne, vpot, vxt, enl, &
                     nspin, nn, ll, oc, nwf, zed, zval, v0, el, &
                     isw, psi, rho, &
-                    lsd, vh, latt
+                    lsd, vh, latt, &
+                    iter, tr2, relpert, isic, eps0, beta
+
+  ! XXX iter is a global variable?
+
+
   IMPLICIT NONE
   !
   ! automatic arrays
@@ -18,6 +23,8 @@ SUBROUTINE ld1x_debug_v01()
   INTEGER :: ic
   LOGICAL :: ild
   !
+  integer :: nerr, id
+  logical :: conv
   integer :: iwf
   real(dp) :: ze2
   INTEGER, PARAMETER :: MAXTER = 200
@@ -53,42 +60,62 @@ SUBROUTINE ld1x_debug_v01()
   ! XXX: isic stuffs are removed
   ! XXX: metaGGA version is removed
 
+  do iter = 1,MAXTER
+    
+    ! set new potential
+    vnew = vpot
+    call ld1x_driver_solve_sch( vnew )
 
-  vnew = vpot
+    WRITE(*,*)
+    WRITE(*,*) 'Energy eigenvalues (in Ha): '
+    DO iwf = 1,nwf
+      WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(iwf)/2
+    ENDDO
 
-  call ld1x_driver_solve_sch( vnew )
-
-  WRITE(*,*)
-  WRITE(*,*) 'Energy eigenvalues (in Ha): '
-  DO iwf = 1,nwf
-    WRITE(*,'(1x,A,F18.10)') 'enl = ', enl(iwf)/2
-  ENDDO
-
-  !
-  ! calculate charge density (spherical approximation)
-  !
-  rho = 0.0_dp
-  !IF( noscf ) GOTO 500
-  !
-  DO iwf = 1,nwf
-    rho(1:grid%mesh,isw(iwf)) = rho(1:grid%mesh,isw(iwf)) + &
-                                oc(iwf)*( psi(1:grid%mesh,1,iwf)**2 + &
-                                          psi(1:grid%mesh,2,iwf)**2 )
-  ENDDO
-  CALL simpson(grid%mesh, rho(1:grid%mesh,1), grid%rab, integRho) 
-  ! XXX: Only integrate up spin?
-  WRITE(*,*)
-  WRITE(*,*) 'SCF: integrated rho = ', integRho
+    !
+    ! calculate charge density (spherical approximation)
+    !
+    rho = 0.0_dp
+    !IF( noscf ) GOTO 500
+    !
+    DO iwf = 1,nwf
+      rho(1:grid%mesh,isw(iwf)) = rho(1:grid%mesh,isw(iwf)) + &
+                                  oc(iwf)*( psi(1:grid%mesh,1,iwf)**2 + &
+                                            psi(1:grid%mesh,2,iwf)**2 )
+    ENDDO
+    CALL simpson(grid%mesh, rho(1:grid%mesh,1), grid%rab, integRho) 
+    ! XXX: Only integrate up spin?
+    WRITE(*,*)
+    WRITE(*,*) 'SCF: integrated rho = ', integRho
 
 
-  !
-  ! calculate new potential
-  !
-  write(*,*) 'latt = ', latt
-  CALL my_new_potential( ndmx, grid%mesh, grid, zed, vxt, &
-                       & lsd, .false., latt, enne, rhoc1, rho, &
-                       & vh, vnew, 1 )
+    !
+    ! calculate new potential
+    !
+    write(*,*) 'latt = ', latt
+    CALL my_new_potential( ndmx, grid%mesh, grid, zed, vxt, &
+                         & lsd, .false., latt, enne, rhoc1, rho, &
+                         & vh, vnew, 1 )
 
+    !
+    ! mix old and new potential
+    !
+    id = 3
+    IF( isic /= 0 .and. relpert )  id=1
+    !
+    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot, 1)
+    CALL dmixp(grid%mesh*nspin, vnew, vpot, beta, tr2, iter, id, eps0, conv, maxter)
+    CALL vpack(grid%mesh, ndmx, nspin, vnew, vpot, -1)
+    
+    WRITE(*,'(1x,A,I5,ES18.10)') 'SCF iter ', iter, eps0
+
+    ! Check convergence here (conv is determined by dmixp)
+    IF( conv ) THEN
+      IF (nerr /= 0) CALL infomsg ('scf','warning: at least one error in KS equations')
+      EXIT ! exit cycle
+    ENDIF
+
+  enddo ! iterSCF
 
 
   WRITE(*,*)

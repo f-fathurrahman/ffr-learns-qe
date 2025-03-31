@@ -59,7 +59,9 @@ SUBROUTINE my_new_potential &
   ! hartree(k, nst, mesh, grid, f, vh)
   deallocate(rhotot)
 
-  write(*,*) 'sum(vh) (in Ha) = ', sum(vh)*0.5d0
+  write(*,*) 'sum(vh) (in Ha) = ', sum(vh)
+  ! at this point vh is still in Ha unit
+  ! it will be converted later below
 
   !
   ! add exchange and correlation potential: LDA or LSDA only
@@ -76,23 +78,31 @@ SUBROUTINE my_new_potential &
     endif
     !
     IF( meta ) THEN
-      !
       ! Workaround: the meta-GGA XC functional already contains the LDA part
-      !
       vxcp(:) = 0.0_dp
       exc(i) = 0.0_dp
       !print *, "meta gga"
     ELSE
+      ! This is the usual case for LDA
       vxcp = 0
       call vxc_t(lsd, rh, rhc, excp, vxcp)
-      exc(i) = excp
+      exc(i) = excp ! set energy density, use as is? (no additional factor?)
     ENDIF
     !
+    ! Set new potential
     do is =1, nspin
-      vxc(i, is) = vxcp(is)
+      vxc(i,is) = vxcp(is)
       vnew(i,is)= -zed*e2/grid%r(i) + vxt(i) + vh(i) + vxcp(is)
     enddo
+    ! vnew includes Coulomb potential
   endDO
+
+  write(*,*) 'nlcc = ', nlcc
+  write(*,*) 'sum rho (radial only) = ', sum(rho(:,1)/grid%r2(:))/fpi
+  write(*,*) 'sum epsxc (in Ha) = ', sum(exc)*0.5d0
+  write(*,*) 'sum vxc (in Ha) = ', sum(vxc)*0.5d0
+
+
   !
   ! add exchange and correlation potential: GGA only
   !
@@ -123,7 +133,7 @@ SUBROUTINE my_new_potential &
     ! write (*,*) ndm, nwf
     ALLOCATE(dchi0(ndm,nwf))
     DO nu=1,nwf ! num wave functions
-      CALL dvex(nu,dchi0(1,nu))
+      CALL dvex(nu, dchi0(1,nu))
     ENDDO 
     CALL dfx_new(dchi0, vx)
     ! vx contains the oep term
@@ -136,14 +146,14 @@ SUBROUTINE my_new_potential &
     CALL compute_kli_potential(grid%mesh,vx)
     vnew(:, 1:nspin) = vnew(:, 1:nspin ) + vx(:,1:nspin)
   ENDIF
-
   !
   ! latter correction
   !
   IF( latt /= 0) THEN
+    write(*,*) 'Using Latter correction'
     DO is = 1,nspin
       DO i = 1,mesh
-        vnew(i,is) = min(vnew(i,is),-e2*(zed-enne+1.0_DP)/grid%r(i))
+        vnew(i,is) = min(vnew(i,is), -e2*(zed-enne+1.0_DP)/grid%r(i))
       ENDDO 
     ENDDO 
   ENDIF 

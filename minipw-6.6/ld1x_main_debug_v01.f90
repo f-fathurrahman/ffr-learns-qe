@@ -29,7 +29,7 @@ PROGRAM main_ld1x_debug_v01
   IF( iswitch == 1 ) THEN
     
     WRITE(*,*) 'DEBUG STARTS HERE'
-    CALL ld1x_debug_v01()
+    !CALL ld1x_debug_v01()
 
   ELSEIF( iswitch == 2) THEN
     call errore('debug_ld1x_v01', 'iswitch = 2 is not supported', 1)

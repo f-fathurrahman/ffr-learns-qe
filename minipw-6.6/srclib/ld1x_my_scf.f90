@@ -150,7 +150,7 @@ SUBROUTINE ld1x_my_scf(ic)
     !
     ! calculate new potential
     !
-    CALL new_potential( ndmx, grid%mesh, grid, zed, vxt, &
+    CALL my_new_potential( ndmx, grid%mesh, grid, zed, vxt, &
        &                lsd, .false., latt, enne, rhoc1, rho, vh, vnew, 1 )
     
     !
