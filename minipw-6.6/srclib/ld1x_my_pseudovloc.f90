@@ -63,6 +63,7 @@ subroutine my_pseudovloc()
     !
     ! with the original recipe
     if( lloc==-1 ) then
+      write(*,*) 'Calling my_compute_potps'
       call my_compute_potps(ik, vpot, vpsloc, xc)
     endif
     !
@@ -70,7 +71,7 @@ subroutine my_pseudovloc()
     if( lloc==-2 ) then
       write(stdout,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
     endif
-    !
+    ! XXX: merge this if statement?
     if( lloc==-2 ) then
       call compute_potps_new(ik, vpot, vpsloc, xc)
     endif
@@ -146,7 +147,8 @@ subroutine my_pseudovloc()
       ns = indns(indi)
       write(*,*) 'ns = ', ns
       if( new(ns) ) then
-        call set_psi_in(ik,lloc,jjs(ns),enls(ns),psi_in,psipaw_rel)
+        write(*,*) 'Calling set_psi_in'
+        call my_set_psi_in(ik,lloc,jjs(ns),enls(ns),psi_in,psipaw_rel)
       else
         psi_in(:) = psi(:,1,nwf0)
       endif
@@ -154,6 +156,7 @@ subroutine my_pseudovloc()
       !
       ! compute the phi and chi functions
       !
+      write(*,*) 'Calling compute_phi_tm and compute_chi_tm'
       call compute_phi_tm( lloc, ik, psi_in, phis(1,ns), 0, xc,enls(ns), els(ns) )
       call compute_chi_tm( lloc, ik, ik+10, phis(1,ns), chis(1,ns), xc, enls(ns) )
       !
@@ -161,9 +164,9 @@ subroutine my_pseudovloc()
       !
       do n=1,grid%mesh
         if (grid%r(n) > rcloc) then
-           vaux(n,indi+1)=vpot(n,1)
+          vaux(n,indi+1)=vpot(n,1)
         else
-           vaux(n,indi+1)=chis(n,ns)/phis(n,ns)
+          vaux(n,indi+1)=chis(n,ns)/phis(n,ns)
         endif
       enddo
       !

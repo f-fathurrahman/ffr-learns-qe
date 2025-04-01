@@ -51,6 +51,9 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
   if( lam > 6) then
     call errore('find_qi','l not programmed',1)
   endif
+
+  write(*,*) 'my_find_qi: logderae = ', logderae
+
   !
   ! fix deltaq and the maximum step number
   dq_0 = 0.05d0

@@ -133,6 +133,7 @@ subroutine my_gener_pseudo()
   ik = 0
   ikus = 0
   ikloc = 0
+  ! find ik, ikus, and ikloc
   do ns = 1,nbeta
     !
     do n=1,grid%mesh
@@ -149,41 +150,45 @@ subroutine my_gener_pseudo()
         ikloc = n
       endif
     enddo
-    
+    ! make ik odd
     if( mod(ik(ns),2) == 0) then
       ik(ns) = ik(ns) + 1
     endif
-    
+    ! make ikus odd
     if( mod(ikus(ns),2) == 0) then
       ikus(ns) = ikus(ns) + 1
     endif
-    
+    ! make ikloc odd
     if( mod(ikloc,2) == 0) then
       ikloc = ikloc + 1
     endif
-    
+    ! check validity of ik, ikus, and ikloc
     if( ik(ns) > grid%mesh) then
       call errore('gener_pseudo','ik is wrong ',ns)
     endif
-    
+    ! why?
     if( ikus(ns) + 10 > grid%mesh) then
       call errore('gener_pseudo','ikus is wrong ',ns)
     endif
-    
+    ! why?
     if( ikloc + 5 > grid%mesh) then
       call errore('gener_pseudo','ikloc is wrong ',ns)
     endif
-
+    !
     if( pseudotype == 3 ) then
       ikk(ns) = max(ikus(ns)+10, ikloc+5)
     else
       ikk(ns) = max(ik(ns)+10, ikloc+5)
     endif
-    
+    !
     if( ikk(ns) > grid%mesh) then
       call errore('gener_pseudo', 'ikk is wrong ',ns)
     endif
-  enddo
+  enddo ! ns
+  write(*,*) 'nbeta = ', nbeta
+  write(*,*) 'ik = ', ik(1:nbeta)
+  write(*,*) 'ikus = ', ikus(1:nbeta)
+  write(*,*) 'ikloc = ', ikloc
   !
   do ns = 1,nbeta
     do ns1 = 1,nbeta
@@ -193,10 +198,11 @@ subroutine my_gener_pseudo()
     enddo
   enddo
   !
-  irc =  maxval(ikk(1:nbeta)) + 8
+  irc = maxval(ikk(1:nbeta)) + 8
   IF(mod(irc,2) == 0) then
     irc = irc + 1
   endif
+  !
   IF(irc > grid%mesh) then
     CALL errore('gener_pseudo','irc is too large',1)
   endif
@@ -211,18 +217,22 @@ subroutine my_gener_pseudo()
   do ns = 1,nbeta
     nwf0 = nstoae(ns)
     if( new(ns) ) then
-      call set_psi_in( ikus(ns), lls(ns), jjs(ns), enls(ns), psipaw(1,ns), psipaw_rel(1,ns) )
+      write(*,*) 'new(ns) is true'
+      call my_set_psi_in( ikus(ns), lls(ns), jjs(ns), enls(ns), psipaw(1,ns), psipaw_rel(1,ns) )
     else
       lam = lls(ns)
       nst = (lam+1)*2
-      psipaw(:,ns)=psi(:,1,nwf0)
-      do n=1,grid%mesh
-        gi(n)=psipaw(n,ns)*psipaw(n,ns)
+      psipaw(:,ns) = psi(:,1,nwf0)
+      !
+      do n = 1,grid%mesh
+        gi(n) = psipaw(n,ns)*psipaw(n,ns)
       enddo
+      !
       norm1 = sqrt(int_0_inf_dr(gi,grid,grid%mesh,nst))
+      !
       IF( rel==2 ) THEN
         psipaw_rel(:,ns)=psi(:,2,nwf0)
-        DO n=1,irc
+        DO n = 1,irc
           gi(n) = psipaw_rel(n,ns)*psipaw_rel(n,ns)
         ENDDO
         norm2 = sqrt(int_0_inf_dr(gi,grid,irc,nst))
@@ -274,8 +284,10 @@ subroutine my_gener_pseudo()
       ! used as AE reference for PAW generation
       nnode = 0
       if( tm ) then 
+        write(*,*) 'Calling compute_phi_tm'
         call compute_phi_tm(lam, ik(ns), psi_in, phis(1,ns), 1, xc, enls(ns), els(ns) )
       else
+        write(*,*) 'Calling compute_phi'
         call compute_phi(lam, ik(ns), psi_in, phis(1,ns), xc, 1, occ, enls(ns), els(ns) )
       endif
       psipaw(1:grid%mesh,ns) = phis(1:grid%mesh,ns)
@@ -294,23 +306,26 @@ subroutine my_gener_pseudo()
       !
       ! US only on the components where ikus <> ik
       ! 
-      psipsus(:,ns)=phis(:,ns) 
+      psipsus(:,ns) = phis(:,ns) 
     ENDIF
     !
     if( ikus(ns) /= ik(ns) ) then
+      write(*,*) 'Calling compute_phius'
       call compute_phius(lam,ikus(ns),psipsus(1,ns),phis(1,ns),xc,1,els(ns))
-      ecutwfc=max(ecutwfc,2.0_dp*xc(5)**2)
-      lbes4=.true.
+      ecutwfc = max(ecutwfc,2.0_dp*xc(5)**2)
+      lbes4 = .true.
     else
-      lbes4=.false.
+      lbes4 = .false.
       if(.not. tm) then
         ecutwfc = max(ecutwfc, 2.0_dp*xc(6)**2)
       endif
     endif
     !
     if(tm .and. ik(ns)==ikus(ns) ) then
+      write(*,*) 'Calling compute_chi_tm'
       call compute_chi_tm(lam,ik(ns),ikk(ns),phis(1,ns),chis(1,ns),xc,enls(ns))
     else
+      write(*,*) 'Calling compute_chi'
       call compute_chi(lam,ikk(ns),phis(1,ns),chis(1,ns),xc,enls(ns),lbes4)
     endif
   enddo
@@ -322,16 +337,16 @@ subroutine my_gener_pseudo()
   !
   bmat = 0.0_dp
   do ns = 1,nbeta
-     do ns1 = 1,nbeta
-        if( lls(ns) == lls(ns1) .and. abs(jjs(ns)-jjs(ns1)) < 1.e-7_dp ) then
-          nst=(lls(ns)+1)*2
-          ikl=ikk(ns1)
-          do n=1,grid%mesh
-            gi(n) = phis(n,ns)*chis(n,ns1)
-          enddo
-          bmat(ns,ns1) = int_0_inf_dr(gi,grid,ikl,nst)
-        endif
-     enddo
+    do ns1 = 1,nbeta
+      if( lls(ns) == lls(ns1) .and. abs(jjs(ns)-jjs(ns1)) < 1.e-7_dp ) then
+        nst = (lls(ns)+1)*2
+        ikl = ikk(ns1)
+        do n=1,grid%mesh
+          gi(n) = phis(n,ns)*chis(n,ns1)
+        enddo
+        bmat(ns,ns1) = int_0_inf_dr(gi,grid,ikl,nst)
+      endif
+    enddo
   enddo
 
   allocate( b(nbeta, nbeta), binv(nbeta, nbeta) )
@@ -405,13 +420,13 @@ subroutine my_gener_pseudo()
     !
     do ns = 1,nbeta
       do ns1 = 1,ns
-        ikl=max(ikk(ns),ikk(ns1))
+        ikl = max(ikk(ns),ikk(ns1))
         if( which_augfun=='PSQ' .and. rel==2) then
           do n=1, ikl
             qvan(n,ns,ns1) = psipsus(n,ns) * psipsus(n,ns1) &
                          & + psipaw_rel(n,ns) * psipaw_rel(n,ns1) &
                          & - phis(n,ns) * phis(n,ns1)
-            gi(n)=qvan(n,ns,ns1)
+            gi(n) = qvan(n,ns,ns1)
           enddo
         else
           do n=1, ikl
@@ -490,9 +505,9 @@ subroutine my_gener_pseudo()
           !
           IF (rel==2) THEN
             do n=1,irc
-               gi(n) = psipaw_rel(n,ns)*(enls(ns1)-vpotpaw(n))*psipaw_rel(n,ns1)
+              gi(n) = psipaw_rel(n,ns)*(enls(ns1)-vpotpaw(n))*psipaw_rel(n,ns1)
             enddo
-            aekin(ns,ns1)=aekin(ns,ns1) + int_0_inf_dr(gi(1:grid%mesh),grid,irc,nst)
+            aekin(ns,ns1) = aekin(ns,ns1) + int_0_inf_dr(gi(1:grid%mesh),grid,irc,nst)
           ENDIF
           !
           do n=1,ikl
@@ -512,6 +527,7 @@ subroutine my_gener_pseudo()
     end do
     !
     ! create the 'pawsetup' object containing the atomic setup for PAW
+    write(*,*) 'Calling us2paw'
     call us2paw( pawsetup, &
          & zval, grid, rmatch_augfun, ikk,  &
          & nbeta, lls, jjs, ocs, enls, els, rcutus, psipaw, psipaw_rel, &
@@ -519,23 +535,25 @@ subroutine my_gener_pseudo()
          & vpsloc, which_augfun, rel )
     !
     ! reread augmentation functions and descreened potentials from PAW
+    write(*,*) 'Calling paw2us'
     call paw2us( pawsetup, zval, grid, nbeta, lls, jjs, ikk, betas, &
                & qq, qvan, vpsloc, bmat, rhos, els, rcutus, pseudotype, &
                & psipaw_rel )
     !
   else
-     !
-     !  Pseudize the Q functions if required. This might be needed for
-     !  pseudo-potentials with semicore states. In this case the cut-off radius
-     !  for the norm conserving wavefunctions is quite small and without
-     !  the Q pseudization the augmentation charges are very hard making the
-     !  ASR in phonon calculation very difficult to converge.
-     ! 
-     IF (which_augfun=='PSQ') CALL pseudo_q(qvan,qvanl)
-     !
-     ! unscreen the local potential and the D coefficients
-     !
-     call descreening()
+    write(*,*) 'Calling pseudo_q and descreening'
+    !
+    !  Pseudize the Q functions if required. This might be needed for
+    !  pseudo-potentials with semicore states. In this case the cut-off radius
+    !  for the norm conserving wavefunctions is quite small and without
+    !  the Q pseudization the augmentation charges are very hard making the
+    !  ASR in phonon calculation very difficult to converge.
+    ! 
+    IF (which_augfun=='PSQ') CALL pseudo_q(qvan,qvanl)
+    !
+    ! unscreen the local potential and the D coefficients
+    !
+    call descreening()
   endif
   !
   ! write the main functions on files

@@ -36,6 +36,7 @@ poisson_solve_radial.o \
 ld1x_my_pseudovloc.o \
 ld1x_my_compute_potps.o \
 ld1x_my_find_qi.o \
+ld1x_my_set_psi_in.o \
 ld1x_my_vpack.o \
 ld1x_my_dmixp.o \
 exposed_ld1x_ffr.o
