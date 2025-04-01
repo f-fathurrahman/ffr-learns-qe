@@ -76,7 +76,7 @@ subroutine my_gener_pseudo()
 
 
   WRITE(*,*)
-  WRITE(*,*) '***** ENTER my_my_gener_pseudo *****'
+  WRITE(*,*) '***** ENTER my_gener_pseudo *****'
   WRITE(*,*)
 
 
@@ -267,27 +267,29 @@ subroutine my_gener_pseudo()
     !
     ! compute the phi functions
     !
+    write(*,*) 'lnc2paw = ', lnc2paw
+    !
     if( lpaw .and. lnc2paw ) then
       ! first compute possibly harder NC pseudowfcs to be
       ! used as AE reference for PAW generation
       nnode = 0
-      if(tm) then 
+      if( tm ) then 
         call compute_phi_tm(lam, ik(ns), psi_in, phis(1,ns), 1, xc, enls(ns), els(ns) )
       else
         call compute_phi(lam, ik(ns), psi_in, phis(1,ns), xc, 1, occ, enls(ns), els(ns) )
       endif
       psipaw(1:grid%mesh,ns) = phis(1:grid%mesh,ns)
     endif
-
+    !
     IF( (which_augfun=='PSQ' .AND. ik(ns) /= ikus(ns)) .OR. &
          (lpaw .AND. .NOT. lnc2paw) ) THEN
       psipsus(:,ns)=psi_in(:)
     ELSE
       if( tm ) then
-        call compute_phi_tm(lam,ik(ns),psi_in,phis(1,ns),1,xc,enls(ns),els(ns))
+        call compute_phi_tm(lam,ik(ns), psi_in,phis(1,ns), 1, xc, enls(ns), els(ns))
       else
-        call compute_phi(lam,ik(ns),psi_in,phis(1,ns),xc,1,occ,enls(ns),els(ns))
-        ecutrho=max(ecutrho,8.0_dp*xc(6)**2)
+        call compute_phi(lam,ik(ns), psi_in, phis(1,ns),xc,1,occ,enls(ns),els(ns))
+        ecutrho = max(ecutrho, 8.0_dp*xc(6)**2 )
       endif
       !
       ! US only on the components where ikus <> ik
@@ -367,8 +369,8 @@ subroutine my_gener_pseudo()
     enddo
   endif
   !
-  do ns=1,nbeta
-    do ns1=1,nbeta
+  do ns = 1,nbeta
+    do ns1 = 1,nbeta
       b(ns,ns1) = bmat(ns,ns1)
     enddo
   enddo
@@ -388,7 +390,7 @@ subroutine my_gener_pseudo()
   betas = 0.0_dp
   do ns = 1,nbeta
     do ns1 = 1,nbeta
-      do n=1,grid%mesh
+      do n = 1,grid%mesh
         betas(n,ns) = betas(n,ns) + binv(ns1,ns)*chis(n,ns1)
       enddo
     enddo
@@ -396,6 +398,7 @@ subroutine my_gener_pseudo()
   deallocate(b, binv)
   !
   qq = 0.0_dp
+  write(*,*) 'pseudotype = ', pseudotype
   if( pseudotype == 3 ) then
     !
     ! compute the Q functions
@@ -568,7 +571,7 @@ subroutine my_gener_pseudo()
   write(stdout,"(/,5x,19('-'),' End of pseudopotential generation ',19('-'),/)")
 
   WRITE(*,*)
-  WRITE(*,*) '***** EXIT my_my_gener_pseudo *****'
+  WRITE(*,*) '***** EXIT my_gener_pseudo *****'
   WRITE(*,*)
 
   return

@@ -55,7 +55,7 @@ PROGRAM ld1
      !
      !  pseudopotential generation and test
      !
-     CALL my_all_electron(.FALSE., 1) ! do not compute log-deriv
+     CALL all_electron(.FALSE., 1) ! do not compute log-deriv
      CALL my_gener_pseudo()
      !if(.not. lgipaw_reconstruction) 
      CALL my_run_test()
