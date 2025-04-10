@@ -6,26 +6,26 @@ SUBROUTINE my_pseudovloc()
   ! The output of the routine are:
   ! vpsloc: the local pseudopotential
   !      
-  USE kinds, only : DP
-  USE radial_grids, only : ndmx
-  USE io_global, only : stdout
-  USE ld1inc, only : lloc, rcloc, grid, vpot, vpsloc, rel, nsloc, &
+  USE kinds, ONLY : DP
+  USE radial_grids, ONLY : ndmx
+  USE io_global, ONLY : stdout
+  USE ld1inc, ONLY : lloc, rcloc, grid, vpot, vpsloc, rel, nsloc, &
                      phis, els, chis, psipsus, &
                      jjs, nstoae, enls, new, psi, enl, rcut, psipaw, &
                      psipaw_rel
-  implicit NONE
+  IMPLICIT NONE
 
-  integer :: &
+  INTEGER :: &
        nwf0, &  ! used to specify the all electron function
        nst,  &  ! auxiliary
        ik       ! the point corresponding to rc
 
-  real(DP) ::             &
+  REAL(DP) ::             &
        xc(8),              &  ! the coefficients of the fit
        vaux(ndmx,2),        &  ! keeps the potential
        psi_in(ndmx)            ! auxiliary
 
-  integer ::         &
+  INTEGER ::         &
        n,        &  ! counter on mesh points
        ns,       &  ! auxiliary
        indi,rep, &  ! auxiliary
@@ -36,28 +36,32 @@ SUBROUTINE my_pseudovloc()
   write(*,*)
 
 
-  if( lloc < 0 ) then
+  IF( lloc < 0 ) THEN
     !
     ! Compute the potential by smoothing the AE potential
     !
     ! Compute the ik which correspond to this cutoff radius
     !
-    write(stdout, &
+    WRITE(stdout, &
          "(/,5x,' Generating local potential from pseudized AE potential:',&
            &  /,5x,' Matching radius rcloc = ',f8.4)") rcloc
     ik = 0
-    do n=1,grid%mesh
-      if( grid%r(n) < rcloc ) ik=n
-    enddo
+    ! find largest index n for which r(n) < rcloc
+    DO n = 1,grid%mesh
+      IF( grid%r(n) < rcloc ) ik = n
+    ENDDO
+    WRITE(*,*) 'ik = ', ik
     !
-    if( mod(ik,2) == 0 ) then
+    IF( mod(ik,2) == 0 ) THEN
+      WRITE(*,*) 'Found ik is even number, making it odd'
       ik = ik + 1
-    endif
+    ENDIF
     !
-    if(ik <= 1 .or. ik > grid%mesh) then
-      call errore('pseudovloc','wrong matching point',1)
-    endif
-    write(*,*) 'my_pseudovloc: Found ik = ', ik
+    IF( ik <= 1 .or. ik > grid%mesh ) THEN
+      CALL errore('pseudovloc', 'wrong matching point', 1)
+    ENDIF
+    WRITE(*,*) 'grid%mesh = ', grid%mesh
+    WRITE(*,*) 'my_pseudovloc: Found ik = ', ik
     !
     ! smooth the potential before ik.
     !
@@ -65,16 +69,16 @@ SUBROUTINE my_pseudovloc()
     IF( lloc==-1 ) THEN
       ! used for example Si_paw
       WRITE(*,*) 'Calling my_compute_potps'
-      call my_compute_potps(ik, vpot, vpsloc, xc)
+      CALL my_compute_potps(ik, vpot, vpsloc, xc)
     ENDIF
     !
     ! or with a modified recipe that enforce V''(0)=0 as suggested by TM
-    if( lloc==-2 ) then
-      write(stdout,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
-    endif
+    IF( lloc==-2 ) THEN
+      WRITE(stdout,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
+    ENDIF
     ! XXX: merge this if statement?
     IF( lloc==-2 ) THEN
-      call compute_potps_new(ik, vpot, vpsloc, xc)
+      CALL compute_potps_new(ik, vpot, vpsloc, xc)
     ENDIF
     
     WRITE(stdout, 110) grid%r(ik), xc(5)**2 
@@ -82,12 +86,15 @@ SUBROUTINE my_pseudovloc()
   
     !
     !
-  else
+  ELSE
     !
     ! if a given angular momentum gives the local component this is done here
     !
+    WRITE(*,*) 'lloc is given: lloc = ', lloc
     nst = (lloc + 1)*2
-    IF( rel==2 .and. lloc > 0 ) then
+    WRITE(*,*) 'nst = ', nst
+    !
+    IF( rel==2 .and. lloc > 0 ) THEN
       rep = 1
       indns(0) = nsloc
       indns(1) = nsloc + 1
@@ -95,100 +102,102 @@ SUBROUTINE my_pseudovloc()
         indns(0) = nsloc + 1
         indns(1) = nsloc
       ENDIF
-    else
+    ELSE
       rep = 0
       indns(0) = nsloc
-    endif
+    ENDIF
     vpsloc = 0.0_dp
     vaux = 0.0_dp
     !
-    write(*,*) 'my_pseudovloc: rep = ', rep
+    WRITE(*,*) 'my_pseudovloc: rep = ', rep
     !
-    do indi = 0,rep
+    DO indi = 0,rep
       nwf0 = nstoae(nsloc+indi)
-      if( enls(nsloc+indi) == 0.0_dp ) then
+      IF( enls(nsloc+indi) == 0.0_dp ) then
         enls(nsloc+indi) = enl(nwf0)
-      endif
+      ENDIF
       !
       ! compute the ik closer to r_cut
       !
       ik = 0
-      do n = 1,grid%mesh
-        if( grid%r(n) < rcut(nsloc+indi) ) then
+      DO n = 1,grid%mesh
+        IF( grid%r(n) < rcut(nsloc+indi) ) THEN
           ik = n
-        endif
-      enddo
-      if( mod(ik,2) == 0) then
+        ENDIF
+      ENDDO
+      IF( mod(ik,2) == 0) THEN
         ik = ik + 1
-      endif
-      if( ik <= 1 .or. ik > grid%mesh ) then
-        call errore('pseudovloc','wrong matching point',1)
-      endif
+      ENDIF
+      IF( ik <= 1 .or. ik > grid%mesh ) THEN
+        CALL errore('pseudovloc','wrong matching point',1)
+      ENDIF
       !
       rcloc = rcut(nsloc+indi)
       !
-      if( rep == 0 ) then
-        write(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+      IF( rep == 0 ) THEN
+        WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
                 & ', matching radius rcloc = ',f8.4)") lloc, rcloc
-      else
-        if( rel==2 ) then
-          write(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+      ELSE
+        IF( rel==2 ) THEN
+          WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
                &', j=',f5.2,', matching radius rcloc = ',f8.4)") &
                lloc, lloc-0.5d0+indi, rcloc
-        else
-          write(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+        ELSE
+          WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
                &', spin=',i1,', matching radius rcloc = ',f8.4)") &
                lloc, indi+1, rcloc
-        endif
-      endif
+        ENDIF
+      ENDIF
       !
       ! compute the phi functions
       !
       ns = indns(indi)
-      write(*,*) 'ns = ', ns
-      if( new(ns) ) then
-        write(*,*) 'Calling set_psi_in'
-        call my_set_psi_in(ik,lloc,jjs(ns),enls(ns),psi_in,psipaw_rel)
-      else
+      WRITE(*,*) 'ns = ', ns
+      IF( new(ns) ) then
+        WRITE(*,*) 'Calling set_psi_in'
+        CALL my_set_psi_in(ik,lloc,jjs(ns),enls(ns),psi_in,psipaw_rel)
+      ELSE
         psi_in(:) = psi(:,1,nwf0)
-      endif
+      ENDIF
       psipaw(:,ns) = psi_in(:)
       !
       ! compute the phi and chi functions
       !
-      write(*,*) 'Calling compute_phi_tm and compute_chi_tm'
-      call compute_phi_tm( lloc, ik, psi_in, phis(1,ns), 0, xc,enls(ns), els(ns) )
-      call compute_chi_tm( lloc, ik, ik+10, phis(1,ns), chis(1,ns), xc, enls(ns) )
+      WRITE(*,*) 'Calling compute_phi_tm and compute_chi_tm'
+      CALL compute_phi_tm( lloc, ik, psi_in, phis(1,ns), 0, xc,enls(ns), els(ns) )
+      CALL compute_chi_tm( lloc, ik, ik+10, phis(1,ns), chis(1,ns), xc, enls(ns) )
       !
       ! set the local potential equal to the all-electron one at large r
       !
-      do n=1,grid%mesh
-        if (grid%r(n) > rcloc) then
+      DO n=1,grid%mesh
+        IF (grid%r(n) > rcloc) then
           vaux(n,indi+1)=vpot(n,1)
-        else
+        ELSE
           vaux(n,indi+1)=chis(n,ns)/phis(n,ns)
-        endif
-      enddo
+        ENDIF
+      ENDDO
       !
       psipsus(:,ns)=phis(:,ns)
       !
-    enddo  ! indi=0,rep
+    ENDDO  ! indi=0,rep
     !
-    if (rep==0) then
-      do n=1,grid%mesh
+    IF( rep==0 ) THEN
+      DO n=1,grid%mesh
         vpsloc(n) = vaux(n,1)
-      enddo
-    else
-      do n = 1,grid%mesh
+      ENDDO
+    ELSE
+      DO n = 1,grid%mesh
         vpsloc(n) = (lloc*vaux(n,1)+(lloc+1.0_dp)*vaux(n,2)) / (2.0_dp*lloc + 1.0_dp)
-      enddo
-    endif
+      ENDDO
+    ENDIF
   
-  endif ! lloc
+  ENDIF ! lloc
 
-  write(*,*)
-  write(*,*) '**** EXIT my_pseudovloc'
-  write(*,*)
+  WRITE(*,*)
+  WRITE(*,*) '**** EXIT my_pseudovloc'
+  WRITE(*,*)
 
-  return
-end subroutine
+  RETURN
+END SUBROUTINE
+
+

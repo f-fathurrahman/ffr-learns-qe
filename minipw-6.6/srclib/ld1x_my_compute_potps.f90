@@ -63,9 +63,9 @@ SUBROUTINE my_compute_potps(ik, v_in, v_out, xc)
   ! compute the second derivative and impose continuity of zero, 
   ! first and second derivative
   DO nc=1,2
-     p1aep1 = (j1(ik+1,nc) - j1(ik,nc))/(grid%r(ik+1) - grid%r(ik))
-     p1aem1 = (j1(ik,nc) - j1(ik-1,nc))/(grid%r(ik)-grid%r(ik-1))
-     bm(nc) = (p1aep1-p1aem1)*2.0_dp/(grid%r(ik+1)-grid%r(ik-1))
+    p1aep1 = (j1(ik+1,nc) - j1(ik,nc))/(grid%r(ik+1) - grid%r(ik))
+    p1aem1 = (j1(ik,nc) - j1(ik-1,nc))/(grid%r(ik)-grid%r(ik-1))
+    bm(nc) = (p1aep1-p1aem1)*2.0_dp/(grid%r(ik+1)-grid%r(ik-1))
   ENDDO
 
   xc(2) = (f2ae-bm(1))/(bm(2)-bm(1))
