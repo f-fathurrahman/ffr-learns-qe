@@ -1,5 +1,5 @@
 !--------------------------------------------------------------------------
-subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
+SUBROUTINE my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
 !--------------------------------------------------------------------------
   !
   ! This routine finds three values of q such that the
@@ -10,20 +10,23 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
   !
   use kinds, only: dp
   use ld1inc, only: grid
-  implicit none
-  integer, parameter :: ncmax=10   ! maximum allowed nc
-  integer ::      &
+  !
+  IMPLICIT NONE
+  !
+  INTEGER, PARAMETER :: ncmax=10   ! maximum allowed nc
+  !
+  INTEGER ::      &
        ik,    & ! input: the point corresponding to rcut
        ncn,   & ! input: the number of qi to compute
        flag,  & ! input: the type of function
        iok,   & ! output: if 0 the calculation in this routine is ok
        lam      ! input: the angular momentum
 
-  real(DP) :: &
+  REAL(DP) :: &
        xc(ncn), & ! output: the values of qi
        logderae  ! input: the logarithmic derivative
 
-  real(DP) ::   &
+  REAL(DP) ::   &
        j1(ncmax), & ! the bessel function in three points
        qmax,qmin, & ! the limits of the q search
        logdermax, logdermin, & ! the maximum and minimum logder
@@ -32,7 +35,7 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
        my_compute_log, &! function for log derivative
        dq, dq_0 ! the step to braket the q
 
-  integer ::    &
+  INTEGER ::    &
        nc,  &    ! counter on the q found
        icount, &  ! too many iterations
        icount1, & ! too many iterations
@@ -40,19 +43,19 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
        iq      ! counter on iteration
 
   iok = 0
-  if(ncn > ncmax) then
-    call errore('find_qi','ncn is too large',1)
-  endif
+  IF( ncn > ncmax ) THEN
+    CALL errore('find_qi','ncn is too large',1)
+  ENDIF
 
-  if( flag == 0 .and. lam /= 0) then
-    call errore('find_qi','lam too large for this iflag',1)
-  endif
+  IF( flag == 0 .and. lam /= 0) THEN
+    CALL errore('find_qi','lam too large for this iflag',1)
+  ENDIF
 
-  if( lam > 6) then
-    call errore('find_qi','l not programmed',1)
-  endif
+  IF( lam > 6) THEN
+    CALL errore('find_qi','l not programmed',1)
+  ENDIF
 
-  write(*,*) 'my_find_qi: logderae = ', logderae
+  WRITE(*,*) 'my_find_qi: logderae = ', logderae
 
   !
   ! fix deltaq and the maximum step number
@@ -63,27 +66,29 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
   ! have noise.
   !
   qmax = 0.5_dp
-  call sph_bes(7, grid%r(ik-3), qmax, lam, j1)
+  CALL sph_bes(7, grid%r(ik-3), qmax, lam, j1)
   j1(1:7) = j1(1:7)*grid%r(ik-3:ik+3)**flag
   logdermax = my_compute_log(j1, grid%r(ik), grid%dx) - logderae
   jlmax = j1(4)
 
   icount = 0
-  do nc = 1,ncn
+  DO nc = 1,ncn
     !
     ! bracket the zero
     !
     icount1 = 0
-    200 continue
+    !
+    ! start finding interval that bracket root?
+    200 CONTINUE
     dq = dq_0
     qmin = qmax
     logdermin = logdermax
     jlmin = jlmax
-    do iq = 1,imax
+    DO iq = 1,imax
       !
       qmax = qmin + dq
       !
-      call sph_bes(7, grid%r(ik-3), qmax, lam, j1)
+      CALL sph_bes(7, grid%r(ik-3), qmax, lam, j1)
       !
       j1(1:7) = j1(1:7)*grid%r(ik-3:ik+3)**flag
       !
@@ -93,29 +98,32 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
       !
       ! the zero has been bracketed?
       !
-      if( jlmin * jlmax > 0.d0 ) then ! far from an asintote
+      IF( jlmin * jlmax > 0.d0 ) THEN ! far from an asintote
         !
-        if( logdermax*logdermin < 0.d0 ) goto 100
+        ! in this case it has been bracketed
+        if( logdermax*logdermin < 0.d0 ) GOTO 100
         !
+        ! Update if not: qmin <-- qmax
         qmin = qmax
         logdermin = logdermax
         jlmin = jlmax
-      else
-        if( logdermax*logdermin < 0.d0) then
+      ELSE
+        ! qmin <-- qmax
+        IF( logdermax*logdermin < 0.d0) THEN
           qmin = qmax
-          logdermin=logdermax
+          logdermin = logdermax
           jlmin = jlmax
-        else
+        ELSE
           dq = 0.5d0 * dq
-        endif
-      endif
-    enddo ! iq
+        ENDIF
+      ENDIF
+    ENDDO ! iq
 
-    call infomsg ('find_qi','qmax not found ')
+    CALL infomsg('find_qi', 'qmax not found ')
     iok = 1
-    return
+    RETURN
 
-100 continue
+100 CONTINUE
     !
     !      start bisection loop
     !
@@ -140,26 +148,28 @@ subroutine my_find_qi(logderae, xc, ik, lam, ncn, flag, iok)
       qmax = xc(nc)  
       logdermax = logder
       icount1 = icount1 + 1
-      if( icount1 < 20) then
-        goto 200
-      else
-        call errore('find_q','problem finding q',1)
-      endif
-    endif
+      IF( icount1 < 20) THEN
+        GOTO 200 ! XXX search again?
+      ELSE
+        CALL errore('find_q','problem finding q',1)
+      ENDIF
+    ENDIF
     !
     ! check for convergence
     !
     icount = icount + 1
-    if( icount > 1000 ) call errore('find_q','too many iterations',1)
-    if( abs(logdermax-logdermin) > 1.e-8_dp) goto 100 ! bisection
-  enddo
+    IF( icount > 1000 ) call errore('find_q','too many iterations',1)
+    IF( abs(logdermax-logdermin) > 1.e-8_dp) goto 100 ! bisection
+  ENDDO
 
-  return
-end subroutine
+  RETURN
+END SUBROUTINE
 
-!--------------------------------
-function my_compute_log(j1,rj,dx)
-!--------------------------------
+
+
+!----------------------------------
+FUNCTION my_compute_log(j1, rj, dx)
+!----------------------------------
   use kinds, only : DP
   implicit none
   real(DP) ::   &
@@ -171,4 +181,6 @@ function my_compute_log(j1,rj,dx)
   my_compute_log = deriv_7pts(j1, 4, rj, dx)/j1(4)
 
   return
-end function
+END FUNCTION
+
+

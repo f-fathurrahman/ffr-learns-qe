@@ -1,5 +1,5 @@
 !--------------------------------------------------------------------------
-SUBROUTINE my_compute_potps(ik,v_in,v_out,xc)
+SUBROUTINE my_compute_potps(ik, v_in, v_out, xc)
 !--------------------------------------------------------------------------
 !
 ! This routine computes the pseudized pseudopotential by pseudizing the
@@ -46,14 +46,14 @@ SUBROUTINE my_compute_potps(ik,v_in,v_out,xc)
   
   ! find the q_i of the bessel functions     
   CALL my_find_qi(f1ae/fae, xc(4), ik, 0, 2, 0, iok)
-  IF(iok /= 0) then
+  IF(iok /= 0) THEN
     CALL errore('compute_potps','problems with find_qi',1)
-  endif
-  write(*,*) 'After my_find_qi: xc = ', xc
+  ENDIF
+  WRITE(*,*) 'After my_find_qi: xc = ', xc
   !
   ! compute the functions
   DO nc=1,2
-    call sph_bes(ik+1, grid%r, xc(3+nc), 0, j1(1,nc))
+    CALL sph_bes(ik+1, grid%r, xc(3+nc), 0, j1(1,nc))
     fact(nc) = v_in(ik)/j1(ik,nc)
     DO n = 1,ik+1
       j1(n,nc) = j1(n,nc)*fact(nc)

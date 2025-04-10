@@ -1,19 +1,19 @@
 !--------------------------------------------------------------------------
-subroutine my_pseudovloc()
+SUBROUTINE my_pseudovloc()
 !--------------------------------------------------------------------------
   !
   ! This routine generate a local pseudopotential 
   ! The output of the routine are:
   ! vpsloc: the local pseudopotential
   !      
-  use kinds, only : DP
-  use radial_grids, only : ndmx
-  use io_global, only : stdout
-  use ld1inc, only : lloc, rcloc, grid, vpot, vpsloc, rel, nsloc, &
+  USE kinds, only : DP
+  USE radial_grids, only : ndmx
+  USE io_global, only : stdout
+  USE ld1inc, only : lloc, rcloc, grid, vpot, vpsloc, rel, nsloc, &
                      phis, els, chis, psipsus, &
                      jjs, nstoae, enls, new, psi, enl, rcut, psipaw, &
                      psipaw_rel
-  implicit none
+  implicit NONE
 
   integer :: &
        nwf0, &  ! used to specify the all electron function
@@ -62,23 +62,23 @@ subroutine my_pseudovloc()
     ! smooth the potential before ik.
     !
     ! with the original recipe
-    if( lloc==-1 ) then
-      write(*,*) 'Calling my_compute_potps'
+    IF( lloc==-1 ) THEN
+      ! used for example Si_paw
+      WRITE(*,*) 'Calling my_compute_potps'
       call my_compute_potps(ik, vpot, vpsloc, xc)
-    endif
+    ENDIF
     !
     ! or with a modified recipe that enforce V''(0)=0 as suggested by TM
     if( lloc==-2 ) then
       write(stdout,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
     endif
     ! XXX: merge this if statement?
-    if( lloc==-2 ) then
+    IF( lloc==-2 ) THEN
       call compute_potps_new(ik, vpot, vpsloc, xc)
-    endif
+    ENDIF
     
-    write(stdout, 110) grid%r(ik),xc(5)**2 
-110  format (/5x, ' Local pseudo, rcloc=',f6.3, &
-          ' Estimated cut-off energy= ', f8.2,' Ry')
+    WRITE(stdout, 110) grid%r(ik), xc(5)**2 
+110  FORMAT(/5x, ' Local pseudo, rcloc=',f6.3,' Estimated cut-off energy= ', f8.2,' Ry')
   
     !
     !
@@ -87,14 +87,14 @@ subroutine my_pseudovloc()
     ! if a given angular momentum gives the local component this is done here
     !
     nst = (lloc + 1)*2
-    if( rel==2 .and. lloc > 0 ) then
+    IF( rel==2 .and. lloc > 0 ) then
       rep = 1
       indns(0) = nsloc
       indns(1) = nsloc + 1
-      if( jjs(nsloc) > jjs(nsloc+1) ) then
+      IF( jjs(nsloc) > jjs(nsloc+1) ) then
         indns(0) = nsloc + 1
         indns(1) = nsloc
-      endif
+      ENDIF
     else
       rep = 0
       indns(0) = nsloc
