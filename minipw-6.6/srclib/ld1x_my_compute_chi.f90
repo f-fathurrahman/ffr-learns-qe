@@ -34,8 +34,7 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
        int_0_inf_dr,    &
        integral
 
-  integer :: &
-       n, nstart, nst
+  integer :: n, nstart, nst
   !
   ! RRKJ: first expand in a taylor series the phis function
   ! Since we know that the phis functions are a sum of Bessel 
@@ -112,7 +111,7 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   ! and the potential
   !
   do n=1,4
-    j1(n)=vpsloc(n)
+    j1(n) = vpsloc(n)
   enddo
   !
   if( abs(j1(1)-j1(4)) > 1.d-12 ) then
@@ -151,9 +150,9 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
     drow(n) = gi(n+1)*j1(n+1)   &
             + gi(n)*(-12.0_dp+10.0_dp*j1(n))+ &
               gi(n-1)*j1(n-1)
-    brow(n)=10.0_dp*ddx12
-    crow(n)=ddx12
-    arow(n)=ddx12
+    brow(n) = 10.0_dp*ddx12
+    crow(n) = ddx12
+    arow(n) = ddx12
   enddo
   drow(nstart) = drow(nstart)-ddx12*chi_out(nstart-1)
   chi_out(grid%mesh-2) = 0.0_dp
@@ -175,61 +174,64 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
     !     +          aux(n),aux(n)*r(n)**(lam+1)
   enddo
   !
-  !    smooth close to the origin with asymptotic expansion
+  ! smooth close to the origin with asymptotic expansion
   !
   do n=nstart,grid%mesh
-    if( abs(chi_out(n)/grid%r(n)**(lam+1)-aux(n)) < 1.e-3_dp*abs(aux(n)) ) then
+    if( abs(chi_out(n)/grid%r(n)**(lam+1) - aux(n) ) < 1.e-3_dp*abs(aux(n)) ) then
       goto 100 ! break
     endif
     chi_out(n) = aux(n)*grid%r(n)**(lam+1)
   enddo
 
-100 if (n.eq.grid%mesh+1.or.grid%r(min(n,grid%mesh)).gt.0.05_dp)then
-     write(stdout,*) lam,n,grid%mesh,grid%r(min(n,grid%mesh))
-     call errore('compute_chi','n is too large',1)
+100 if(n == grid%mesh+1 .or. grid%r(min(n,grid%mesh)) > 0.05_dp)then
+    write(stdout,*) lam,n,grid%mesh,grid%r(min(n,grid%mesh))
+    call errore('compute_chi','n is too large',1)
   endif
 !
-!    When the input wavefunction is a diverging scattering state 
-!    this routine might become numerically unstable at large r. 
-!    Here chi_out should be 0.0 but it is not due to this instability. 
-!    We now clean chi_out when phi_in > 20.0.
-!    Clean also after 7.0 a.u..
+! When the input wavefunction is a diverging scattering state 
+! this routine might become numerically unstable at large r. 
+! Here chi_out should be 0.0 but it is not due to this instability. 
+! We now clean chi_out when phi_in > 20.0.
+! Clean also after 7.0 a.u..
 !     
-  r_clean=100.d0
+  r_clean = 100.d0
   do n=1,grid%mesh
-     if (abs(phi_in(n))>20.0_DP) then
-        r_clean=grid%r(n)
-        exit
-     endif
+    if( abs(phi_in(n) ) > 20.0_DP) then
+      r_clean = grid%r(n)
+      exit
+    endif
   enddo
   r_clean=min(r_clean,7.0_DP)
-  if (r_clean<grid%r(ikk_in)) &
+  if( r_clean < grid%r(ikk_in) ) &
      call errore ('compute_chi ','phi_in too large before r_c', 1)
 
   do n=grid%mesh,1,-1
-     if (grid%r(n).lt.r_clean) goto 200
-     chi_out(n)=0.0_dp
+    if (grid%r(n).lt.r_clean) goto 200
+    chi_out(n)=0.0_dp
   enddo
+
+
 200 continue
-     !    check that the chi are zero beyond ikk
-  nst=0
-  gi=0.0_dp
-  do n=ikk_in+1,grid%mesh
-     gi(n)=chi_out(n)**2
+  
+  ! check that the chi are zero beyond ikk
+  nst = 0
+  gi = 0.0_dp
+  do n = ikk_in+1,grid%mesh
+    gi(n) = chi_out(n)**2
   enddo
-  do n=min(ikk_in+20,grid%mesh),grid%mesh
-     chi_out(n)=0.0_dp
+  do n = min(ikk_in+20,grid%mesh), grid%mesh
+    chi_out(n) = 0.0_dp
   enddo
-  integral=int_0_inf_dr(gi,grid,grid%mesh,nst)
-  if (integral > 2.e-6_dp) then
-      write(stdout, '(5x,'' l='',i4, '' integral='',f15.9, &
-           & '' r(ikk) '',f15.9)') lam, integral, grid%r(ikk_in)
-      IF (verbosity=='high') THEN
+  integral = int_0_inf_dr(gi, grid, grid%mesh, nst)
+  if( integral > 2.e-6_dp ) then
+    write(stdout, '(5x,'' l='',i4, '' integral='',f15.9,'' r(ikk) '',f15.9)') lam, integral, grid%r(ikk_in)
+    IF (verbosity=='high') THEN
          do n=ikk_in,grid%mesh
             write(stdout,*) grid%r(n),gi(n)
          enddo
-      ENDIF
-     call errore ('compute_chi ','chi too large beyond r_c', 1)
+     ENDIF
+    call errore ('compute_chi ','chi too large beyond r_c', 1)
   endif
+
   return
 end subroutine

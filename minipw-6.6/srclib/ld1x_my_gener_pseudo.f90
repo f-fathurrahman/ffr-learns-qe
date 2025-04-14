@@ -108,6 +108,7 @@ subroutine my_gener_pseudo()
   ! initialize total potential for PAW generation
   if( lpaw ) then
     if( .not. lnc2paw ) then
+      write(*,*) 'Not using lnc2paw, setting vpotpaw to vpot'
       vpotpaw(1:grid%mesh) = vpot(1:grid%mesh,1)
     else
       vpotpaw(1:grid%mesh) = vpsloc(1:grid%mesh)
@@ -118,7 +119,7 @@ subroutine my_gener_pseudo()
   ! the core charge is needed also for the PAW dataset
   !
   if( nlcc .or. lpaw ) then
-    call set_rho_core()
+    call my_set_rho_core()
   endif
   !
   ! set the appropriate energies and the correspondence all-electron
@@ -326,7 +327,7 @@ subroutine my_gener_pseudo()
       call compute_chi_tm(lam,ik(ns),ikk(ns),phis(1,ns),chis(1,ns),xc,enls(ns))
     else
       write(*,*) 'Calling compute_chi'
-      call compute_chi(lam,ikk(ns),phis(1,ns),chis(1,ns),xc,enls(ns),lbes4)
+      call compute_chi(lam, ikk(ns), phis(1,ns), chis(1,ns), xc, enls(ns), lbes4)
     endif
   enddo
   !

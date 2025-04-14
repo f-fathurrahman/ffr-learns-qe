@@ -70,13 +70,14 @@ SUBROUTINE my_compute_potps(ik, v_in, v_out, xc)
 
   xc(2) = (f2ae-bm(1))/(bm(2)-bm(1))
   xc(1) = 1.0_dp - xc(2)
+  write(*,*) 'xc(1:2) = ', xc(1:2)
   !
   ! define the v_out function
   DO n=1,ik
-    v_out(n)=xc(1)*j1(n,1)+xc(2)*j1(n,2)
+    v_out(n) = xc(1)*j1(n,1) + xc(2)*j1(n,2)
   ENDDO
-
-  DO n = ik+1, grid%mesh
+  write(*,*) 'Some v_out(1:3) in Ha = ', v_out(1:3)*0.5d0
+  DO n = ik+1,grid%mesh
     v_out(n) = v_in(n)
   ENDDO
 

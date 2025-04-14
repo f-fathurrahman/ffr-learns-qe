@@ -22,7 +22,7 @@ PROGRAM main_ld1x_debug_v01
   CALL ld1_setup()
 
 
-
+  call ld1x_print_variables()
 
 
   ! Errors on these cases
