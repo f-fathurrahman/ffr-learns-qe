@@ -99,7 +99,7 @@ SUBROUTINE phq_init()
   ENDIF
 
   write(*,*)
-  write(*,*) '*********** ENTER phq_init ****************'
+  write(*,*) '<div> ENTER phq_init ****************'
   write(*,*)
 
   !
@@ -324,7 +324,7 @@ SUBROUTINE phq_init()
   CALL stop_clock( 'phq_init' )
 
   write(*,*)
-  write(*,*) '*********** EXIT phq_init ****************'
+  write(*,*) '</div> EXIT phq_init ****************'
   write(*,*)
 
   RETURN

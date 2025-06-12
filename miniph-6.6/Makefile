@@ -175,7 +175,8 @@ write_rec.o \
 write_hub.o \
 zstar_eu.o \
 zstar_eu_us.o \
-my_phqscf.o my_setup_nscf.o my_cgsolve_all.o
+my_phqscf.o my_setup_nscf.o my_cgsolve_all.o \
+my_solve_linter.o
 
 # Put my_* files at the end (no need to edit make.depend)
 
@@ -207,7 +208,8 @@ PWOBJS = ../qe-6.6/PW/src/libpw.a
 QEMODS = ../qe-6.6/Modules/libqemod.a ../qe-6.6/KS_Solvers/libks_solvers.a ../qe-6.6/upflib/libupf.a \
          ../qe-6.6/FFTXlib/libqefft.a ../qe-6.6/LAXlib/libqela.a ../qe-6.6/UtilXlib/libutil.a ../qe-6.6/dft-d3/libdftd3qe.a
 
-all : libs-ph ph.x dynmat.x matdyn.x q2r.x lambda.x fqha.x q2qstar.x \
+# only ph.x for the moment
+all : libs-ph ph.x # dynmat.x matdyn.x q2r.x lambda.x fqha.x q2qstar.x \
 	alpha2f.x epa.x dvscf_q2r.x postahc.x
 
 libs-ph : libph.a libphaux.a

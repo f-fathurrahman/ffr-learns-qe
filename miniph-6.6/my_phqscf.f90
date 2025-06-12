@@ -40,15 +40,15 @@ SUBROUTINE my_phqscf
   ! npert(irr)
 
   write(*,*)
-  write(*,*) '============= ENTER my_phqscf ==============='
+  write(*,*) '<div> ENTER my_phqscf ==============='
   write(*,*)
 
   !
   ! DFPT+U
   !
   IF (lda_plus_u) THEN
-     ALLOCATE (dnsscf_all_modes(2*Hubbard_lmax+1,2*Hubbard_lmax+1,nspin,nat,3*nat))
-     ALLOCATE (dyn_hub_scf(3*nat,3*nat))
+     ALLOCATE( dnsscf_all_modes(2*Hubbard_lmax+1,2*Hubbard_lmax+1,nspin,nat,3*nat) )
+     ALLOCATE( dyn_hub_scf(3*nat,3*nat) )
      dnsscf_all_modes = (0.d0, 0.d0)
      dyn_hub_scf      = (0.d0, 0.d0)
   ENDIF
@@ -88,19 +88,20 @@ SUBROUTINE my_phqscf
       ENDIF
       !
       WRITE( stdout, '(/,5x,"Self-consistent Calculation")')
-      CALL solve_linter(irr, imode0, npe, drhoscfs)
+      CALL my_solve_linter(irr, imode0, npe, drhoscfs)
       WRITE( stdout, '(/,5x,"End of self-consistent calculation")')
       !
       !   Add the contribution of this mode to the dynamical matrix
       !
+      write(*,*) 'convt = ', convt
       IF( convt ) THEN
         CALL drhodv(imode0, npe, drhoscfs)
         !
         ! add the contribution of the modes imode0+1 -> imode+npe
         ! to the effective charges Z(Us,E) (Us=scf,E=bare)
         !
-        IF (zue) CALL add_zstar_ue (imode0, npe )
-        IF (zue.AND. okvan) CALL add_zstar_ue_us(imode0, npe )
+        IF( zue ) CALL add_zstar_ue (imode0, npe )
+        IF(zue .AND. okvan) CALL add_zstar_ue_us(imode0, npe )
         !
         ! DFPT+U: calculate the scf part of the Hubbard dynamical matrix
         IF (lda_plus_u) THEN
@@ -159,7 +160,7 @@ SUBROUTINE my_phqscf
   ENDIF
 
   write(*,*)
-  write(*,*) '============= EXIT my_phqscf ==============='
+  write(*,*) '</div> EXIT my_phqscf ==============='
   write(*,*)
   !
   RETURN

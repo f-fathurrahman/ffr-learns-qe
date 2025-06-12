@@ -1,0 +1,13 @@
+{
+    "files.exclude": {
+        "*.mod": true,
+        "*.so": true,
+        "LOG_*": true,
+        "ORIG_*": true,
+        "*.o": true,
+        "*.out": true,
+        "*.x": true,
+        "*.a": true,
+        "**/TEMP_*": true,
+    },
+}

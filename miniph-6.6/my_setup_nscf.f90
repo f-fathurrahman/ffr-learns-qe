@@ -52,7 +52,7 @@ SUBROUTINE my_setup_nscf ( newgrid, xq, elph_mat )
   LOGICAL, EXTERNAL  :: check_para_diag
 
   write(*,*)
-  write(*,*) '------ ENTER my_setup_nscf ------'
+  write(*,*) '<div> ENTER my_setup_nscf ------'
   write(*,*)
 
   write(*,*) 'shape xk = ', shape(xk)
@@ -197,7 +197,7 @@ SUBROUTINE my_setup_nscf ( newgrid, xq, elph_mat )
   CALL divide_et_impera( nkstot, xk, wk, isk, nks )
   
   write(*,*)
-  write(*,*) '------ EXIT my_setup_nscf ------'
+  write(*,*) '</div> EXIT my_setup_nscf ------'
   write(*,*)
 
   !

@@ -55,7 +55,7 @@ SUBROUTINE run_nscf(do_band, iq)
   LOGICAL :: exst
 
   write(*,*)
-  write(*,*) '>>> ENTER run_nscf <<<<'
+  write(*,*) '<div> ENTER run_nscf'
   write(*,*)
   write(*,*) 'INFO: We need to run NSCF calculation first'
   write(*,*)
@@ -154,7 +154,7 @@ SUBROUTINE run_nscf(do_band, iq)
   CALL stop_clock( 'PWSCF' )
 
   write(*,*)
-  write(*,*) '>>> EXIT run_nscf <<<<'
+  write(*,*) '</div> EXIT run_nscf'
   write(*,*)
 
 
