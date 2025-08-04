@@ -61,7 +61,7 @@ SUBROUTINE prepare_q(auxdyn, do_band, do_iq, setup_pw, iq)
   ! YAMBO <
   
   write(*,*)
-  write(*,*) '**** ENTER: prepare_q ****'
+  write(*,*) '<div> ENTER: prepare_q'
   write(*,*)
 
 
@@ -253,7 +253,7 @@ SUBROUTINE prepare_q(auxdyn, do_band, do_iq, setup_pw, iq)
 
   write(*,*) 'At the end of prepare_q: setup_pw = ', setup_pw
   write(*,*)
-  write(*,*) '**** EXIT: prepare_q ****'
+  write(*,*) '</div> EXIT: prepare_q'
   write(*,*)
 
 

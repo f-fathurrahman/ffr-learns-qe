@@ -71,10 +71,6 @@ PROGRAM phonon
        inter_bgrp_comm )
   CALL environment_start ( code )
 
-  write(*,*)
-  write(*,*) 'Hello from ph.x'
-  write(*,*)
-
   !
   ! ... and begin with the initialization part
   !
@@ -96,7 +92,7 @@ PROGRAM phonon
   CALL ph_writefile('status_ph',1,0,ierr)
   !
   ! YAMBO >
-  IF (.not.elph_yambo.and..not.dvscf_yambo) then
+  IF( .not. elph_yambo .and. .not. dvscf_yambo) then
     ! YAMBO <
     !
     IF (qplot) CALL write_qplot_data(auxdyn)

@@ -90,7 +90,7 @@ subroutine set_irr_new (xq, u, npert, nirr, eigen)
 !
 ! symmetrize the random matrix with the little group of q
 !
-     call symdynph_gq_new (xq,wdyn,s,invs,rtau,irt,nsymq,nat,irotmq,minus_q)
+     call symdynph_gq_new(xq,wdyn,s,invs,rtau,irt,nsymq,nat,irotmq,minus_q)
 !call write_matrix('symmetrized matrix',wdyn,nat)
 !
 !  Diagonalize the symmetrized random matrix.
@@ -109,7 +109,7 @@ subroutine set_irr_new (xq, u, npert, nirr, eigen)
 !
 !   Diagonalize
 !
-     call cdiagh (3 * nat, phi, 3 * nat, eigen, u)
+     call cdiagh(3 * nat, phi, 3 * nat, eigen, u)
 
 !
 !   We adjust the phase of each mode in such a way that the first

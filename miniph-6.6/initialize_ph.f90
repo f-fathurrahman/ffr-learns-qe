@@ -23,7 +23,7 @@ SUBROUTINE initialize_ph()
   INTEGER :: ik
 
   write(*,*)
-  write(*,*) '<div> ENTER initialize_ph ****************'
+  write(*,*) '<div> ENTER initialize_ph'
   write(*,*)
 
 
@@ -106,7 +106,7 @@ SUBROUTINE initialize_ph()
   CALL print_clock( 'PHONON' )
 
   write(*,*)
-  write(*,*) '</div> EXIT initialize_ph ****************'
+  write(*,*) '</div> EXIT initialize_ph'
   write(*,*)
 
   !

@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------
-subroutine set_irr_nosym_new (u, npert, nirr)
+subroutine set_irr_nosym_new(u, npert, nirr)
   !---------------------------------------------------------------------
   !
   !     This routine substitutes set_irr when there are no symmetries.
@@ -29,19 +29,30 @@ subroutine set_irr_nosym_new (u, npert, nirr)
   ! counter on representations
   !
   !
+
+  write(*,*)
+  write(*,*) '<div> ENTER set_irr_nosym_new'
+  write(*,*)
+
+  write(*,*) '----- NO SYMMETRY IS USED -----'
+
   nirr = 3 * nat
   npert = 1
 
   u = (0.d0, 0.d0)
-  do imode = 1, 3 * nat
-     u (imode, imode) = (1.d0, 0.d0)
+  do imode = 1, 3*nat
+    u(imode, imode) = (1.d0, 0.d0)
   enddo
-  IF (search_sym) THEN
-     DO imode = 1, 3 * nat
-        num_rap_mode(imode)=1
-        name_rap_mode(imode)='A'
-     END DO
+  IF(search_sym) THEN
+    DO imode = 1, 3 * nat
+      num_rap_mode(imode) = 1
+      name_rap_mode(imode) = 'A'
+    END DO
   ENDIF
+
+  write(*,*)
+  write(*,*) '</div> ENTER set_irr_nosym_new'
+  write(*,*)
 
   return
 end subroutine set_irr_nosym_new

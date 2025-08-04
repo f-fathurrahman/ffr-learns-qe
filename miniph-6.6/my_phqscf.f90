@@ -46,11 +46,11 @@ SUBROUTINE my_phqscf
   !
   ! DFPT+U
   !
-  IF (lda_plus_u) THEN
-     ALLOCATE( dnsscf_all_modes(2*Hubbard_lmax+1,2*Hubbard_lmax+1,nspin,nat,3*nat) )
-     ALLOCATE( dyn_hub_scf(3*nat,3*nat) )
-     dnsscf_all_modes = (0.d0, 0.d0)
-     dyn_hub_scf      = (0.d0, 0.d0)
+  IF( lda_plus_u ) THEN
+    ALLOCATE( dnsscf_all_modes(2*Hubbard_lmax+1,2*Hubbard_lmax+1,nspin,nat,3*nat) )
+    ALLOCATE( dyn_hub_scf(3*nat,3*nat) )
+    dnsscf_all_modes = (0.d0, 0.d0)
+    dyn_hub_scf      = (0.d0, 0.d0)
   ENDIF
   !
   ! For each irreducible representation we compute the change
@@ -93,7 +93,6 @@ SUBROUTINE my_phqscf
       !
       !   Add the contribution of this mode to the dynamical matrix
       !
-      write(*,*) 'convt = ', convt
       IF( convt ) THEN
         CALL drhodv(imode0, npe, drhoscfs)
         !

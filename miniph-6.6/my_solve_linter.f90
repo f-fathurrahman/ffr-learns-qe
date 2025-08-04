@@ -134,6 +134,13 @@ SUBROUTINE my_solve_linter(irr, imode0, npe, drhoscf)
   write(*,*) '<div> ENTER my_solve_linter'
   write(*,*)
 
+  ! ffr: some checks
+  ! This is disabled to simplify some codes
+  IF( dffts%has_task_groups ) THEN
+    stop 'Label325 unsupported dffts%has_task_groups'
+    ! disabled by ffr
+  ENDIF
+
 
   !
   IF( rec_code_read > 20 ) then
@@ -175,14 +182,8 @@ SUBROUTINE my_solve_linter(irr, imode0, npe, drhoscf)
     ALLOCATE( dbecsum_aux( (nhm * (nhm + 1))/2 , nat , nspin_mag , npe))
   ENDIF
   incr = 1
-  IF( dffts%has_task_groups ) THEN
-    write(*,*) '!!! dffts has task groups'
-    v_siz =  dffts%nnr_tg
-    ALLOCATE( tg_dv( v_siz, nspin_mag) )
-    ALLOCATE( tg_psic( v_siz, npol) )
-    incr = fftx_ntgrp(dffts)
-    !
-  ENDIF
+  ! ffr: task groups disabled
+  !
   !
   if (rec_code_read == 10 .AND. ext_recover) then
     ! restart from Phonon calculation
@@ -321,30 +322,13 @@ SUBROUTINE my_solve_linter(irr, imode0, npe, drhoscf)
             !
             !  Set the potential for task groups
             !
-            IF( dffts%has_task_groups ) THEN
-              stop 'Label325 unsupported dffts%has_task_groups'
-              !IF (noncolin) THEN
-              !   CALL tg_cgather( dffts, dvscfins(:,1,ipert), tg_dv(:,1))
-              !   IF (domag) THEN
-              !      DO ipol=2,4
-              !         CALL tg_cgather( dffts, dvscfins(:,ipol,ipert), tg_dv(:,ipol))
-              !      ENDDO
-              !   ENDIF
-              !ELSE
-              !   CALL tg_cgather( dffts, dvscfins(:,current_spin,ipert), tg_dv(:,1))
-              !ENDIF
-            ENDIF
             aux2 = (0.0_DP, 0.0_DP)
             do ibnd = 1, nbnd_occ(ikk), incr
-              IF( dffts%has_task_groups ) THEN
-                 call cft_wave_tg (ik, evc, tg_psic, 1, v_siz, ibnd, nbnd_occ (ikk) )
-                 call apply_dpot(v_siz, tg_psic, tg_dv, 1)
-                 call cft_wave_tg (ik, aux2, tg_psic, -1, v_siz, ibnd, nbnd_occ (ikk))
-              ELSE
-                 call cft_wave(ik, evc (1, ibnd), aux1, +1)
-                 call apply_dpot(dffts%nnr,aux1, dvscfins(1,1,ipert), current_spin)
-                 call cft_wave(ik, aux2 (1, ibnd), aux1, -1)
-              ENDIF
+              ! ffr: task_groups disabled
+              !
+              call cft_wave(ik, evc (1, ibnd), aux1, +1)
+              call apply_dpot(dffts%nnr,aux1, dvscfins(1,1,ipert), current_spin)
+              call cft_wave(ik, aux2 (1, ibnd), aux1, -1)
             enddo
             dvpsi = dvpsi + aux2
             !

@@ -28,10 +28,11 @@ SUBROUTINE find_irrep()
 
   REAL(DP) :: w2(3*nat)
 
-  IF (nsym > 1.AND..NOT.lgamma_gamma.AND.modenum==0) THEN
-     CALL set_irr_new (xq, u, npert, nirr, w2)
+  IF (nsym > 1 .AND. .NOT. lgamma_gamma .AND. modenum==0) THEN
+    !CALL set_irr_new(xq, u, npert, nirr, w2)
+    CALL my_set_irr_new(xq, u, npert, nirr, w2)
   ELSE
-     CALL set_irr_nosym_new (u, npert, nirr)
+     CALL set_irr_nosym_new(u, npert, nirr)
   ENDIF
 
   RETURN
@@ -60,10 +61,10 @@ SUBROUTINE find_irrep_sym()
 
   npertx = 0
   DO irr = 1, nirr
-     npertx = max (npertx, npert (irr) )
+    npertx = max(npertx, npert (irr) )
   ENDDO
   CALL allocate_pert()
-  CALL set_irr_sym_new (t, tmq, npertx )
+  CALL set_irr_sym_new(t, tmq, npertx )
 
   RETURN
 END SUBROUTINE find_irrep_sym
