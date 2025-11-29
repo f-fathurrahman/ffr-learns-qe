@@ -66,8 +66,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   USE paw_variables,        ONLY : okpaw, ddd_paw, total_core_energy, only_paw
   USE paw_onecenter,        ONLY : PAW_potential
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
-  USE my_dfunct,            ONLY : my_newd
-  !USE dfunct,            ONLY : newd
+  !USE my_dfunct,            ONLY : my_newd
+  USE dfunct,            ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
   USE fcp_variables,        ONLY : lfcpopt, lfcpdyn
   USE wrappers,             ONLY : memstat
@@ -120,9 +120,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   
 
   write(*,*)
-  write(*,*) '--------------------------'
-  write(*,*) 'Entering my_electrons_scf:'
-  write(*,*) '--------------------------'
+  write(*,*) '<div> ENTER my_electrons_scf'
   write(*,*)
 
   lhb = .FALSE.
@@ -182,7 +180,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   !
   DO idum = 1, niter
 
-    write(*,*) 'idum = ', idum
+    !write(*,*) 'idum = ', idum
     !
     IF ( check_stop_now() ) THEN
       conv_elec=.FALSE.
@@ -421,7 +419,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     ! term in the nonlocal potential
     ! PAW: newd contains PAW updates of NL coefficients
     !
-    call my_newd()
+    !call my_newd()
+    call newd()
     !
     IF( lelfield ) en_el =  my_calc_pol( )
     !
@@ -566,6 +565,11 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   !
   IF ( output_drho /= ' ' ) CALL remove_atomic_rho()
   call destroy_scf_type ( rhoin )
+  
+  write(*,*)
+  write(*,*) '</div> EXIT my_electrons_scf'
+  write(*,*)
+
   !
   RETURN
   !

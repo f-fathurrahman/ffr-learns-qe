@@ -128,15 +128,15 @@ SUBROUTINE readpp ( input_dft, printout, ecutwfc_pp, ecutrho_pp )
      IF ( ionode ) THEN
         isupf = 0
 
-        write(*,*)
-        write(*,*) '*** Pass here in read_pseudo ...'
-        write(*,*) 'file_pseudo = ', trim(file_pseudo)
-        write(*,*) 'isupf = ', isupf
+        !write(*,*)
+        !write(*,*) '*** Pass here in read_pseudo ...'
+        !write(*,*) 'file_pseudo = ', trim(file_pseudo)
+        !write(*,*) 'isupf = ', isupf
 
         CALL read_upf_new( file_pseudo, upf(nt), isupf )
 
-        write(*,*) '*** Pass here 137 in read_pseudo'
-        write(*,*) 'After read_upf_new: upf(nt)%oc = ', upf(nt)%oc
+        !write(*,*) '*** Pass here 137 in read_pseudo'
+        !write(*,*) 'After read_upf_new: upf(nt)%oc = ', upf(nt)%oc
 
         !stop 'ffr'
 

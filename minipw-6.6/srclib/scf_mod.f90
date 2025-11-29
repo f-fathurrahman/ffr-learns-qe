@@ -495,10 +495,10 @@ CONTAINS
    !
    INTEGER :: is
 
-   write(*,*)
-   write(*,*) 'high_frequency_mixing: ngms = ', ngms
-   write(*,*) 'high_frequency_mixing: ngm = ', ngm   
-   write(*,*)
+   !write(*,*)
+   !write(*,*) 'high_frequency_mixing: ngms = ', ngms
+   !write(*,*) 'high_frequency_mixing: ngm = ', ngm   
+   !write(*,*)
 
    !
    IF (ngms < ngm ) THEN

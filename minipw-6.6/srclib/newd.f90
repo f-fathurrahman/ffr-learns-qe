@@ -215,11 +215,6 @@ SUBROUTINE newd( )
   ! counters on g vectors, atom type, beta functions x 2,
   !   atoms, spin, aux, aux, beta func x2 (again)
   !
-  
-  write(*,*)
-  write(*,*) '**** newd is called'
-  write(*,*)
-  
 
   ! For debugging
   !DO na = 1, nat

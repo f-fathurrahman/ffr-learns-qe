@@ -37,9 +37,8 @@ SUBROUTINE init_run()
   IMPLICIT NONE
 
   write(*,*)
-  write(*,*) '*** Enter init_run ***'
+  write(*,*) '<div> ENTER init_run'
   write(*,*)
-
 
   !
   CALL start_clock( 'init_run' )
@@ -118,7 +117,8 @@ SUBROUTINE init_run()
   !
   CALL hinit0()
   !
-  CALL potinit()
+  !CALL potinit()
+  CALL my_potinit()
   !
   CALL newd()
   !
@@ -136,7 +136,7 @@ SUBROUTINE init_run()
   CALL stop_clock( 'init_run' )
 
   write(*,*)
-  write(*,*) '*** Exit init_run ***'
+  write(*,*) '</div> EXIT init_run'
   write(*,*)
 
   !
