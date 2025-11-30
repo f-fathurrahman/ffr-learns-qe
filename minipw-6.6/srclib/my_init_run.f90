@@ -19,6 +19,7 @@ SUBROUTINE my_init_run()
   USE funct,              ONLY : dft_is_hybrid
   USE recvec_subs,        ONLY : ggen, ggens
   USE my_dfunct,             ONLY : my_newd
+  USE dfunct, only: newd
   USE esm,                ONLY : do_comp_esm, esm_init
   USE tsvdw_module,       ONLY : tsvdw_initialize
   USE Coul_cut_2D,        ONLY : do_cutoff_2D, cutoff_fact 
@@ -28,7 +29,6 @@ SUBROUTINE my_init_run()
   write(*,*)
   write(*,*) '<div> ENTER my_init_run'
   write(*,*)
-
 
   !
   ! ... calculate limits of some indices, used in subsequent allocations
@@ -60,8 +60,8 @@ SUBROUTINE my_init_run()
   !
   CALL ggens( dffts, gamma_only, at, g, gg, mill, gcutms, ngms )
   if (gamma_only) THEN
-     ! ... Solvers need to know gstart
-     call export_gstart_2_solvers(gstart)
+    ! ... Solvers need to know gstart
+    call export_gstart_2_solvers(gstart)
   END IF
   !
   IF(do_comp_esm) CALL esm_init()
@@ -109,6 +109,7 @@ SUBROUTINE my_init_run()
   CALL my_potinit()
   !
   CALL my_newd()
+  !CALL newd()
   !
   CALL my_wfcinit()
   !
@@ -145,25 +146,25 @@ SUBROUTINE my_pre_init()
      IF ( upf(nt)%tcoulombp ) CYCLE 
      !
      DO nb = 1, upf(nt)%nbeta
-        nh (nt) = nh (nt) + 2 * upf(nt)%lll(nb) + 1
-        lmaxkb = MAX (lmaxkb, upf(nt)%lll(nb) )
+        nh(nt) = nh(nt) + 2*upf(nt)%lll(nb) + 1
+        lmaxkb = MAX(lmaxkb, upf(nt)%lll(nb)) !ffr: max between two args
      ENDDO
      !
   ENDDO
   !
   ! calculate the maximum number of beta functions
   !
-  nhm = MAXVAL (nh (1:nsp))
-  nbetam = MAXVAL (upf(:)%nbeta)
+  nhm = MAXVAL(nh(1:nsp))
+  nbetam = MAXVAL(upf(:)%nbeta)
   !
   ! calculate the number of beta functions of the solid
   !
   nkb = 0
   nkbus = 0
   do na = 1, nat
-     nt = ityp(na)
-     nkb = nkb + nh (nt)
-     if (upf(nt)%tvanp) nkbus = nkbus + nh (nt)
+    nt = ityp(na)
+    nkb = nkb + nh(nt)
+    if( upf(nt)%tvanp ) nkbus = nkbus + nh(nt)
   enddo
 
 

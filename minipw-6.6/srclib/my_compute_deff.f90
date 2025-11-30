@@ -74,7 +74,7 @@ SUBROUTINE my_compute_deff_nc( deff, et )
   !
   INTEGER :: nt, na, is, js, ijs
   !
-  deff=deeq_nc
+  deff = deeq_nc
   IF (okvan) THEN
      !
      DO nt = 1, nsp

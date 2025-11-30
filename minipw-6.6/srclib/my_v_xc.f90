@@ -56,6 +56,11 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   REAL(DP), PARAMETER :: vanishing_charge = 1.D-10, &
                          vanishing_mag    = 1.D-20
 
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_v_xc'
+  write(*,*)
+
   ALLOCATE( ex(dfftp%nnr) )
   ALLOCATE( ec(dfftp%nnr) )
   ALLOCATE( vx(dfftp%nnr,nspin) )
@@ -79,6 +84,7 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   IF( nspin == 1 .OR. ( nspin == 4 .AND. .NOT. domag ) ) THEN
     ! ... spin-unpolarized case
     
+    write(*,*) 'my_v_xc: nspin = ', nspin
     write(*,*) 'my_v_xc: sum rho%of_r = ', sum(rho%of_r(:,1))
 
     write(*,*) 'my_v_xc: before sum abs Vxc (in Ha) = ', sum(abs(v(:,1)))*0.5d0
@@ -126,30 +132,30 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
      !
      !
   ELSE IF ( nspin == 4 ) THEN
-     ! ... noncolinear case
-     !
-     CALL xc( dfftp%nnr, 4, 2, rho%of_r, ex, ec, vx, vc )
-     !
-     DO ir = 1, dfftp%nnr  !OMP ?
-        arho = ABS( rho%of_r(ir,1) )
-        IF ( arho < vanishing_charge ) CYCLE
-        vs = 0.5D0*( vx(ir,1) + vc(ir,1) - vx(ir,2) - vc(ir,2) )
-        v(ir,1) = e2*( 0.5D0*( vx(ir,1) + vc(ir,1) + vx(ir,2) + vc(ir,2) ) )
-        !
-        amag = SQRT( SUM( rho%of_r(ir,2:4)**2 ) )
-        IF ( amag > vanishing_mag ) THEN
-           v(ir,2:4) = e2 * vs * rho%of_r(ir,2:4) / amag
-           vtxc = vtxc + SUM( v(ir,2:4) * rho%of_r(ir,2:4) )
-        ENDIF
-        etxc = etxc + e2*( ex(ir) + ec(ir) ) * arho
-        !
-        rho%of_r(ir,1) = rho%of_r(ir,1) - rho_core(ir)
-        IF ( rho%of_r(ir,1) < 0.D0 )  rhoneg(1) = rhoneg(1) - rho%of_r(ir,1)
-        IF ( amag / arho > 1.D0 )  rhoneg(2) = rhoneg(2) + 1.D0/omega
-        vtxc = vtxc + v(ir,1) * rho%of_r(ir,1)
-     ENDDO
-     !
-     !
+    ! ... noncolinear case
+    !
+    CALL xc( dfftp%nnr, 4, 2, rho%of_r, ex, ec, vx, vc )
+    !
+    DO ir = 1, dfftp%nnr  !OMP ?
+      arho = ABS( rho%of_r(ir,1) )
+      IF ( arho < vanishing_charge ) CYCLE
+      vs = 0.5D0*( vx(ir,1) + vc(ir,1) - vx(ir,2) - vc(ir,2) )
+      v(ir,1) = e2*( 0.5D0*( vx(ir,1) + vc(ir,1) + vx(ir,2) + vc(ir,2) ) )
+      !
+      amag = SQRT( SUM( rho%of_r(ir,2:4)**2 ) )
+      IF ( amag > vanishing_mag ) THEN
+        v(ir,2:4) = e2 * vs * rho%of_r(ir,2:4) / amag
+        vtxc = vtxc + SUM( v(ir,2:4) * rho%of_r(ir,2:4) )
+      ENDIF
+      etxc = etxc + e2*( ex(ir) + ec(ir) ) * arho
+      !
+      rho%of_r(ir,1) = rho%of_r(ir,1) - rho_core(ir)
+      IF ( rho%of_r(ir,1) < 0.D0 )  rhoneg(1) = rhoneg(1) - rho%of_r(ir,1)
+      IF ( amag / arho > 1.D0 )  rhoneg(2) = rhoneg(2) + 1.D0/omega
+      vtxc = vtxc + v(ir,1) * rho%of_r(ir,1)
+    ENDDO
+    !
+    !
   ENDIF
   !
   DEALLOCATE( ex, ec )
@@ -178,6 +184,10 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   !
   CALL mp_sum(  vtxc , intra_bgrp_comm )
   CALL mp_sum(  etxc , intra_bgrp_comm )
+
+  write(*,*)
+  write(*,*) '</div> ENTER my_v_xc'
+  write(*,*)
 
   RETURN
 

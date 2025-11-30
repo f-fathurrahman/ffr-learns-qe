@@ -58,7 +58,9 @@ SUBROUTINE my_sum_band()
   write(*,*) 'domag = ', domag
   write(*,*) 'noncolin = ', noncolin
   write(*,*) 'npol = ', npol
+  write(*,*) 'nspin = ', nspin
   write(*,*) 'nspin_mag = ', nspin_mag
+  write(*,*) 'lspinorb = ', lspinorb
 
   ! Some assumptions for simplification
   if(tqr) then
@@ -518,7 +520,7 @@ SUBROUTINE my_sum_band_k()
               !
               ! increment the kinetic energy density ...
               !
-              CALL get_rho(rho%kin_r(:,current_spin), dffts%nnr, w1, psic)
+              CALL my_get_rho(rho%kin_r(:,current_spin), dffts%nnr, w1, psic)
             END DO
           END IF
             !

@@ -95,7 +95,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
 
 
   write(*,*)
-  write(*,*) '************* Enter my_mix_rho *************'
+  write(*,*) '<div> ENTER my_mix_rho'
   write(*,*)
 
   !
@@ -344,7 +344,7 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
   ! Final output is rhoin
 
   write(*,*)
-  write(*,*) '*********** Exit my_mix_rho ************'
+  write(*,*) '</div> EXIT my_mix_rho'
   write(*,*)
 
   RETURN

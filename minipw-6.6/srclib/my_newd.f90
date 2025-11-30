@@ -108,7 +108,6 @@ SUBROUTINE my_newq( vr, deeq, skip_vltot )
           !write(*,'(1x,A,I4,A,2F18.10)') 'ijh = ', ijh, ' sum qgm = ', sum(qgm(:,ijh))
         ENDDO
       ENDDO
-
       !
       ! count max number of atoms of type nt
       !
@@ -180,7 +179,7 @@ END SUBROUTINE
 
 !----------------------------------------------------------------------------
 SUBROUTINE my_newd()
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !! This routine computes the integral of the effective potential with
   !! the Q function and adds it to the bare ionic D term which is used
   !! to compute the non-local term in the US scheme.
@@ -205,11 +204,9 @@ SUBROUTINE my_newd()
   !   atoms, spin, aux, aux, beta func x2 (again)
   !
 
-
   write(*,*)
-  write(*,*) '---------------------------------------------------'
-  write(*,*) 'ENTER my_newd'
-  write(*,*) '---------------------------------------------------'
+  write(*,*) '<div> ENTER my_newd'
+  write(*,*)
   
   ! For debugging
   !DO na = 1, nat
@@ -228,11 +225,32 @@ SUBROUTINE my_newd()
     DO na = 1, nat
       nt  = ityp(na)
       nht = nh(nt)
-      DO is = 1, nspin
-         deeq(1:nht,1:nht,na,is) = dvan(1:nht,1:nht,nt)
-      ENDDO
-    ENDDO
+      !
+      IF( lspinorb ) THEN
+        !
+        deeq_nc(1:nht,1:nht,na,1:nspin) = dvan_so(1:nht,1:nht,1:nspin,nt)
+        !
+      ELSEIF ( noncolin ) THEN
+        !
+        deeq_nc(1:nht,1:nht,na,1) = dvan(1:nht,1:nht,nt)
+        deeq_nc(1:nht,1:nht,na,2) = ( 0.D0, 0.D0 )
+        deeq_nc(1:nht,1:nht,na,3) = ( 0.D0, 0.D0 )
+        deeq_nc(1:nht,1:nht,na,4) = dvan(1:nht,1:nht,nt)
+        !
+      ELSE
+        !
+        DO is = 1, nspin
+          deeq(1:nht,1:nht,na,is) = dvan(1:nht,1:nht,nt)
+        ENDDO
+        !
+      ENDIF
+    enddo ! over all atoms
     ! early return
+    write(*,*)
+    write(*,*) 'No USPP: use bare coeffs'
+    write(*,*)
+    write(*,*) '</div> EXIT my_newd'
+    write(*,*)
     RETURN
   ENDIF
 
@@ -244,7 +262,9 @@ SUBROUTINE my_newd()
     CALL my_newq( v%of_r, deeq, .FALSE. )
   ENDIF
 
-  IF( noncolin ) CALL add_paw_to_deeq( deeq )
+  IF( noncolin ) then
+    CALL add_paw_to_deeq( deeq )
+  endif
 
   !write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
@@ -253,7 +273,14 @@ SUBROUTINE my_newd()
     nt  = ityp(na)
     if_noncolin:&
     IF( noncolin ) THEN
-      stop 'Disabled 291 in my_newd'
+      IF (upf(nt)%has_so) THEN
+        ! noncollinear magn with spin-orbit coupling
+        CALL my_newd_so(na)
+      ELSE
+        ! noncollinear magn with spin-orbit coupling
+        CALL my_newd_nc(na)
+      ENDIF
+      !
     ELSE if_noncolin
       DO is = 1, nspin
          DO ih = 1, nh(nt)
@@ -269,7 +296,9 @@ SUBROUTINE my_newd()
 
   !write(*,*) 'After USPP contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
-  IF(.NOT. noncolin) CALL add_paw_to_deeq(deeq)
+  IF(.NOT. noncolin) then
+    CALL add_paw_to_deeq(deeq)
+  endif
 
   IF (lda_plus_U .AND. (U_projection == 'pseudo')) CALL add_vhub_to_deeq( deeq )
 
@@ -277,15 +306,138 @@ SUBROUTINE my_newd()
 
 
   write(*,*)
-  write(*,*) '---------------------------------------------------'
-  write(*,*) 'EXIT my_newd'
-  write(*,*) '---------------------------------------------------'
+  write(*,*) '</div> EXIT my_newd'
+  write(*,*)
 
 
   !
   RETURN
   !
-!  CONTAINS
+CONTAINS
+
+!------------------------------------------------------------------------
+SUBROUTINE my_newd_so( na )
+!------------------------------------------------------------------------
+  !
+  USE spin_orb,      ONLY : fcoef
+  !
+  IMPLICIT NONE
+  !
+  INTEGER :: na
+  !
+  INTEGER :: ijs, is1, is2, kh, lh
+  !
+  !
+  nt = ityp(na)
+  ijs = 0
+  !
+  DO is1 = 1, 2
+      !
+      DO is2 = 1, 2
+        !
+        ijs = ijs + 1
+        !
+        IF (domag) THEN
+            DO ih = 1, nh(nt)
+              !
+              DO jh = 1, nh(nt)
+                  !
+                  deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
+                  !
+                  DO kh = 1, nh(nt)
+                    !
+                    DO lh = 1, nh(nt)
+                        !
+                        deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs)   + &
+                          deeq (kh,lh,na,1)*              &
+                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) +  &
+                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))  + &
+                          deeq (kh,lh,na,2)*              &
+                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) +  &
+                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
+                          (0.D0,-1.D0)*deeq (kh,lh,na,3)* &
+                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) -  &
+                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
+                          deeq (kh,lh,na,4)*              &
+                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) -  &
+                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))
+                        !
+                    ENDDO
+                    !
+                  ENDDO
+                  !
+              ENDDO
+              !
+            ENDDO
+            !
+        ELSE
+            !
+            DO ih = 1, nh(nt)
+              !
+              DO jh = 1, nh(nt)
+                  !
+                  deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
+                  !
+                  DO kh = 1, nh(nt)
+                    !
+                    DO lh = 1, nh(nt)
+                        !
+                        deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs) +   &
+                            deeq (kh,lh,na,1)*            &
+                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt)  + &
+                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) ) 
+                        !
+                    ENDDO
+                    !
+                  ENDDO
+                  !
+              ENDDO
+              !
+            ENDDO
+            !
+        ENDIF
+        !
+      ENDDO
+      !
+  ENDDO
+  !
+RETURN
+!
+END SUBROUTINE my_newd_so
+
+
+
+!------------------------------------------------------------------------
+SUBROUTINE my_newd_nc(na)
+!------------------------------------------------------------------------
+  !
+  IMPLICIT NONE
+  !
+  INTEGER :: na
+  !
+  nt = ityp(na)
+  !
+  DO ih = 1, nh(nt)
+     DO jh = 1, nh(nt)
+        !
+        IF (lspinorb) THEN
+           deeq_nc(ih,jh,na,1) = dvan_so(ih,jh,1,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
+           deeq_nc(ih,jh,na,4) = dvan_so(ih,jh,4,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
+           !
+        ELSE
+           deeq_nc(ih,jh,na,1) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
+           deeq_nc(ih,jh,na,4) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
+           !
+        ENDIF
+        deeq_nc(ih,jh,na,2) = deeq(ih,jh,na,2) - ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
+        deeq_nc(ih,jh,na,3) = deeq(ih,jh,na,2) + ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
+     ENDDO
+  ENDDO
+  !
+  RETURN
+  !
+END SUBROUTINE my_newd_nc
+
 
 
 END SUBROUTINE my_newd

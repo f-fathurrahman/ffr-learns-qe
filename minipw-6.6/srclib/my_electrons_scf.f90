@@ -66,7 +66,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   USE paw_variables,        ONLY : okpaw, ddd_paw, total_core_energy, only_paw
   USE paw_onecenter,        ONLY : PAW_potential
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
-  !USE my_dfunct,            ONLY : my_newd
+  USE my_dfunct,            ONLY : my_newd
   USE dfunct,            ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
   USE fcp_variables,        ONLY : lfcpopt, lfcpdyn
@@ -419,8 +419,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     ! term in the nonlocal potential
     ! PAW: newd contains PAW updates of NL coefficients
     !
-    !call my_newd()
-    call newd()
+    call my_newd()
+    !call newd()
     !
     IF( lelfield ) en_el =  my_calc_pol( )
     !
@@ -473,8 +473,8 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     ENDIF
     
     IF( llondon ) THEN
-        etot = etot + elondon
-        hwf_energy = hwf_energy + elondon
+      etot = etot + elondon
+      hwf_energy = hwf_energy + elondon
     ENDIF
     !
     ! grimme-d3 dispersion energy

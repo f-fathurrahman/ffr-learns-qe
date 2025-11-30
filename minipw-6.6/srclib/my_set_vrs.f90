@@ -38,9 +38,8 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   INTEGER :: i
 
   write(*,*)
-  write(*,*) '------------------------------------------------------------'
-  write(*,*) 'ENTER my_set_vrs'
-  write(*,*) '------------------------------------------------------------'
+  write(*,*) '<div> ENTER my_set_vrs'
+  write(*,*)
 
   write(*,*)
   write(*,*) 'my_set_vrs: nrxx = ', nrxx
@@ -62,9 +61,8 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   write(*,*) 'my_set_vrs: sum vrs (smooth) after = ', sum(vrs)*0.5d0
 
   write(*,*)
-  write(*,*) '------------------------------------------------------------'
-  write(*,*) 'EXIT my_set_vrs'
-  write(*,*) '------------------------------------------------------------'
+  write(*,*) '</div> EXIT my_set_vrs'
+  write(*,*)
 
   RETURN
   !

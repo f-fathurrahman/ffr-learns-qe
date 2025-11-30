@@ -52,9 +52,8 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
   INTEGER :: is, ir
 
   write(*,*)
-  write(*,*) '************************************************************'
-  write(*,*) 'ENTER my_v_of_rho'
-  write(*,*) '************************************************************'
+  write(*,*) '<div> ENTER my_v_of_rho'
+  write(*,*)
 
   write(*,*) 'sum v_of_r before my_v_xc, should be zero (in Ha): ', sum(v%of_r)*0.5d0
 
@@ -104,9 +103,8 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
   END IF
 
   write(*,*)
-  write(*,*) '************************************************************'
-  write(*,*) 'EXIT my_v_of_rho'
-  write(*,*) '************************************************************'
+  write(*,*) '</div> EXIT my_v_of_rho'
+  write(*,*)
 
   RETURN
   !

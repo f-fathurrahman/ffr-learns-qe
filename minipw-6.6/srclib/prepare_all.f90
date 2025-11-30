@@ -29,8 +29,8 @@ SUBROUTINE prepare_all()
   CALL check_stop_init()  ! required in c_bands
 
   CALL setup()
-  CALL init_run()
-  !CALL my_init_run()
+  !CALL init_run()
+  CALL my_init_run()
 
   !CALL unset_mpi_comm_4_solvers()
   !CALL stop_run( exit_status )

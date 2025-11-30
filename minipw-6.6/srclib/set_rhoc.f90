@@ -92,7 +92,10 @@ SUBROUTINE set_rhoc()
         rho_core(ir) = MAX(0.0_dp, rho_core(ir)) ! activated by efefer
      ENDDO
      write(*,*)
-     write(*,*) '>>>>> ffr: rho_core is forced to be positive definite <<<<'
+     write(*,*) '==== ffr: rho_core is forced to be positive definite ====='
+     !
+     !write(*,*)
+     !write(*,*) '==== ffr: rho_core is NOT forced to be positive definite ===='
      !
      rhoneg = rhoneg / (dfftp%nr1 * dfftp%nr2 * dfftp%nr3)
      CALL mp_sum(  rhoneg, intra_bgrp_comm )

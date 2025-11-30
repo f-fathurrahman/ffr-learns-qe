@@ -121,6 +121,8 @@ SUBROUTINE my_init_wfc( ik )
   IF ( dft_is_hybrid()  ) CALL stop_exx() 
 
   CALL rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
+  write(*,*) 'ngk = ', ngk(ik)
+  write(*,*) 'shape evc = ', shape(evc)
 
   lelfield = lelfield_save   ! ffr: set lelfield to its original value
 
@@ -128,7 +130,7 @@ SUBROUTINE my_init_wfc( ik )
   ! eigenvectors are already copied inside routine rotate_wfc
   et(1:nbnd,ik) = etatom(1:nbnd)
 
-  CALL deallocate_bec_type ( becp )
+  CALL deallocate_bec_type( becp )
   DEALLOCATE( etatom )
   DEALLOCATE( wfcatom )
 
