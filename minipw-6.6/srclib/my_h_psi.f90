@@ -11,7 +11,7 @@ SUBROUTINE my_h_psi( lda, n, m, psi, hpsi )
   USE kinds,              ONLY: DP
   USE noncollin_module,   ONLY: npol
   USE funct,              ONLY: exx_is_active
-  USE mp_bands,           ONLY: use_bgrp_in_hpsi, inter_bgrp_comm
+  USE mp_bands,           ONLY: use_bgrp_in_hpsi
   USE mp,                 ONLY: mp_allgather, mp_size, &
                                 mp_type_create_column_section, mp_type_free
   !
@@ -28,11 +28,8 @@ SUBROUTINE my_h_psi( lda, n, m, psi, hpsi )
   COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
   !! Hamiltonian dot psi
   !
-  ! ... local variables
+  ! local variables
   !
-  INTEGER :: m_start, m_end
-  INTEGER :: column_type
-  INTEGER, ALLOCATABLE :: recv_counts(:), displs(:)
 
   ! band parallelization with non-distributed bands is performed if
   ! 1. enabled (variable use_bgrp_in_hpsi must be set to .T.)
@@ -76,7 +73,6 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
                                      calbec_rs_gamma, add_vuspsir_gamma, invfft_orbital_k,  &
                                      fwfft_orbital_k, calbec_rs_k, add_vuspsir_k,           & 
                                      v_loc_psir_inplace
-  USE fft_base,                ONLY: dffts
   USE exx,                     ONLY: use_ace, vexx, vexxace_gamma, vexxace_k
   USE funct,                   ONLY: exx_is_active
   USE fft_helper_subroutines
@@ -98,8 +94,6 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   !
   INTEGER :: ipol, ibnd
   REAL(DP) :: ee
-
-
 
   !
   ! ... Here we set the kinetic energy (k+G)^2 psi and clean up garbage
@@ -130,7 +124,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
     !
   ELSEIF( noncolin ) THEN 
     !
-    CALL vloc_psi_nc( lda, n, m, psi, vrs, hpsi )
+    CALL my_vloc_psi_nc( lda, n, m, psi, vrs, hpsi )
     !
   ELSE  
     ! 
@@ -146,17 +140,26 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
     !
   ENDIF  
 
+  write(*,*) 'Pass here 146 in my_h_psi'
+
   !
   ! Here the product with the non local potential V_NL psi
   ! (not in the real-space case: it is done together with V_loc)
   !
   IF( nkb > 0 .AND. .NOT. real_space) THEN
+    !
     CALL calbec( n, vkb, psi, becp, m )
     !
-    write(*,*) 'in h_psi: sum becp_k = ', sum(becp%k)*0.5d0 ! to Ha
+    if(allocated(becp%k)) then
+      write(*,*) 'in h_psi: sum becp_k = ', sum(becp%k)*0.5d0 ! to Ha
+    endif
+    if(allocated(becp%nc)) then
+      write(*,*) 'in h_psi: sum becp_nc = ', sum(becp%nc)*0.5d0 ! to Ha
+    endif
     !s
     CALL add_vuspsi( lda, n, m, hpsi )
   ENDIF
+  write(*,*) 'Pass here 156 in my_h_psi'
 
   !  
   IF (dft_is_meta()) CALL h_psi_meta( lda, n, m, psi, hpsi )

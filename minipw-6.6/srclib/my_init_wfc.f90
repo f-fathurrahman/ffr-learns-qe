@@ -90,7 +90,7 @@ SUBROUTINE my_init_wfc( ik )
         rr  = randy()
         arg = tpi * randy()
         wfcatom(ig,ipol,ibnd) = &
-             CMPLX( rr*COS( arg ), rr*SIN( arg ) ,kind=DP) / &
+             CMPLX( rr*COS(arg), rr*SIN(arg), kind=DP) / &
                     ( ( xk(1,ik) + g(1,igk_k(ig,ik)) )**2 + &
                       ( xk(2,ik) + g(2,igk_k(ig,ik)) )**2 + &
                       ( xk(3,ik) + g(3,igk_k(ig,ik)) )**2 + 1.0_DP )
@@ -110,6 +110,10 @@ SUBROUTINE my_init_wfc( ik )
   ! Allocate space for <beta|psi>
   CALL allocate_bec_type( nkb, n_starting_wfc, becp, intra_bgrp_comm )
 
+  !write(*,*) 'allocated becp%nc = ', allocated(becp%nc)
+  !write(*,*) 'allocated becp%k = ', allocated(becp%k)
+  !stop 'DEBUG 116 in my_init_wfc'
+
   ! the following trick is for electric fields with Berry's phase:
   ! by setting lelfield = .false. one prevents the calculation of
   ! electric enthalpy in the Hamiltonian (cannot be calculated
@@ -120,7 +124,8 @@ SUBROUTINE my_init_wfc( ik )
   ! subspace diagonalization (calls Hpsi)
   IF ( dft_is_hybrid()  ) CALL stop_exx() 
 
-  CALL rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
+  CALL my_rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
+  write(*,*) 'npwx = ', npwx
   write(*,*) 'ngk = ', ngk(ik)
   write(*,*) 'shape evc = ', shape(evc)
 

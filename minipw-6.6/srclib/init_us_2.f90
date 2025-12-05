@@ -48,10 +48,6 @@ SUBROUTINE init_us_2( npw_, igk_, q_, vkb_ )
   INTEGER, PARAMETER :: blocksize = 256
   INTEGER :: iblock, numblock, realblocksize
   !
-  !
-  !write(*,*)
-  !write(*,*) '*** Enter init_us_2'
-
 
   IF (lmaxkb < 0) RETURN
   !
@@ -199,9 +195,6 @@ SUBROUTINE init_us_2( npw_, igk_, q_, vkb_ )
   IF (spline_ps) DEALLOCATE( xdata )
   !
   CALL stop_clock( 'init_us_2' )
-  !
-  !write(*,*) '*** Exit init_us_2'
-  !write(*,*)
 
   !
   RETURN

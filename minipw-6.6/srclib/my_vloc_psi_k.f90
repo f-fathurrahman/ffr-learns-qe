@@ -50,11 +50,9 @@ SUBROUTINE my_vloc_psi_k( lda, n, m, psi, v, hpsi )
   INTEGER :: v_siz, idx
 
   use_tg = dffts%has_task_groups 
-
   IF( use_tg ) THEN
     stop 'use_tg is disabled in my_vloc_psi_k'
   ENDIF
-
 
   DO ibnd = 1, m
     !
@@ -74,17 +72,12 @@ SUBROUTINE my_vloc_psi_k( lda, n, m, psi, v, hpsi )
     !   addition to the total product
     !
     DO j = 1, n
-       hpsi(j,ibnd)   = hpsi(j,ibnd)   + psic(dffts%nl(igk_k(j,current_k)))
+       hpsi(j,ibnd) = hpsi(j,ibnd) + psic(dffts%nl(igk_k(j,current_k)))
     ENDDO
 
   ENDDO
 
-  IF( use_tg ) THEN
-     DEALLOCATE( tg_psic )
-     DEALLOCATE( tg_v )
-  ENDIF
-  !
-99 format ( 20 ('(',2f12.9,')') )
+  !write(*,*) 'my_vloc_psi_k is called: sum(hpsi) = sum(hpsi)'
 
   RETURN
 END SUBROUTINE

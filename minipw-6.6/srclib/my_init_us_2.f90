@@ -36,7 +36,7 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
   COMPLEX(DP), ALLOCATABLE :: sk(:)
 
   !write(*,*)
-  !write(*,*) '*** Enter my_init_us_2'
+  !write(*,*) '<div> ENTER my_init_us_2'
   !write(*,*)
 
   IF (lmaxkb < 0) RETURN
@@ -170,7 +170,9 @@ SUBROUTINE my_init_us_2( npw_, igk_, q_, vkb_ )
   DEALLOCATE( sk )
   DEALLOCATE( vkb1 )
 
-  !stop 'ffr my_init_us_2 185'
+  !write(*,*)
+  !write(*,*) '</div> EXIT my_init_us_2'
+  !write(*,*)
 
   !
   RETURN

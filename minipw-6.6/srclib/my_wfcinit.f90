@@ -4,7 +4,7 @@ SUBROUTINE my_wfcinit()
   ! This routine computes an estimate of the starting wavefunctions
   ! from superposition of atomic wavefunctions and/or random wavefunctions.
   ! It also open needed files or memory buffers
-  USE io_global,            ONLY : stdout, ionode, ionode_id
+  USE io_global,            ONLY : stdout
   USE basis,                ONLY : natomwfc, starting_wfc
   USE bp,                   ONLY : lelfield
   USE klist,                ONLY : xk, nks, ngk, igk_k
@@ -19,22 +19,24 @@ SUBROUTINE my_wfcinit()
   USE wavefunctions,        ONLY : evc
   USE wvfct,                ONLY : nbnd, current_k
   USE mp,                   ONLY : mp_bcast, mp_sum
-  USE mp_images,            ONLY : intra_image_comm
   IMPLICIT NONE
   !
-  INTEGER :: ik, ierr, exst_sum 
-  LOGICAL :: exst, exst_mem, exst_file, opnd_file, twfcollect_file
-  CHARACTER (LEN=256)  :: dirname
+  INTEGER :: ik
+  LOGICAL :: exst_mem, exst_file
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_wfcinit'
+  write(*,*)
 
   !
-  ! ... Orthogonalized atomic functions needed for DFT+U and other cases
+  ! Orthogonalized atomic functions needed for DFT+U and other cases
   !
   !IF ( use_wannier .OR. one_atom_occupations ) CALL orthoatwfc ( use_wannier )
   IF ( one_atom_occupations ) CALL orthoatwfc ( .false. ) ! ffr
   IF ( lda_plus_u ) CALL orthoUwfc()
   !
-  ! ... open files/buffer for wavefunctions (nwordwfc set in openfil)
-  ! ... io_level > 1 : open file, otherwise: open buffer
+  ! open files/buffer for wavefunctions (nwordwfc set in openfil)
+  ! io_level > 1 : open file, otherwise: open buffer
   !
 
   CALL open_buffer( iunwfc, 'wfc', nwordwfc, io_level, exst_mem, exst_file )
@@ -44,7 +46,7 @@ SUBROUTINE my_wfcinit()
   ENDIF
 
   !
-  ! ... state what will happen
+  ! state what will happen
   !
   IF ( TRIM(starting_wfc) == 'file' ) THEN
      !
@@ -75,9 +77,9 @@ SUBROUTINE my_wfcinit()
      !
   END IF
   !
-  ! ... exit here if starting from file or for non-scf calculations.
-  ! ... In the latter case the starting wavefunctions are not 
-  ! ... calculated here but just before diagonalization (to reduce I/O)
+  ! exit here if starting from file or for non-scf calculations.
+  ! In the latter case the starting wavefunctions are not 
+  ! calculated here but just before diagonalization (to reduce I/O)
   !
   IF (  ( .NOT. lscf .AND. .NOT. lelfield ) .OR. TRIM(starting_wfc) == 'file' ) THEN
     RETURN
@@ -85,37 +87,52 @@ SUBROUTINE my_wfcinit()
 
   ! calculate and write all starting wavefunctions to buffer
   DO ik = 1, nks
-     !
-     ! ... Hpsi initialization: k-point index, spin, kinetic energy
-     !
-     current_k = ik
-     IF( lsda ) current_spin = isk(ik)
-     call g2_kin(ik)  ! calculate (G+k)^2
-     !
-     ! ... More Hpsi initialization: nonlocal pseudopotential projectors |beta>
-     !
-     IF ( nkb > 0 ) CALL init_us_2( ngk(ik), igk_k(1,ik), xk(1,ik), vkb )
-     !
-     ! ... Needed for DFT+U
-     !
-     IF ( nks > 1 .AND. lda_plus_u .AND. (U_projection .NE. 'pseudo') ) &
-        CALL get_buffer( wfcU, nwordwfcU, iunhub, ik )
-     !
-     ! DFT+U+V: calculate the phase factor at a given k point
-     !
-     IF (lda_plus_u .AND. lda_plus_u_kind.EQ.2) CALL phase_factor(ik)
-     !
-     ! ... calculate starting wavefunctions (calls Hpsi)
-     !
-     CALL my_init_wfc( ik )
-     !
-     ! ... write  starting wavefunctions to file
-     !
-     IF( nks > 1 .OR. (io_level > 1) .OR. lelfield ) &
-         CALL save_buffer( evc, nwordwfc, iunwfc, ik )
-     !
+    !
+    ! Hpsi initialization: k-point index, spin, kinetic energy
+    !
+    current_k = ik
+    IF( lsda ) then
+      current_spin = isk(ik)
+      write(*,*) 'current_spin index = ', current_spin
+    endif
+    call g2_kin(ik)  ! calculate (G+k)^2
+    !
+    ! More Hpsi initialization: nonlocal pseudopotential projectors |beta>
+    !
+    IF ( nkb > 0 ) then
+      ! XXX why need this?
+      ! XXX This will compute projectors
+      CALL init_us_2( ngk(ik), igk_k(1,ik), xk(1,ik), vkb )
+    endif
+    !
+    ! Needed for DFT+U
+    !
+    IF( nks > 1 .AND. lda_plus_u .AND. (U_projection .NE. 'pseudo') ) then
+      CALL get_buffer( wfcU, nwordwfcU, iunhub, ik )
+    endif
+    !
+    ! DFT+U+V: calculate the phase factor at a given k point
+    !
+    IF (lda_plus_u .AND. lda_plus_u_kind.EQ.2) then
+      CALL phase_factor(ik)
+    endif
+    !
+    ! calculate starting wavefunctions (calls Hpsi)
+    !
+    CALL my_init_wfc( ik )
+    !
+    ! write  starting wavefunctions to file
+    !
+    IF( nks > 1 .OR. (io_level > 1) .OR. lelfield ) then
+      CALL save_buffer( evc, nwordwfc, iunwfc, ik )
+    endif
+    !
   ENDDO
-  !
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_wfcinit'
+  write(*,*)
+
   RETURN
   !
 END SUBROUTINE my_wfcinit

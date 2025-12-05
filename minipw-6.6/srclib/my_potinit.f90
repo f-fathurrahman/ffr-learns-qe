@@ -1,11 +1,3 @@
-!
-! Copyright (C) 2001-2020 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
-!
 !----------------------------------------------------------------------------
 SUBROUTINE my_potinit()
   !----------------------------------------------------------------------------
@@ -25,11 +17,11 @@ SUBROUTINE my_potinit()
   USE kinds,                ONLY : DP
   USE constants,            ONLY : pi
   USE io_global,            ONLY : stdout
-  USE cell_base,            ONLY : alat, omega
-  USE ions_base,            ONLY : nat, ityp, ntyp => nsp
+  USE cell_base,            ONLY : omega
+  USE ions_base,            ONLY : nat, ityp
   USE basis,                ONLY : starting_pot
   USE klist,                ONLY : nelec
-  USE lsda_mod,             ONLY : lsda, nspin
+  USE lsda_mod,             ONLY : nspin
   USE lsda_mod,             ONLY : starting_magnetization
   USE fft_base,             ONLY : dfftp, dffts
   USE gvect,                ONLY : ngm, gstart, g, gg, ig_l2g

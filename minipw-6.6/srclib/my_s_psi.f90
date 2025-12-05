@@ -31,7 +31,7 @@ SUBROUTINE my_s_psi( lda, n, m, psi, spsi )
   COMPLEX(DP), INTENT(OUT)::spsi(lda*npol,m)
   !! S matrix dot wavefunctions psi
   !
-  ! ... local variables
+  ! local variables
   !
   INTEGER :: m_start, m_end
   INTEGER :: column_type
@@ -85,23 +85,23 @@ SUBROUTINE my_s_psi_( lda, n, m, psi, spsi )
   COMPLEX(DP), INTENT(OUT)::spsi(lda*npol,m)
   !! S matrix dot wavefunctions psi
   !
-  ! ... local variables
+  ! local variables
   !
   INTEGER :: ibnd
   !
   !
-  ! ... initialize  spsi
+  ! initialize  spsi
   !
   CALL threaded_memcpy( spsi, psi, lda*npol*m*2 )
   !
   IF ( nkb == 0 .OR. .NOT. okvan ) RETURN
   !
-  ! ... The product with the beta functions
+  ! The product with the beta functions
   !
   IF( gamma_only ) THEN
     stop 'Not yet supported: my_s_psi 102'
   ELSEIF( noncolin ) THEN
-    stop 'Not yet supported: my_s_psi 104'
+    call s_psi_nc()
   ELSE 
     IF( real_space ) THEN
       stop 'Not yet supported: my_s_psi: 107'
@@ -110,13 +110,13 @@ SUBROUTINE my_s_psi_( lda, n, m, psi, spsi )
       CALL s_psi_k()
       !
     ENDIF
-  ENDIF    
-
+  ENDIF
 
   RETURN
 
 CONTAINS
-     
+
+! internal subroutine
 !-----------------------------------------------------------------------
 SUBROUTINE s_psi_k()
 !-----------------------------------------------------------------------
@@ -124,7 +124,7 @@ SUBROUTINE s_psi_k()
   !
   IMPLICIT NONE
   !
-  ! ... local variables
+  ! local variables
   !
   INTEGER :: ikb, jkb, ih, jh, na, nt, ibnd, ierr
   ! counters
@@ -166,7 +166,7 @@ SUBROUTINE s_psi_k()
     !
   ENDDO
 
-  write(*,*) 'in s_psi_k: sum(ps) = ', sum(ps)*0.5d0 ! to Ha
+  !write(*,*) 'in s_psi_k: sum(ps) = ', sum(ps)*0.5d0 ! to Ha
 
   IF ( m == 1 ) THEN
      !
@@ -183,7 +183,73 @@ SUBROUTINE s_psi_k()
   DEALLOCATE( ps )
   RETURN
 
-END SUBROUTINE
+END SUBROUTINE s_psi_k
+! internal subroutine
+
+
+!-----------------------------------------------------------------------
+SUBROUTINE s_psi_nc ( )
+!-----------------------------------------------------------------------
+  !! k-points noncolinear/spinorbit version of \(\textrm{s_psi}\) routine.
+  !
+  IMPLICIT NONE
+  !
+  ! local variables
+  !
+  INTEGER :: ikb, jkb, ih, jh, na, nt, ibnd, ipol, ierr
+  ! counters
+  COMPLEX (DP), ALLOCATABLE :: ps(:,:,:)
+  ! the product vkb and psi
+  !
+  ALLOCATE( ps(nkb,npol,m), STAT=ierr )
+  IF( ierr /= 0 ) &
+    CALL errore( ' s_psi_nc ', ' cannot allocate memory (ps) ', ABS(ierr) )
+  ps(:,:,:) = (0.D0,0.D0)
+  !
+  DO nt = 1, nsp
+    !
+    IF ( upf(nt)%tvanp ) THEN
+        !
+        DO na = 1, nat
+          IF ( ityp(na) == nt ) THEN
+              DO ih = 1, nh(nt)
+                ikb = indv_ijkb0(na) + ih
+                DO jh = 1, nh(nt)
+                    jkb = indv_ijkb0(na) + jh
+                    IF ( .NOT. lspinorb ) THEN
+                      DO ipol = 1, npol
+                          DO ibnd = 1, m
+                            ps(ikb,ipol,ibnd) = ps(ikb,ipol,ibnd) + &
+                                  qq_at(ih,jh,na)*becp%nc(jkb,ipol,ibnd)
+                          ENDDO
+                      ENDDO
+                    ELSE
+                      DO ibnd = 1, m
+                          ps(ikb,1,ibnd) = ps(ikb,1,ibnd) + &
+                              qq_so(ih,jh,1,nt)*becp%nc(jkb,1,ibnd)+ &
+                              qq_so(ih,jh,2,nt)*becp%nc(jkb,2,ibnd)
+                          ps(ikb,2,ibnd) = ps(ikb,2,ibnd) + &
+                              qq_so(ih,jh,3,nt)*becp%nc(jkb,1,ibnd)+ &
+                              qq_so(ih,jh,4,nt)*becp%nc(jkb,2,ibnd)
+                      ENDDO
+                    ENDIF
+                ENDDO
+              ENDDO
+          ENDIF
+        ENDDO
+        !
+    ENDIF
+    !
+  ENDDO
+  !
+  CALL ZGEMM ( 'N', 'N', n, m*npol, nkb, (1.d0,0.d0) , vkb, &
+              lda, ps, nkb, (1.d0,0.d0) , spsi(1,1), lda )
+  !
+  DEALLOCATE( ps )
+  RETURN
+  !
+END SUBROUTINE s_psi_nc
+! internal subroutine
 
 
 END SUBROUTINE

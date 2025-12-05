@@ -181,6 +181,7 @@ SUBROUTINE my_atomic_wfc_so()
   REAL(DP) :: fact(2), j
   REAL(DP), EXTERNAL :: spinor
   INTEGER :: ind, ind1, n1, is, sph_ind
+  write(*,*) 'my_atomic_wfc: spin-orbit coupling is active'
   !
   j = upf(nt)%jchi(nb)
   DO m = -l-1, l
