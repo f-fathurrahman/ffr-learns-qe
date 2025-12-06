@@ -175,6 +175,9 @@ SUBROUTINE my_mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,
     !
     call destroy_mix_type(rhoin_m)
     call destroy_mix_type(rhout_m)
+    write(*,*)
+    write(*,*) '</div> EXIT my_mix_rho'
+    write(*,*)
     !
     RETURN
   ENDIF

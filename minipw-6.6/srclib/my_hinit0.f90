@@ -30,7 +30,8 @@ SUBROUTINE my_hinit0()
   IF( tq_smoothing ) CALL init_us_0()
   CALL init_us_1()
   IF( lda_plus_U .AND. ( U_projection == 'pseudo' ) ) CALL init_q_aeps()
-  CALL init_at_1()
+  !CALL init_at_1()
+  CALL my_init_at_1()
 
   IF( restart .AND. startingconfig == 'file' ) THEN
     stop 'Restart is not supported in my_hinit0'

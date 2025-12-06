@@ -215,33 +215,32 @@ SUBROUTINE my_sum_band()
   ! synchronize with rho_kin(G)
   !
   IF ( dft_is_meta() .OR. lxdm) THEN
-     !
-     CALL mp_sum( rho%kin_r, inter_pool_comm )
-     CALL mp_sum( rho%kin_r, inter_bgrp_comm )
-     DO is = 1, nspin
-        psic(1:dffts%nnr) = rho%kin_r(1:dffts%nnr,is)
-        psic(dffts%nnr+1:) = 0.0_dp
-        CALL fwfft ('Rho', psic, dffts)
-        rho%kin_g(1:dffts%ngm,is) = psic(dffts%nl(1:dffts%ngm))
-     END DO
-     !
-     IF (.NOT. gamma_only) CALL sym_rho( nspin, rho%kin_g )
-     !
-     DO is = 1, nspin
-        psic(:) = ( 0.D0, 0.D0 )
-        psic(dfftp%nl(:)) = rho%kin_g(:,is)
-        IF ( gamma_only ) psic(dfftp%nlm(:)) = CONJG( rho%kin_g(:,is) )
-        CALL invfft ('Rho', psic, dfftp)
-        rho%kin_r(:,is) = psic(:)
-     END DO
-     !
-  END IF
+    !
+    CALL mp_sum( rho%kin_r, inter_pool_comm )
+    CALL mp_sum( rho%kin_r, inter_bgrp_comm )
+    DO is = 1, nspin
+      psic(1:dffts%nnr) = rho%kin_r(1:dffts%nnr,is)
+      psic(dffts%nnr+1:) = 0.0_dp
+      CALL fwfft ('Rho', psic, dffts)
+      rho%kin_g(1:dffts%ngm,is) = psic(dffts%nl(1:dffts%ngm))
+    END DO
+    !
+    IF (.NOT. gamma_only) CALL sym_rho( nspin, rho%kin_g )
+    !
+    DO is = 1, nspin
+      psic(:) = ( 0.D0, 0.D0 )
+      psic(dfftp%nl(:)) = rho%kin_g(:,is)
+      IF ( gamma_only ) psic(dfftp%nlm(:)) = CONJG( rho%kin_g(:,is) )
+      CALL invfft('Rho', psic, dfftp)
+      rho%kin_r(:,is) = psic(:)
+    ENDDO
+    !
+  ENDIF
   !
   ! if LSDA rho%of_r and rho%of_g are converted from (up,dw) to
   ! (up+dw,up-dw) format.
   !
   IF ( nspin == 2 ) CALL rhoz_or_updw( rho, 'r_and_g', '->rhoz' )
-
 
   write(*,*) 
   write(*,*) '</div> EXIT my_sum_band'
@@ -259,7 +258,6 @@ SUBROUTINE my_sum_band()
        !! \(\texttt{sum_band}\) - part for gamma version.
        !
        USE becmod,        ONLY : becp
-       USE mp_bands,      ONLY : me_bgrp
        USE mp,            ONLY : mp_sum, mp_get_comm_null
        USE fft_helper_subroutines, ONLY : fftx_ntgrp, fftx_tgpe, &
                           tg_reduce_rho, tg_get_nnr, tg_get_group_nr3
@@ -270,11 +268,11 @@ SUBROUTINE my_sum_band()
        !
        REAL(DP) :: w1, w2
          ! weights
-       INTEGER  :: npw, idx, ioff, ioff_tg, nxyp, incr, v_siz, j, ir3
+       INTEGER  :: npw, incr, j
        COMPLEX(DP), ALLOCATABLE :: tg_psi(:)
        REAL(DP),    ALLOCATABLE :: tg_rho(:)
        LOGICAL :: use_tg
-       INTEGER :: right_nnr, right_nr3, right_inc, ntgrp
+       INTEGER :: ntgrp
        !
        !
        ! here we sum for each k point the contribution
@@ -424,110 +422,102 @@ SUBROUTINE my_sum_band_k()
   !
   REAL(DP) :: w1
   ! weights
-  INTEGER :: npw, ipol, na, np
+  INTEGER :: npw, ipol
   !
-  INTEGER  :: idx, ioff, ioff_tg, nxyp, incr, v_siz, j, ir3
-  COMPLEX(DP), ALLOCATABLE :: tg_psi(:), tg_psi_nc(:,:)
-  REAL(DP),    ALLOCATABLE :: tg_rho(:), tg_rho_nc(:,:)
-  LOGICAL  :: use_tg
-  INTEGER :: right_nnr, right_nr3, right_inc, ntgrp
+  INTEGER  :: incr, j
   !
   ! chunking parameters
   INTEGER, PARAMETER :: blocksize = 256
-  INTEGER :: numblock
-
   !
   incr = 1
   !
   k_loop: DO ik = 1, nks
+    !
+    IF ( lsda ) current_spin = isk(ik)
+    npw = ngk (ik)
+    !
+    IF ( nks > 1 ) then
+      CALL get_buffer( evc, nwordwfc, iunwfc, ik )
+    endif
+    !
+    IF ( nkb > 0 ) then
+      CALL init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
+    endif
+    !
+    ! here we compute the band energy: the sum of the eigenvalues
+    !
+    DO ibnd = ibnd_start, ibnd_end, incr
       !
-      IF ( lsda ) current_spin = isk(ik)
-      npw = ngk (ik)
+      eband = eband + et( ibnd, ik ) * wg( ibnd, ik )
       !
-      IF ( nks > 1 ) then
-        CALL get_buffer( evc, nwordwfc, iunwfc, ik )
-      endif
+      ! the sum of eband and demet is the integral for e < ef of
+      ! e n(e) which reduces for degauss=0 to the sum of the
+      ! eigenvalues
+      w1 = wg(ibnd,ik) / omega
       !
-      IF ( nkb > 0 ) then
-        CALL init_us_2( npw, igk_k(1,ik), xk(1,ik), vkb )
-      endif
-      !
-      ! here we compute the band energy: the sum of the eigenvalues
-      !
-      DO ibnd = ibnd_start, ibnd_end, incr
+      IF (noncolin) THEN
+        !write(*,*) 'noncolliner magnetism ..'
         !
-        eband = eband + et( ibnd, ik ) * wg( ibnd, ik )
+        ! Noncollinear case without task groups
         !
-        ! the sum of eband and demet is the integral for e < ef of
-        ! e n(e) which reduces for degauss=0 to the sum of the
-        ! eigenvalues
-        w1 = wg(ibnd,ik) / omega
+        psic_nc = (0.D0,0.D0)
+        DO ig = 1, npw
+          psic_nc(dffts%nl(igk_k(ig,ik)),1) = evc(ig     ,ibnd)
+          psic_nc(dffts%nl(igk_k(ig,ik)),2) = evc(ig+npwx,ibnd)
+        END DO
+        CALL invfft('Wave', psic_nc(:,1), dffts)
+        CALL invfft('Wave', psic_nc(:,2), dffts)
         !
-        IF (noncolin) THEN
-          !write(*,*) 'noncolliner magnetism ..'
-          !
-          ! Noncollinear case without task groups
-          !
-          psic_nc = (0.D0,0.D0)
-          DO ig = 1, npw
-            psic_nc(dffts%nl(igk_k(ig,ik)),1) = evc(ig     ,ibnd)
-            psic_nc(dffts%nl(igk_k(ig,ik)),2) = evc(ig+npwx,ibnd)
-          END DO
-          CALL invfft('Wave', psic_nc(:,1), dffts)
-          CALL invfft('Wave', psic_nc(:,2), dffts)
-          !
-          ! increment the charge density ...
-          !
-          DO ipol=1,npol
-            CALL my_get_rho(rho%of_r(:,1), dffts%nnr, w1, psic_nc(:,ipol))
-          END DO
-          !
-          ! In this case, calculate also the three
-          ! components of the magnetization (stored in rho%of_r(ir,2-4))
-          !
-          IF( domag ) THEN
-            CALL my_get_rho_domag(rho%of_r(:,:), dffts%nnr, w1, psic_nc(:,:))
-          ELSE
-            rho%of_r(:,2:4) = 0.0_DP
-          ENDIF
-          !
+        ! increment the charge density ...
+        !
+        DO ipol=1,npol
+          CALL my_get_rho(rho%of_r(:,1), dffts%nnr, w1, psic_nc(:,ipol))
+        END DO
+        !
+        ! In this case, calculate also the three
+        ! components of the magnetization (stored in rho%of_r(ir,2-4))
+        !
+        IF( domag ) THEN
+          CALL my_get_rho_domag(rho%of_r(:,:), dffts%nnr, w1, psic_nc(:,:))
         ELSE
-          !
-          ! collinear magnetism
-          !
-          !
-          CALL threaded_barrier_memset(psic, 0.D0, dffts%nnr*2)
-          !
-          DO j = 1, npw
-            psic(dffts%nl(igk_k(j,ik))) = evc(j,ibnd)
-          ENDDO
-          !
-          CALL invfft ('Wave', psic, dffts)
-          !
-          ! increment the charge density ...
-          !
-          CALL my_get_rho(rho%of_r(:,current_spin), dffts%nnr, w1, psic)
-          !
-          IF (dft_is_meta() .OR. lxdm) THEN
-            DO j=1,3
-              psic(:) = ( 0.D0, 0.D0 )
-              !
-              kplusg (1:npw) = (xk(j,ik)+g(j,igk_k(1:npw,ik))) * tpiba
-              psic(dffts%nl(igk_k(1:npw,ik)))=CMPLX(0d0,kplusg(1:npw),kind=DP) * &
-                                      evc(1:npw,ibnd)
-              !
-              CALL invfft ('Wave', psic, dffts)
-              !
-              ! increment the kinetic energy density ...
-              !
-              CALL my_get_rho(rho%kin_r(:,current_spin), dffts%nnr, w1, psic)
-            END DO
-          END IF
+          rho%of_r(:,2:4) = 0.0_DP
+        ENDIF
+        !
+      ELSE
+        !
+        ! collinear magnetism
+        !
+        CALL threaded_barrier_memset(psic, 0.D0, dffts%nnr*2)
+        !
+        DO j = 1, npw
+          psic(dffts%nl(igk_k(j,ik))) = evc(j,ibnd)
+        ENDDO
+        !
+        CALL invfft ('Wave', psic, dffts)
+        !
+        ! increment the charge density ...
+        !
+        CALL my_get_rho(rho%of_r(:,current_spin), dffts%nnr, w1, psic)
+        !
+        IF (dft_is_meta() .OR. lxdm) THEN
+          DO j=1,3
+            psic(:) = ( 0.D0, 0.D0 )
             !
-         END IF
-         !
-      END DO
-      !
+            kplusg (1:npw) = (xk(j,ik)+g(j,igk_k(1:npw,ik))) * tpiba
+            psic(dffts%nl(igk_k(1:npw,ik)))=CMPLX(0d0,kplusg(1:npw),kind=DP) * &
+                                    evc(1:npw,ibnd)
+            !
+            CALL invfft ('Wave', psic, dffts)
+            !
+            ! increment the kinetic energy density ...
+            !
+            CALL my_get_rho(rho%kin_r(:,current_spin), dffts%nnr, w1, psic)
+          END DO
+        END IF
+          !
+       END IF
+       !
+    END DO
       !
       ! If we have a US pseudopotential we compute here the becsum term
       !

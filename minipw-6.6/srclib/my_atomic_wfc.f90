@@ -103,7 +103,7 @@ SUBROUTINE my_atomic_wfc( ik, wfcatom )
   !
   DO na = 1, nat
     arg = (xk(1,ik)*tau(1,na) + xk(2,ik)*tau(2,na) + xk(3,ik)*tau(3,na)) * tpi
-    kphase = CMPLX( COS(arg), - SIN(arg) ,KIND=DP)
+    kphase = CMPLX( COS(arg), -SIN(arg) ,KIND=DP)
     !
     ! sk is the structure factor
     !
@@ -185,6 +185,7 @@ SUBROUTINE my_atomic_wfc_so()
   !
   j = upf(nt)%jchi(nb)
   DO m = -l-1, l
+    !
     fact(1) = spinor(l,j,m,1)
     fact(2) = spinor(l,j,m,2)
     IF( ABS(fact(1)) > 1.d-8 .OR. ABS(fact(2)) > 1.d-8 ) THEN
@@ -234,11 +235,12 @@ SUBROUTINE my_atomic_wfc_nc()
   alpha = angle1(nt)
   gamman = -angle2(nt) + 0.5d0*pi
   !
-  DO m = 1, 2 * l + 1
+  DO m = 1, 2*l + 1
     lm = l**2 + m
     n_starting_wfc = n_starting_wfc + 1
-    IF( n_starting_wfc + 2*l+1 > natomwfc) CALL errore &
-          ('atomic_wfc_nc', 'internal error: too many wfcs', 1)
+    IF( n_starting_wfc + 2*l+1 > natomwfc) then
+      CALL errore('atomic_wfc_nc', 'internal error: too many wfcs', 1)
+    endif
     DO ig = ig_start, ig_end
       aux(ig) = sk(ig)*ylm(ig,lm)*chiq(ig,nb,nt)
     ENDDO

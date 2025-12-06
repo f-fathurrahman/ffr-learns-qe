@@ -20,7 +20,8 @@ my_gradcorr.o \
 exposed_ffr.o \
 info_upf.o write_array.o \
 my_rotate_wfc.o my_rotate_wfc_k.o \
-my_vloc_psi_nc.o
+my_vloc_psi_nc.o \
+my_average_pp.o my_init_at_1.o \
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

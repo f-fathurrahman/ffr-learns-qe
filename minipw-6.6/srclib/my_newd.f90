@@ -262,9 +262,9 @@ SUBROUTINE my_newd()
     CALL my_newq( v%of_r, deeq, .FALSE. )
   ENDIF
 
-  IF( noncolin ) then
+  IF( noncolin ) THEN
     CALL add_paw_to_deeq( deeq )
-  endif
+  ENDIF
 
   !write(*,*) 'Before adding PAW contrib if any: sum Deeq (in Ha) = ', sum(deeq)*0.5d0
 
@@ -327,6 +327,7 @@ SUBROUTINE my_newd_so( na )
   !
   INTEGER :: ijs, is1, is2, kh, lh
   !
+  write(*,*) 'my_newd_so is called'
   !
   nt = ityp(na)
   ijs = 0

@@ -13,6 +13,7 @@ END PROGRAM
 SUBROUTINE test_uspp()
   use uspp_param
   use us, only: spline_ps, qrad
+  use atom, only: msh
   use uspp
   implicit none
   ! local variables
@@ -37,14 +38,20 @@ SUBROUTINE test_uspp()
     write(*,*) 'dion = '
     do i = 1,Ni
       do j = 1,Nj
-        !write(*,'(1x,F18.5)',advance='no') upf(isp)%dion(i,j)
         write(*,'(1x,ES18.10)',advance='no') upf(isp)%dion(i,j)
       enddo
       write(*,*)
     enddo
+    write(*,*) 'mesh = ', upf(isp)%mesh
+    write(*,*) 'has_so = ', upf(isp)%has_so
     write(*,*) 'nlcc = ', upf(isp)%nlcc
     write(*,*) 'kkbeta = ', upf(isp)%kkbeta
     write(*,*) 'kbeta = ', upf(isp)%kbeta
+    !
+    write(*,*) 'shape jjj = ', shape(upf(isp)%jjj)
+    write(*,*) 'jjj = ', upf(isp)%jjj
+    write(*,*) 'shape jchi = ', shape(upf(isp)%jchi)
+    write(*,*) 'jchi = ', upf(isp)%jchi
   enddo
 
   write(*,*) 'spline_ps = ', spline_ps
@@ -73,6 +80,7 @@ SUBROUTINE test_uspp()
   write(*,*) 'shape(qq_nt) = ', shape(qq_nt)
   write(*,*) 'shape(qq_at) = ', shape(qq_at)
 
+  write(*,*) 'from atom module: msh = ', msh
 
 END SUBROUTINE
 

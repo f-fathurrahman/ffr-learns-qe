@@ -41,9 +41,6 @@ SUBROUTINE my_rotate_wfc( npwx, npw, nstart, gstart, nbnd, psi, npol, overlap, e
   !     calculates S|psi> (if needed)
   !     Vectors psi,hpsi,spsi are dimensioned (npwx,npol,nvec)
   !
-
-  !write (*,*) 'gamma_only' , gamma_only; FLUSH(6)
-  !
   IF( use_para_diag ) THEN
     stop 'use_para_diag is disable in my_rotate_wfc.f90'
   ELSE
@@ -58,7 +55,7 @@ SUBROUTINE my_rotate_wfc( npwx, npw, nstart, gstart, nbnd, psi, npol, overlap, e
     ELSE
       !
       CALL my_rotate_wfc_k( my_h_psi, my_s_psi, overlap, &
-                         npwx, npw, nstart, nbnd, npol, psi, evc, e )
+                            npwx, npw, nstart, nbnd, npol, psi, evc, e )
       !
      ENDIF
      !
