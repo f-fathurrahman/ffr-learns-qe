@@ -1,3 +1,4 @@
+! ffr: this is used in case PP with spinorb is used for non-spinorb calculation
 !----------------------------------------------------------------------------
 SUBROUTINE my_average_pp( ntyp ) 
 !----------------------------------------------------------------------------
