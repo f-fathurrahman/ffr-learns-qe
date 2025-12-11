@@ -38,31 +38,31 @@ SUBROUTINE print_mpi_hierarchy()
     CALL mpi_comm_size(world_comm, np, ierr)
     me = mp_rank(world_comm)
     write(*,*) 'me = ', me
-    IF (me == 0) THEN
-        WRITE(stdout,'(/,a,i6)') 'world_comm size: ', np
-        WRITE(stdout,'(a)') '-----------------------------------------'
-    END IF
+    IF(me == 0) THEN
+      WRITE(stdout,'(/,a,i6)') 'world_comm size: ', np
+      WRITE(stdout,'(a)') '-----------------------------------------'
+    ENDIF
     CALL mp_barrier(world_comm)
 
     !=======================
     ! inter_pool_comm
     !=======================
-    !CALL mpi_comm_size(inter_pool_comm, np)
-    !!me = mp_rank(inter_pool_comm)
-    !IF (me == 0) THEN
-    !    WRITE(stdout,'(a,i6)') 'inter_pool_comm size: ', np
-    !END IF
-    !CALL mp_barrier(world_comm)
+    CALL mpi_comm_size(inter_pool_comm, np, ierr)
+    me = mp_rank(inter_pool_comm)
+    IF (me == 0) THEN
+      WRITE(stdout,'(a,i6)') 'inter_pool_comm size: ', np
+    ENDIF
+    CALL mp_barrier(world_comm)
 
     !=======================
     ! intra_pool_comm
     !=======================
-    !CALL mpi_comm_size(intra_pool_comm, np)
-    !me = mp_rank(intra_pool_comm)
-    !IF (me == 0) THEN
-    !    WRITE(stdout,'(a,i6)') 'intra_pool_comm size: ', np
-    !END IF
-    !CALL mp_barrier(world_comm)
+    CALL mpi_comm_size(intra_pool_comm, np, ierr)
+    me = mp_rank(intra_pool_comm)
+    IF (me == 0) THEN
+      WRITE(stdout,'(a,i6)') 'intra_pool_comm size: ', np
+    ENDIF
+    CALL mp_barrier(world_comm)
 
     !=======================
     ! intra_bgrp_comm

@@ -7,8 +7,8 @@
     "**/*.a": true,
   },
   "fortran.linter.includePaths": [
-    "${workspaceFolder}/../qe-7.5/Modules",
-    "${workspaceFolder}/../qe-7.5/UtilXlib",
-    "${workspaceFolder}/../qe-7.5/PW/src",
+    "${workspaceFolder}/Modules",
+    "${workspaceFolder}/UtilXlib",
+    "${workspaceFolder}/PW_src",
   ]
 }
