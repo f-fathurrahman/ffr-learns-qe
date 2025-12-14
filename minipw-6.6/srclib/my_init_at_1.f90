@@ -44,24 +44,25 @@ SUBROUTINE my_init_at_1()
   tab_at(:,:,:) = 0.0_DP
   !
   DO nt = 1, ntyp
-     DO nb = 1, upf(nt)%nwfc
+    DO nb = 1, upf(nt)%nwfc
+      !
+      IF (upf(nt)%oc(nb) >= 0.0_DP) THEN
+        l = upf(nt)%lchi (nb)
         !
-        IF (upf(nt)%oc(nb) >= 0.0_DP) THEN
-           l = upf(nt)%lchi (nb)
-           !
-           DO iq = startq, lastq
-              q = dq * (iq - 1)
-              CALL sph_bes( msh(nt), rgrid(nt)%r, q, l, aux )
-              DO ir = 1, msh(nt)
-                vchi(ir) = upf(nt)%chi(ir,nb) * aux(ir) * rgrid(nt)%r(ir)
-              ENDDO
-              CALL simpson( msh(nt), vchi, rgrid(nt)%rab, vqint )
-              tab_at( iq, nb, nt ) = vqint * pref
-           ENDDO
-           !
-        ENDIF
+        DO iq = startq, lastq
+          q = dq * (iq - 1)
+          CALL sph_bes( msh(nt), rgrid(nt)%r, q, l, aux )
+          DO ir = 1, msh(nt)
+            vchi(ir) = upf(nt)%chi(ir,nb) * aux(ir) * rgrid(nt)%r(ir)
+          ENDDO
+          CALL simpson( msh(nt), vchi, rgrid(nt)%rab, vqint )
+          tab_at( iq, nb, nt ) = vqint * pref
+        ENDDO
         !
-     ENDDO
+      ENDIF
+      !
+    ENDDO
+    write(*,*) 'nt, sum(tab_at) = ', nt, sum(tab_at(:,:,1))
   ENDDO
   !
   CALL mp_sum( tab_at, intra_bgrp_comm )

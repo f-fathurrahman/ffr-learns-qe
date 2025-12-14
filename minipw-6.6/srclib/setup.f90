@@ -104,11 +104,11 @@ SUBROUTINE setup()
   !
   !TYPE(output_type)  :: output_obj 
   !  
-#if defined(__MPI)
-  LOGICAL :: lpara = .true.
-#else
-  LOGICAL :: lpara = .false.
-#endif
+!#if defined(__MPI)
+!  LOGICAL :: lpara = .true.
+!#else
+!  LOGICAL :: lpara = .false.
+!#endif
 
   !
   ! ... okvan/okpaw = .TRUE. : at least one pseudopotential is US/PAW

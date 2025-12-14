@@ -68,10 +68,6 @@ subroutine init_us_1
   real(DP), EXTERNAL :: spinor
   !
 
-  write(*,*)
-  write(*,*) '***** Enter init_us_1'
-  write(*,*)
-
   call start_clock ('init_us_1')
   !
   !    Initialization of the variables
@@ -364,10 +360,6 @@ subroutine init_us_1
   endif
 
   call stop_clock ('init_us_1')
-
-  write(*,*)
-  write(*,*) '***** Exit init_us_1'
-  write(*,*)
 
   return
 end subroutine init_us_1

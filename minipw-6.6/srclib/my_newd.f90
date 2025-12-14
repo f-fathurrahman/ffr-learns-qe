@@ -228,10 +228,16 @@ SUBROUTINE my_newd()
       !
       IF( lspinorb ) THEN
         !
+        write(*,*) 'Pass here in my_newd: using deeq_nc for lspinorb (higher precendence than noncolin)'
+        write(*,*) 'need dvan_so, nspin = ', nspin
         deeq_nc(1:nht,1:nht,na,1:nspin) = dvan_so(1:nht,1:nht,1:nspin,nt)
+        write(*,*) 'sum dvan_so = ', sum(dvan_so)
+        write(*,*) 'shape dvan_so = ', shape(dvan_so)
         !
       ELSEIF ( noncolin ) THEN
         !
+        write(*,*) 'Pass here in my_newd: using deeq_nc for noncolin'
+        write(*,*) 'need dvan, nspin = ', nspin
         deeq_nc(1:nht,1:nht,na,1) = dvan(1:nht,1:nht,nt)
         deeq_nc(1:nht,1:nht,na,2) = ( 0.D0, 0.D0 )
         deeq_nc(1:nht,1:nht,na,3) = ( 0.D0, 0.D0 )

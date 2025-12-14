@@ -22,13 +22,20 @@ SUBROUTINE my_hinit0()
   IMPLICIT NONE
   REAL (dp) :: alat_old
 
+  write(*,*)
+  write(*,*) '<div> ENTER my_hinit0'
+  write(*,*)
+
   ! calculate the Fourier coefficients of the local part of the PP
   CALL init_vloc()
   
   ! k-point independent parameters of non-local pseudopotentials
   IF( tbeta_smoothing ) CALL init_us_b0()
+  !
   IF( tq_smoothing ) CALL init_us_0()
-  CALL init_us_1()
+  !
+  CALL my_init_us_1()
+  !
   IF( lda_plus_U .AND. ( U_projection == 'pseudo' ) ) CALL init_q_aeps()
   !CALL init_at_1()
   CALL my_init_at_1()
@@ -63,6 +70,10 @@ SUBROUTINE my_hinit0()
   ENDIF
 
   IF ( report /= 0 ) CALL make_pointlists( )
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_hinit0'
+  write(*,*)
 
   RETURN
 
