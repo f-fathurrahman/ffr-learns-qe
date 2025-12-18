@@ -85,14 +85,15 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
       rhoscale = 1.0_dp
     ENDIF
     !
-    !
+    ! ffr: total rhoe?
     DO ig = 1, ngm
       rhocg(ig,1) = rhocg(ig,1) + strf(ig,nt) * rhoscale * rhocgnt(igtongl(ig)) / omega
     ENDDO
-    !
+    ! ffr: magnetization density?
     IF ( nspina >= 2 ) THEN
       !
       angular(1) = 1._dp
+      ! ffr: spherical coord?
       IF ( nspina == 4 ) THEN
         angular(1) = sin(angle1(nt))*cos(angle2(nt))
         angular(2) = sin(angle1(nt))*sin(angle2(nt))
@@ -160,7 +161,7 @@ SUBROUTINE my_atomic_rho( rhoa, nspina )
   !
   ALLOCATE (rhocg(dfftp%ngm, nspina))
   !
-  CALL atomic_rho_g(rhocg, nspina)
+  CALL my_atomic_rho_g(rhocg, nspina)
   !
   ! bring to real space
   !
