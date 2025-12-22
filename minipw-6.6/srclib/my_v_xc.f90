@@ -86,6 +86,11 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
     
     write(*,*) 'my_v_xc: nspin = ', nspin
     write(*,*) 'my_v_xc: sum rho%of_r = ', sum(rho%of_r(:,1))
+    if(nspin == 4) then
+      write(*,*) 'my_v_xc: sum rho%of_r(:,2) = ', sum(rho%of_r(:,2))
+      write(*,*) 'my_v_xc: sum rho%of_r(:,3) = ', sum(rho%of_r(:,3))
+      write(*,*) 'my_v_xc: sum rho%of_r(:,4) = ', sum(rho%of_r(:,4))
+    endif
 
     write(*,*) 'my_v_xc: before sum abs Vxc (in Ha) = ', sum(abs(v(:,1)))*0.5d0
 
@@ -132,8 +137,8 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
      !
      !
   ELSE IF ( nspin == 4 ) THEN
-    ! ... noncolinear case
-    !
+    ! noncolinear case
+    ! with magnetism
     CALL xc( dfftp%nnr, 4, 2, rho%of_r, ex, ec, vx, vc )
     !
     DO ir = 1, dfftp%nnr  !OMP ?
@@ -186,7 +191,7 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   CALL mp_sum(  etxc , intra_bgrp_comm )
 
   write(*,*)
-  write(*,*) '</div> ENTER my_v_xc'
+  write(*,*) '</div> EXIT my_v_xc'
   write(*,*)
 
   RETURN

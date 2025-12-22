@@ -157,7 +157,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
       write(*,*) 'in h_psi: sum becp_nc = ', sum(becp%nc)*0.5d0 ! to Ha
     endif
     !s
-    CALL add_vuspsi( lda, n, m, hpsi )
+    CALL my_add_vuspsi( lda, n, m, hpsi )
   ENDIF
   write(*,*) 'Pass here 156 in my_h_psi'
 

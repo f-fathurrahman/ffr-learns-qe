@@ -220,10 +220,11 @@ subroutine my_init_us_1
             if( lspinorb ) then
               ! pseudo does not have spin-orbit coupling?
               ! but spin-orbit coupling calculation is requested?
-              dvan_so(ih, jh, 1, nt) = upf(nt)%dion (ir, is)
-              dvan_so(ih, jh, 4, nt) = upf(nt)%dion (ir, is)
+              dvan_so(ih, jh, 1, nt) = upf(nt)%dion(ir, is)
+              dvan_so(ih, jh, 4, nt) = upf(nt)%dion(ir, is)
+              ! why only 1st and 4th index is set ?
             else
-              dvan(ih, jh, nt) = upf(nt)%dion (ir, is)
+              dvan(ih, jh, nt) = upf(nt)%dion(ir, is)
             endif
           endif ! check for same l and lm index
         enddo ! loop over jh

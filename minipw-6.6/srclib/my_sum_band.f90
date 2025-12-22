@@ -84,6 +84,8 @@ SUBROUTINE my_sum_band()
   ! calculates weights of Kohn-Sham orbitals used in calculation of rho
   !
   CALL weights()
+  !write(100,*) wg(:,1)
+  !write(*,*) 'wg is written to fort.100'
   !
   ! btype, used in diagonalization, is set here: a band is considered empty
   ! and computed with low accuracy only when its occupation is < 0.01, and
@@ -163,6 +165,8 @@ SUBROUTINE my_sum_band()
   !
   CALL mp_sum( rho%of_r, inter_pool_comm )
   CALL mp_sum( rho%of_r, inter_bgrp_comm )
+  !
+  ! ffr: need to explicitly sed this?
   IF ( noncolin .AND. .NOT. domag ) rho%of_r(:,2:4)=0.D0
   !
   ! bring the unsymmetrized rho(r) to G-space (use psic as work array)

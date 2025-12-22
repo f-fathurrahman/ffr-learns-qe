@@ -40,6 +40,11 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
   REAL(DP), ALLOCATABLE :: rhocgnt(:), aux(:)
   REAL(DP) :: angular(nspina)
   INTEGER :: ir, is, ig, igl, nt, ndm
+  
+  write(*,*)
+  write(*,*) '<div> ENTER my_atomic_rho_g'
+  write(*,*)
+  write(*,*) 'nspina = ', nspina
   !
   ! allocate work space 
   !
@@ -117,10 +122,20 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
   do ig = 1,5
     write(*,'(1x,I3,2F18.10)') ig, rhocg(ig,1)
   enddo
+  if(nspina==4) then
+    write(*,*) 'Some magng'
+    do ig = 1,5
+      write(*,'(1x,I3,6F18.10)') ig, rhocg(ig,2), rhocg(ig,3), rhocg(ig,4)
+    enddo
+  endif
   write(*,*) 'sum abs rhocg = ', sum(abs(rhocg))
 
   DEALLOCATE(aux)
   DEALLOCATE(rhocgnt)
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_atomic_rho_g'
+  write(*,*)
 
 END SUBROUTINE my_atomic_rho_g
 

@@ -35,10 +35,10 @@ SUBROUTINE my_add_vuspsi( lda, n, m, hpsi )
   IF( gamma_only ) THEN
     stop 'not yet supported in my_add_vuspsi 40'
   ELSEIF( noncolin) THEN
-    stop 'not yet supported in my_add_vuspsi 42'
+    CALL my_add_vuspsi_nc()
     !
   ELSE
-    CALL add_vuspsi_k()
+    CALL my_add_vuspsi_k()
   ENDIF
 
   RETURN
@@ -46,8 +46,9 @@ SUBROUTINE my_add_vuspsi( lda, n, m, hpsi )
 
 CONTAINS
 
+! internal subroutine
 !-----------------------------------------------------------------------
-SUBROUTINE add_vuspsi_k()
+SUBROUTINE my_add_vuspsi_k()
 !-----------------------------------------------------------------------
   !! See add_vuspsi_gamma for comments
   !
@@ -92,6 +93,84 @@ SUBROUTINE add_vuspsi_k()
   !
 END SUBROUTINE
 
+
+! internal subroutine
+!-----------------------------------------------------------------------
+SUBROUTINE my_add_vuspsi_nc()
+!-----------------------------------------------------------------------
+  !! See add_vuspsi_k for comments
+  !
+  IMPLICIT NONE
+  !
+  COMPLEX(DP), ALLOCATABLE :: ps(:,:,:)
+  INTEGER :: ierr, ijkb0
+  !
+  IF ( nkb == 0 ) RETURN
+  !
+  ALLOCATE( ps(  nkb,npol, m), STAT=ierr )
+  IF( ierr /= 0 ) then
+    CALL errore( 'my_add_vuspsi_nc ', ' error allocating ps ', ABS( ierr ) )
+  endif
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_add_vuspsi_nc'
+  write(*,*) 
+  write(*,*) 'sum deeq_nc(:,:,:,1) = ', sum(deeq_nc(:,:,:,1))
+  write(*,*) 'sum deeq_nc(:,:,:,2) = ', sum(deeq_nc(:,:,:,2))
+  write(*,*) 'sum deeq_nc(:,:,:,3) = ', sum(deeq_nc(:,:,:,3))
+  write(*,*) 'sum deeq_nc(:,:,:,4) = ', sum(deeq_nc(:,:,:,4))
+
+  !
+  ps(:,:,:) = (0.d0, 0.d0)
+  !
+  DO nt = 1, ntyp
+    !
+    IF ( nh(nt) == 0 ) CYCLE
+    DO na = 1, nat
+      !
+      IF ( ityp(na) == nt ) THEN
+        !
+        DO ibnd = 1, m
+          !
+          DO jh = 1, nh(nt)
+            !
+            jkb = indv_ijkb0(na) + jh
+            !
+            DO ih = 1, nh(nt)
+              !
+              ikb = indv_ijkb0(na) + ih
+              !
+              ps(ikb,1,ibnd) = ps(ikb,1,ibnd) +    & 
+                   deeq_nc(ih,jh,na,1)*becp%nc(jkb,1,ibnd)+ & 
+                   deeq_nc(ih,jh,na,2)*becp%nc(jkb,2,ibnd) 
+              ps(ikb,2,ibnd) = ps(ikb,2,ibnd)  +   & 
+                   deeq_nc(ih,jh,na,3)*becp%nc(jkb,1,ibnd)+&
+                   deeq_nc(ih,jh,na,4)*becp%nc(jkb,2,ibnd) 
+              !
+            ENDDO
+            !
+          ENDDO
+          !
+        ENDDO
+        !
+      ENDIF
+      !
+    ENDDO
+    !
+  ENDDO
+  !
+  CALL ZGEMM('N', 'N', n, m*npol, nkb, ( 1.D0, 0.D0 ) , vkb, &
+              lda, ps, nkb, ( 1.D0, 0.D0 ) , hpsi, lda )
+  !
+  DEALLOCATE( ps )
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_add_vuspsi_nc'
+  write(*,*) 
+
+  RETURN
+  !
+END SUBROUTINE
 
 
 
