@@ -565,23 +565,20 @@ END SUBROUTINE my_get_rho
 
 ! inner subroutine
 SUBROUTINE my_get_rho_gamma(rho_loc, nrxxs_loc, w1_loc, w2_loc, psic_loc)
+  IMPLICIT NONE
+  INTEGER :: nrxxs_loc
+  REAL(DP) :: rho_loc(nrxxs_loc)
+  REAL(DP) :: w1_loc, w2_loc
+  COMPLEX(DP) :: psic_loc(nrxxs_loc)
+  INTEGER :: ir
 
-        IMPLICIT NONE
-
-        INTEGER :: nrxxs_loc
-        REAL(DP) :: rho_loc(nrxxs_loc)
-        REAL(DP) :: w1_loc, w2_loc
-        COMPLEX(DP) :: psic_loc(nrxxs_loc)
-
-        INTEGER :: ir
-
-        DO ir = 1, nrxxs_loc
-           !
-           rho_loc(ir) = rho_loc(ir) + &
-                         w1_loc * DBLE( psic_loc(ir) )**2 + &
-                         w2_loc * AIMAG( psic_loc(ir) )**2
-           !
-        END DO
+  DO ir = 1, nrxxs_loc
+    !
+    rho_loc(ir) = rho_loc(ir) + &
+                  w1_loc * DBLE( psic_loc(ir) )**2 + &
+                  w2_loc * AIMAG( psic_loc(ir) )**2
+    !
+  ENDDO
 
 END SUBROUTINE my_get_rho_gamma
 
@@ -599,25 +596,22 @@ SUBROUTINE my_get_rho_domag(rho_loc, nrxxs_loc, w1_loc, psic_loc)
   INTEGER :: ir
 
   DO ir = 1, nrxxs_loc
-     !
-     rho_loc(ir,2) = rho_loc(ir,2) + w1_loc*2.D0* &
-                    (DBLE(psic_loc(ir,1))* DBLE(psic_loc(ir,2)) + &
-                    AIMAG(psic_loc(ir,1))*AIMAG(psic_loc(ir,2)))
-
-     rho_loc(ir,3) = rho_loc(ir,3) + w1_loc*2.D0* &
+    !
+    rho_loc(ir,2) = rho_loc(ir,2) + w1_loc*2.D0* &
+                   (DBLE(psic_loc(ir,1))* DBLE(psic_loc(ir,2)) + &
+                   AIMAG(psic_loc(ir,1))*AIMAG(psic_loc(ir,2)))
+    !
+    rho_loc(ir,3) = rho_loc(ir,3) + w1_loc*2.D0* &
                     (DBLE(psic_loc(ir,1))*AIMAG(psic_loc(ir,2)) - &
                      DBLE(psic_loc(ir,2))*AIMAG(psic_loc(ir,1)))
-
-     rho_loc(ir,4) = rho_loc(ir,4) + w1_loc* &
+    !
+    rho_loc(ir,4) = rho_loc(ir,4) + w1_loc* &
                     (DBLE(psic_loc(ir,1))**2+AIMAG(psic_loc(ir,1))**2 &
                     -DBLE(psic_loc(ir,2))**2-AIMAG(psic_loc(ir,2))**2)
-     !
-  END DO
+    !
+  ENDDO
 
 END SUBROUTINE my_get_rho_domag
-
-
-
 
 
 END SUBROUTINE my_sum_band

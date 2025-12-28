@@ -99,12 +99,12 @@ SUBROUTINE my_v_h( rhog, ehart, charge, v )
   CALL invfft('Rho', aux, dfftp)
 
   write(*,*)
-  write(*,*) 'my_v_h: sum abs aux after invfft (in Ha): ', sum(abs(aux))*0.5d0
+  write(*,*) 'my_v_h: sum abs aux (Vhartree) after invfft (in Ha): ', sum(abs(aux))*0.5d0
   write(*,*)
 
   ! add hartree potential to the xc potential
   IF( nspin == 4 ) THEN
-    v(:,1) = v(:,1) + DBLE(aux(:))
+    v(:,1) = v(:,1) + DBLE(aux(:)) ! ffr: XXX only add to the first column of V ?
   ELSE
     DO is = 1, nspin
       v(:,is) = v(:,is) + DBLE(aux(:))

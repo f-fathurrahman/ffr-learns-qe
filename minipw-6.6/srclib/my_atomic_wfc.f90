@@ -206,7 +206,7 @@ SUBROUTINE my_atomic_wfc_so()
               aux(:) = aux(:) + rot_ylm(ind,n1)*ylm(:,ind1)
             endif
           ENDDO
-          do ig = ig_start, ig_end
+          DO ig = ig_start, ig_end
             wfcatom(ig,is,n_starting_wfc) = lphase*fact(is)*sk(ig)*aux(ig)*chiq(ig, nb, nt)
           ENDDO
         ELSE

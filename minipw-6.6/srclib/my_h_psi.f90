@@ -90,13 +90,13 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
   !! Hamiltonian dot psi 
   !
-  ! ... local variables
+  ! local variables
   !
   INTEGER :: ipol, ibnd
   REAL(DP) :: ee
 
   !
-  ! ... Here we set the kinetic energy (k+G)^2 psi and clean up garbage
+  ! Here we set the kinetic energy (k+G)^2 psi and clean up garbage
   !
   DO ibnd = 1, m
     hpsi(1:n,ibnd) = g2kin(1:n) * psi(1:n,ibnd)
@@ -108,7 +108,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
   ENDDO
 
   !
-  ! ... Here the product with the local potential V_loc psi
+  ! Here the product with the local potential V_loc psi
   !
   IF( gamma_only ) THEN
     ! 

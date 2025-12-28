@@ -94,13 +94,13 @@ SUBROUTINE my_v_of_rho( rho, rho_core, rhog_core, &
 
   ! add Tkatchenko-Scheffler potential (factor 2: Ha -> Ry)
   IF (ts_vdw) THEN
-     CALL tsvdw_calculate(tau*alat,rho%of_r(:,1))
-     DO is = 1, nspin_lsda
-        DO ir=1,dfftp%nnr
-           v%of_r(ir,is) = v%of_r(ir,is) + 2.0d0*UtsvdW(ir)
-        END DO
-     END DO
-  END IF
+    CALL tsvdw_calculate(tau*alat,rho%of_r(:,1))
+    DO is = 1, nspin_lsda
+      DO ir=1,dfftp%nnr
+        v%of_r(ir,is) = v%of_r(ir,is) + 2.0d0*UtsvdW(ir)
+      END DO
+    ENDDO
+  ENDIF
 
   write(*,*)
   write(*,*) '</div> EXIT my_v_of_rho'

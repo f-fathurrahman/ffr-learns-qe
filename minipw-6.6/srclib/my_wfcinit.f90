@@ -49,39 +49,38 @@ SUBROUTINE my_wfcinit()
   ! state what will happen
   !
   IF ( TRIM(starting_wfc) == 'file' ) THEN
-     !
-     WRITE( stdout, '(5X,"Starting wfcs from file")' )
-     !
+    !
+    WRITE( stdout, '(5X,"Starting wfcs from file")' )
+    !
   ELSE IF ( starting_wfc == 'atomic' ) THEN
-     !
-     IF ( natomwfc >= nbnd ) THEN
-        WRITE( stdout, '(5X,"Starting wfcs are ",I4," atomic wfcs")' ) natomwfc
-     ELSE
-        WRITE( stdout, '(5X,"Starting wfcs are ",I4," atomic + ", &
-             &           I4," random wfcs")' ) natomwfc, nbnd-natomwfc
-     END IF
-     !
-  ELSE IF ( TRIM(starting_wfc) == 'atomic+random' .AND. natomwfc > 0) THEN
-     !
-     IF ( natomwfc >= nbnd ) THEN
-        WRITE( stdout, '(5X,"Starting wfcs are ",I4," randomized atomic wfcs")')&
-             natomwfc
-     ELSE
-        WRITE( stdout, '(5X,"Starting wfcs are ",I4," randomized atomic wfcs + "&
-             &          ,I4," random wfcs")' ) natomwfc, nbnd-natomwfc
-     END IF
-     !
+    !
+    IF ( natomwfc >= nbnd ) THEN
+      WRITE( stdout, '(5X,"Starting wfcs are ",I4," atomic wfcs")' ) natomwfc
+    ELSE
+      WRITE( stdout, '(5X,"Starting wfcs are ",I4," atomic + ", &
+            &           I4," random wfcs")' ) natomwfc, nbnd-natomwfc
+    ENDIF
+    !
+  ELSEIF ( TRIM(starting_wfc) == 'atomic+random' .AND. natomwfc > 0) THEN
+    !
+    IF ( natomwfc >= nbnd ) THEN
+      WRITE( stdout, '(5X,"Starting wfcs are ",I4," randomized atomic wfcs")') natomwfc
+    ELSE
+       WRITE( stdout, '(5X,"Starting wfcs are ",I4," randomized atomic wfcs + "&
+            &          ,I4," random wfcs")' ) natomwfc, nbnd-natomwfc
+    ENDIF
+    !
   ELSE
-     !
-     WRITE( stdout, '(5X,"Starting wfcs are random")' )
-     !
-  END IF
+    !
+    WRITE( stdout, '(5X,"Starting wfcs are random")' )
+    !
+  ENDIF
   !
   ! exit here if starting from file or for non-scf calculations.
   ! In the latter case the starting wavefunctions are not 
   ! calculated here but just before diagonalization (to reduce I/O)
   !
-  IF (  ( .NOT. lscf .AND. .NOT. lelfield ) .OR. TRIM(starting_wfc) == 'file' ) THEN
+  IF( ( .NOT. lscf .AND. .NOT. lelfield ) .OR. TRIM(starting_wfc) == 'file' ) THEN
     RETURN
   ENDIF
 

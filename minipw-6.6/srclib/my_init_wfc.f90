@@ -56,11 +56,15 @@ SUBROUTINE my_init_wfc( ik )
          'invalid value for startingwfc: ' // TRIM ( starting_wfc ) , 1 )
     !
   ENDIF
-  !
+  
+  write(*,*) 'natomwfc = ', natomwfc
+  write(*,*) 'n_starting_wfc = ', n_starting_wfc
+  write(*,*) 'n_starting_atomic_wfc = ', n_starting_atomic_wfc
+
   ALLOCATE( wfcatom( npwx, npol, n_starting_wfc ) )
   !
   IF ( starting_wfc(1:6) == 'atomic' ) THEN
-
+    ! calculate wfcatom
     CALL my_atomic_wfc( ik, wfcatom )
     !
     IF( starting_wfc == 'atomic+random' .AND. &

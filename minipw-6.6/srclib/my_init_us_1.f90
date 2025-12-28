@@ -210,7 +210,7 @@ subroutine my_init_us_1
       write(*,*) 'nt, sum Dvan_so (in Ha) = ', 0.5d0*sum(Dvan_so(:,:,:,nt))
       ! 
     else
-      ! not having spin-orbit coupling
+      ! upf does not having spin-orbit coupling
       do ih = 1, nh(nt)
         do jh = 1, nh(nt)
           if( nhtol(ih, nt) == nhtol(jh, nt) .and. &

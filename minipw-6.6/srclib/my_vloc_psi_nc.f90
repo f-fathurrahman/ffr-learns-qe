@@ -59,23 +59,24 @@ SUBROUTINE my_vloc_psi_nc( lda, n, m, psi, v, hpsi )
     !
     !   product with the potential v = (vltot+vr) on the smooth grid
     !
-    IF (domag) THEN
-      DO j=1, dffts%nnr
-         sup = psic_nc(j,1) * (v(j,1)+v(j,4)) + psic_nc(j,2) * (v(j,2)-(0.d0,1.d0)*v(j,3))
-         sdwn = psic_nc(j,2) * (v(j,1)-v(j,4)) + psic_nc(j,1) * (v(j,2)+(0.d0,1.d0)*v(j,3))
-         psic_nc(j,1) = sup
-         psic_nc(j,2) = sdwn
+    IF( domag ) THEN
+      DO j = 1, dffts%nnr
+        sup  = psic_nc(j,1) * (v(j,1) + v(j,4)) + psic_nc(j,2) * ( v(j,2) - (0.d0,1.d0)*v(j,3) )
+        sdwn = psic_nc(j,2) * (v(j,1) - v(j,4)) + psic_nc(j,1) * ( v(j,2) + (0.d0,1.d0)*v(j,3) )
+        psic_nc(j,1) = sup
+        psic_nc(j,2) = sdwn
       ENDDO
     ELSE
+      ! nonmagnetic case (spin-orbit without magnetism)
       DO j=1, dffts%nnr
-        psic_nc(j,:) = psic_nc(j,:) * v(j,1)
+        psic_nc(j,:) = psic_nc(j,:) * v(j,1) ! use only the first component of v
       ENDDO
     ENDIF
     !
     ! back to reciprocal space
     !
     DO ipol=1,npol
-       CALL fwfft ('Wave', psic_nc(:,ipol), dffts)
+       CALL fwfft('Wave', psic_nc(:,ipol), dffts)
     ENDDO
     !
     ! addition to the total product

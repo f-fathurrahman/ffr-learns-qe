@@ -235,6 +235,8 @@ SUBROUTINE my_newd()
         write(*,*) 'shape dvan_so = ', shape(dvan_so)
         !
       ELSEIF ( noncolin ) THEN
+        ! This is for the case of noncolin but not using spin-orbit coupling
+        ! Use Dvan, not Dvan_so
         !
         write(*,*) 'Pass here in my_newd: using deeq_nc for noncolin'
         write(*,*) 'need dvan, nspin = ', nspin
