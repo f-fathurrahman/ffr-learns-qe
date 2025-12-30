@@ -456,6 +456,7 @@ SUBROUTINE setup()
   ELSE
      nrot_ = nrot
   END IF
+  write(*,*) 'nrot = ', nrot
   !
   ! ... time_reversal = use q=>-q symmetry for k-point generation
   !
@@ -527,6 +528,7 @@ SUBROUTINE setup()
      !
      ! ... eliminate rotations that are not symmetry operations
      !
+     write(*,*) 'magnetic_sym = ', magnetic_sym
      CALL find_sym ( nat, tau, ityp, magnetic_sym, m_loc, gate )
      !
      ! ... do not force FFT grid to be commensurate with fractional translations

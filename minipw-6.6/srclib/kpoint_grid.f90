@@ -168,6 +168,8 @@ SUBROUTINE kpoint_grid( nrot, time_reversal, skip_equivalence, s, t_rev, &
      wk(nk) = wk(nk)/fact
   ENDDO
 
+  write(*,*) 'kpoint_grid: nk = ', nk
+
   DEALLOCATE(equiv)
   DEALLOCATE(xkg,wkk)
 
