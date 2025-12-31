@@ -122,13 +122,14 @@ SUBROUTINE my_atomic_rho_g( rhocg, nspina )
   do ig = 1,5
     write(*,'(1x,I3,2F18.10)') ig, rhocg(ig,1)
   enddo
+  write(*,*) 'sum abs rhocg(:,1) = ', sum(abs(rhocg(:,1)))
   if(nspina==4) then
     write(*,*) 'Some magng'
     do ig = 1,5
       write(*,'(1x,I3,6F18.10)') ig, rhocg(ig,2), rhocg(ig,3), rhocg(ig,4)
     enddo
+    write(*,*) 'sum abs rhocg 2,3,4 = ', sum(abs(rhocg(:,2))), sum(abs(rhocg(:,3))), sum(abs(rhocg(:,3)))
   endif
-  write(*,*) 'sum abs rhocg = ', sum(abs(rhocg))
 
   DEALLOCATE(aux)
   DEALLOCATE(rhocgnt)

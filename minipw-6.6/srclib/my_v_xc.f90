@@ -139,7 +139,17 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
   ELSE IF ( nspin == 4 ) THEN
     ! noncolinear case
     ! with magnetism
+    write(*,*) 'Before calling xc:'
+    write(*,*) 'sum rho%of_r 1 = ', sum(rho%of_r(:,1))
+    write(*,*) 'sum rho%of_r 2 = ', sum(rho%of_r(:,2))
+    write(*,*) 'sum rho%of_r 3 = ', sum(rho%of_r(:,3))
+    write(*,*) 'sum rho%of_r 4 = ', sum(rho%of_r(:,4))
+    !
     CALL xc( dfftp%nnr, 4, 2, rho%of_r, ex, ec, vx, vc )
+    !
+    write(*,*) 'After calling xc:'
+    write(*,*) 'sum ex + ec (in Ha) = ', sum(ex + ec)
+    write(*,*) 'sum vx + vc (in Ha) = ', sum(vx + vc)
     !
     DO ir = 1, dfftp%nnr  !OMP ?
       arho = ABS( rho%of_r(ir,1) )
@@ -159,6 +169,7 @@ SUBROUTINE my_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v )
       IF ( amag / arho > 1.D0 )  rhoneg(2) = rhoneg(2) + 1.D0/omega
       vtxc = vtxc + v(ir,1) * rho%of_r(ir,1)
     ENDDO
+    write(*,*) 'etxc (in Ha) = ', etxc*0.5d0
     !
     !
   ENDIF
