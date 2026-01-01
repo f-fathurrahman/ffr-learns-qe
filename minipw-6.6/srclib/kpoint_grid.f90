@@ -58,6 +58,9 @@ SUBROUTINE kpoint_grid( nrot, time_reversal, skip_equivalence, s, t_rev, &
   LOGICAL :: in_the_list
   REAL(DP), PARAMETER :: eps=1.0d-5
   !
+
+   write(*,*) 'nrot in kpoint_grid = ', nrot
+
   nkr=nk1*nk2*nk3
   ALLOCATE (xkg( 3,nkr),wkk(nkr))
   ALLOCATE (equiv( nkr))
@@ -100,7 +103,11 @@ SUBROUTINE kpoint_grid( nrot, time_reversal, skip_equivalence, s, t_rev, &
                      + s(i,3,ns) * xkg(3,nk)
               xkr(i) = xkr(i) - nint( xkr(i) )
            ENDDO
-           IF(t_rev(ns)==1) xkr = -xkr
+           IF(t_rev(ns)==1) then
+             write(*,*) 't_rev is true'
+             xkr = -xkr
+           endif
+           !write(*,*) 'kpoint_grid, ns, t_rev = ', ns, t_rev(ns)
            xx = xkr(1)*nk1 - 0.5d0*k1
            yy = xkr(2)*nk2 - 0.5d0*k2
            zz = xkr(3)*nk3 - 0.5d0*k3
@@ -168,7 +175,7 @@ SUBROUTINE kpoint_grid( nrot, time_reversal, skip_equivalence, s, t_rev, &
      wk(nk) = wk(nk)/fact
   ENDDO
 
-  write(*,*) 'kpoint_grid: nk = ', nk
+  write(*,*) 'kpoint_grid: nks = ', nks
 
   DEALLOCATE(equiv)
   DEALLOCATE(xkg,wkk)

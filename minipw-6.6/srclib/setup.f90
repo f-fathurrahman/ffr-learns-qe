@@ -485,6 +485,7 @@ SUBROUTINE setup()
         !
         CALL kpoint_grid ( nrot_,time_reversal, skip_equivalence, s, t_rev, bg,&
                            npk, k1,k2,k3, nk1,nk2,nk3, nkstot, xk, wk)
+        write(*,*) 'after kpoint_grid: npk, nkstot = ', npk, nkstot
         !
      END IF
      !
@@ -556,10 +557,12 @@ SUBROUTINE setup()
   IF ( .NOT. lbands ) THEN
      CALL irreducible_BZ (nrot_, s, nsym, time_reversal, &
                           magnetic_sym, at, bg, npk, nkstot, xk, wk, t_rev)
+     write(*,*) 'After irreducible_BZ: nkstot = ', nkstot
   ELSE
      one = SUM (wk(1:nkstot))
      IF ( one > 0.0_dp ) wk(1:nkstot) = wk(1:nkstot) / one
   END IF
+  
   !
   ! ... if dynamics is done the system should have no symmetries
   ! ... (inversion symmetry alone is allowed)
@@ -591,7 +594,9 @@ SUBROUTINE setup()
      !
      if (nspin /= 2) call errore ('setup','nspin should be 2; check iosys',1)
      !
+     write(*,*) 'before set_kup_and_kdw, npk, nkstot = ', npk, nkstot
      CALL set_kup_and_kdw( xk, wk, isk, nkstot, npk )
+     write(*,*) 'after set_kup_and_kdw, npk, nkstot = ', npk, nkstot
      !
   ELSE IF ( noncolin ) THEN
      !
@@ -600,6 +605,7 @@ SUBROUTINE setup()
      if (nspin /= 4) call errore ('setup','nspin should be 4; check iosys',1)
      current_spin = 1
      isk(:) = 1
+     write(*,*) 'noncolin, nkstot = ', nkstot
      !
   ELSE
      !

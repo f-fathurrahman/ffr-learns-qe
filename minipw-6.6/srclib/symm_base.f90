@@ -627,6 +627,9 @@ CONTAINS
      INTEGER :: na, nb, irot
      LOGICAL :: t1, t2
      REAL(DP) , ALLOCATABLE ::  mxau(:,:), mrau(:,:)
+
+     write(*,*) 'in sgam_at_mag: m_loc = ', m_loc
+
      ! magnetization and rotated magnetization in crystal axis
      !
      ALLOCATE( mxau(3,nat), mrau(3,nat) )

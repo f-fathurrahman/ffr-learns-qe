@@ -442,7 +442,10 @@ SUBROUTINE reset_starting_magnetization()
   ELSE
      RETURN
   ENDIF
-  !
+  
+  write(*,*) 'Calling reset_starting_magnetization'
+  write(*,*) 'm_loc before loop = ', m_loc
+
   DO i = 1, nsp
      !
      starting_magnetization(i) = 0.0_DP
