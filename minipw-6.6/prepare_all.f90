@@ -12,7 +12,11 @@ SUBROUTINE prepare_all()
   IMPLICIT NONE 
 
   include 'laxlib.fh'
-  
+
+  write(*,*)
+  write(*,*) '<div> ENTER prepare_all'
+  write(*,*)
+
   CALL mp_startup(start_images=.true.)
 
   CALL laxlib_start( ndiag_, world_comm, intra_pool_comm, &
@@ -35,6 +39,8 @@ SUBROUTINE prepare_all()
   !CALL stop_run( exit_status )
   !CALL do_stop( exit_status )
 
-  WRITE(*,*) 'prepare_all ended normally'
+  write(*,*)
+  write(*,*) '</div> EXIT prepare_all'
+  write(*,*)
 
 END SUBROUTINE 

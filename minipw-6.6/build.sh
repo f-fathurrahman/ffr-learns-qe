@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd srclib
-make
-cd ../
+#cd srclib
+#make
+#cd ../
 
 INC="-I./srclib"
 QE_HOME="/home/efefer/WORKS/my_github_repos/ffr-learns-qe/minipw-6.6/srclib"

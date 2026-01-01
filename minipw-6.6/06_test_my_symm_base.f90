@@ -1,9 +1,9 @@
+include "prepare_all.f90"
 include "my_symm_base.f90"
 
 
 SUBROUTINE test_my_symm_base()
   
-  USE my_symm_base, ONLY : set_sym_bl, find_sym
   USE ions_base,          ONLY : nat, tau, ityp
   USE noncollin_module,   ONLY : noncolin, m_loc
   USE spin_orb, ONLY: domag
@@ -22,6 +22,7 @@ SUBROUTINE test_my_symm_base()
   magnetic_sym = noncolin .AND. domag 
   time_reversal = .NOT. noinv .AND. .NOT. magnetic_sym
 
+  write(*,*) 'gate = ', gate
   CALL find_sym( nat, tau, ityp, magnetic_sym, m_loc, gate )
 
   DO i = 1,nsym
