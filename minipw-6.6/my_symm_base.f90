@@ -102,10 +102,7 @@ END MODULE
 SUBROUTINE inverse_s()
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion    
+  USE my_symm_base, only: invs, nsym, s
   !! Locate index of \(S^{-1}\).
   !
   IMPLICIT NONE
@@ -114,18 +111,18 @@ SUBROUTINE inverse_s()
   LOGICAL :: found
   !
   DO isym = 1, nsym
-      found = .FALSE.
-      DO jsym = 1, nsym
-        !
-        ss = MATMUL( s(:,:,jsym), s(:,:,isym) )
-        ! s(:,:,1) is the identity
-        IF (ALL( s(:,:,1) == ss(:,:) )) THEN
-            invs(isym) = jsym
-            found = .TRUE.
-        ENDIF
-        !
-      ENDDO
-      IF (.NOT.found) CALL errore( 'inverse_s', ' Not a group', 1 )
+    found = .FALSE.
+    DO jsym = 1, nsym
+      !
+      ss = MATMUL( s(:,:,jsym), s(:,:,isym) )
+      ! s(:,:,1) is the identity
+      IF (ALL( s(:,:,1) == ss(:,:) )) THEN
+        invs(isym) = jsym
+        found = .TRUE.
+      ENDIF
+      !
+    ENDDO
+    IF (.NOT.found) CALL errore( 'inverse_s', ' Not a group', 1 )
   ENDDO
   !
 END SUBROUTINE inverse_s
@@ -138,10 +135,7 @@ END SUBROUTINE inverse_s
 SUBROUTINE find_sym( nat, tau, ityp, magnetic_sym, m_loc, no_z_inv )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion  
+  USE my_symm_base, only: nsym, nrot, nosym_evc, accep, s, invsym, irt
   !! This routine finds the point group of the crystal, by eliminating
   !! the symmetries of the Bravais lattice which are not allowed
   !! by the atomic positions (or by the magnetization if present).
@@ -262,10 +256,8 @@ END SUBROUTINE find_sym
 SUBROUTINE sgam_at( nat, tau, ityp, sym, no_z_inv )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion    
+  USE my_symm_base, only: s, fft_fact, nsym_ns, nrot, eps2, nofrac, ft
+  USE cell_base, ONLY: bg
   !! Given the point group of the Bravais lattice, this routine finds
   !! the subgroup which is the point group of the considered crystal.  
   !! Non symmorphic groups are allowed, provided that fractional
@@ -342,7 +334,7 @@ SUBROUTINE sgam_at( nat, tau, ityp, sym, no_z_inv )
           sym(irot) = checksym ( irot, nat, ityp, xau, xau, ft_ )
           IF (sym(irot)) THEN
               fractional_translations = .FALSE.
-              WRITE( stdout, '(5x,"Found symmetry operation: I + (", 3f8.4, ")",/,5x,"This is a supercell,", &
+              WRITE( *, '(5x,"Found symmetry operation: I + (", 3f8.4, ")",/,5x,"This is a supercell,", &
             &   " fractional translations are disabled")') ft_
               GOTO 10
           ENDIF
@@ -351,11 +343,9 @@ SUBROUTINE sgam_at( nat, tau, ityp, sym, no_z_inv )
     ENDDO
   ENDIF
   !
-10 CONTINUE
+  10 CONTINUE
   !write(*,*) 'This is GOTO 10'
   ! 
-
-  !stop 
 
   nsym_ns = 0
   fft_fact(:) = 1
@@ -473,9 +463,8 @@ END SUBROUTINE sgam_at
 SUBROUTINE sgam_at_mag( nat, m_loc, sym )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
+  USE my_symm_base, only: no_t_rev, irt, t_rev, nrot, nsym_ns, eps2, ft, sname, s
+  USE cell_base, ONLY: bg
   USE matrix_inversion    
   !! Find magnetic symmetries, i.e. point-group symmetries that are
   !! also symmetries of the local magnetization - including
@@ -604,10 +593,7 @@ END SUBROUTINE sgam_at_mag
 SUBROUTINE set_sym( nat, tau, ityp, nspin_mag, m_loc )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion  
+  USE my_symm_base, only: t_rev, time_reversal
   !! This routine receives as input atomic types and positions, if there
   !! is noncollinear magnetism and the initial magnetic moments 
   !! it sets the symmetry elements of this module.  
@@ -643,10 +629,7 @@ END SUBROUTINE set_sym
 INTEGER FUNCTION copy_sym( nrot_, sym )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
+  USE my_symm_base, only: t_rev, sname, irt, s, ft
   IMPLICIT NONE
   !! Copy symmetry operations in sequential order so that:
   !
@@ -713,10 +696,7 @@ END FUNCTION copy_sym
 LOGICAL FUNCTION is_group( nsym_ )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
+  USE my_symm_base, only: s, ft, eps2
   IMPLICIT NONE
   !! Checks that {S} is a group.
   !
@@ -773,10 +753,7 @@ END FUNCTION is_group
 LOGICAL FUNCTION checksym( irot, nat, ityp, xau, rau, ft_ )
 !-----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
+  USE my_symm_base, only: irt, accep
   IMPLICIT NONE
   !! This function receives as input all the atomic positions xau,
   !! and the rotated rau by the symmetry operation ir. It returns
@@ -944,10 +921,8 @@ END SUBROUTINE checkallsym
 SUBROUTINE s_axis_to_cart()
 !----------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
+  USE my_symm_base, only: nsym, s, sr
   USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
   IMPLICIT NONE
   !! This routine transforms symmetry matrices expressed in the
   !! basis of the crystal axis into rotations in cartesian axis.
@@ -969,7 +944,6 @@ SUBROUTINE find_sym_ifc( nat, tau, ityp )
   use kinds, only: dp
   USE my_symm_base
   USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
   !! This routine finds the point group of the crystal, by eliminating
   !! the symmetries of the Bravais lattice which are not allowed
   !! by the atomic positions (for use in the FD package).
@@ -1021,8 +995,6 @@ SUBROUTINE sgam_at_ifc( nat, tau, ityp, sym )
   use kinds, only: dp
   USE my_symm_base
   USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
   IMPLICIT NONE
   !! Given the point group of the Bravais lattice, this routine finds
   !! the subgroup which is the point group of the considered crystal.
@@ -1149,8 +1121,6 @@ SUBROUTINE remove_sym( nr1, nr2, nr3 )
   use kinds, only: dp
   USE my_symm_base
   USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
   IMPLICIT NONE
   !! Compute ftau used for symmetrization in real space (phonon, exx)
   !! ensure that they are commensurated with the FFT grid.
@@ -1172,46 +1142,47 @@ SUBROUTINE remove_sym( nr1, nr2, nr3 )
   nsym_na = 0
   !
   DO isym = 1, nsym_
+    !
+    ! check that the grid is compatible with the S rotation
+    !
+    IF( MOD( s(2,1,isym)*nr1, nr2) /= 0 .OR. &
+        MOD( s(3,1,isym)*nr1, nr3) /= 0 .OR. &
+        MOD( s(1,2,isym)*nr2, nr1) /= 0 .OR. &
+        MOD( s(3,2,isym)*nr2, nr3) /= 0 .OR. &
+        MOD( s(1,3,isym)*nr3, nr1) /= 0 .OR. &
+        MOD( s(2,3,isym)*nr3, nr2) /= 0 ) THEN
       !
-      ! check that the grid is compatible with the S rotation
-      !
-      IF ( MOD( s(2,1,isym)*nr1, nr2) /= 0 .OR. &
-          MOD( s(3,1,isym)*nr1, nr3) /= 0 .OR. &
-          MOD( s(1,2,isym)*nr2, nr1) /= 0 .OR. &
-          MOD( s(3,2,isym)*nr2, nr3) /= 0 .OR. &
-          MOD( s(1,3,isym)*nr3, nr1) /= 0 .OR. &
-          MOD( s(2,3,isym)*nr3, nr2) /= 0 ) THEN
-        sym(isym) = .FALSE.
-        WRITE( stdout, '(5x,"warning: symmetry operation # ",i2, &
-              &         " not compatible with FFT grid. ")') isym
-        WRITE( stdout, '(3i4)') ( (s(i,j,isym), j=1,3), i=1,3 )
-        sym(isym) = .FALSE.
-        IF ( ABS(ft(1,isym)) > eps2 .OR. &
-              ABS(ft(2,isym)) > eps2 .OR. &
-              ABS(ft(3,isym)) > eps2 ) nsym_ns = nsym_ns-1
-      ENDIF
-      !
-      ! convert ft to FFT coordinates, check if compatible with FFT grid
-      ! for real-space symmetrization 
-      !
-      ftaux(1) = ft(1,isym) * nr1
-      ftaux(2) = ft(2,isym) * nr2
-      ftaux(3) = ft(3,isym) * nr3
-      ! check if the fractional translations are commensurate
-      ! with the FFT grid, discard sym.op. if not
-      ! (needed because ph.x symmetrizes in real space)
-      IF ( ABS(ftaux(1) - NINT(ftaux(1)) ) / nr1 > eps2 .OR. &
-          ABS(ftaux(2) - NINT(ftaux(2)) ) / nr2 > eps2 .OR. &
-          ABS(ftaux(3) - NINT(ftaux(3)) ) / nr3 > eps2 ) THEN
-        !     WRITE( stdout, '(5x,"warning: symmetry operation", &
-        !          &     " # ",i2," not allowed.   fractional ", &
-        !          &     "translation:"/5x,3f11.7,"  in crystal", &
-        !          &     " coordinates")') isym, ft_
-        sym(isym) = .FALSE.
-        nsym_na = nsym_na + 1
-        nsym_ns = nsym_ns - 1
-      ENDIF
-      !
+      sym(isym) = .FALSE.
+      WRITE( stdout, '(5x,"warning: symmetry operation # ",i2, &
+            &         " not compatible with FFT grid. ")') isym
+      WRITE( stdout, '(3i4)') ( (s(i,j,isym), j=1,3), i=1,3 )
+      sym(isym) = .FALSE.
+      IF ( ABS(ft(1,isym)) > eps2 .OR. &
+            ABS(ft(2,isym)) > eps2 .OR. &
+            ABS(ft(3,isym)) > eps2 ) nsym_ns = nsym_ns-1
+    ENDIF
+    !
+    ! convert ft to FFT coordinates, check if compatible with FFT grid
+    ! for real-space symmetrization 
+    !
+    ftaux(1) = ft(1,isym) * nr1
+    ftaux(2) = ft(2,isym) * nr2
+    ftaux(3) = ft(3,isym) * nr3
+    ! check if the fractional translations are commensurate
+    ! with the FFT grid, discard sym.op. if not
+    ! (needed because ph.x symmetrizes in real space)
+    IF ( ABS(ftaux(1) - NINT(ftaux(1)) ) / nr1 > eps2 .OR. &
+        ABS(ftaux(2) - NINT(ftaux(2)) ) / nr2 > eps2 .OR. &
+        ABS(ftaux(3) - NINT(ftaux(3)) ) / nr3 > eps2 ) THEN
+      !     WRITE( stdout, '(5x,"warning: symmetry operation", &
+      !          &     " # ",i2," not allowed.   fractional ", &
+      !          &     "translation:"/5x,3f11.7,"  in crystal", &
+      !          &     " coordinates")') isym, ft_
+      sym(isym) = .FALSE.
+      nsym_na = nsym_na + 1
+      nsym_ns = nsym_ns - 1
+    ENDIF
+    !
   ENDDO
   !
   ! count symmetries, reorder them exactly as in "find_sym" 
@@ -1230,29 +1201,25 @@ END SUBROUTINE remove_sym
 INTEGER FUNCTION mcm( i, j )
 !------------------------------------------------------------------------
   use kinds, only: dp
-  USE my_symm_base
-  USE cell_base, ONLY: at, bg
-  USE io_global, only: stdout
-  USE matrix_inversion
   implicit none
-!! Returns minimum common multiple of two integers
+  !! Returns minimum common multiple of two integers
   !! if i=0, returns j, and vice versa; if i<0 or j<0, returns -1.
   !
   INTEGER, INTENT(IN) :: i,j
   INTEGER :: n1,n2,k
   !
   IF (i < 0 .OR. j < 0) THEN
-      mcm = -1
+    mcm = -1
   ELSEIF (i == 0 .AND. j == 0) THEN
-      mcm = 0
+    mcm = 0
   ELSE
-      n1 = MIN(i,j)
-      n2 = MAX(i,j)
-      DO k = 1, n1
-        mcm = k*n2 
-        IF (MOD(mcm,n1) == 0) RETURN
-      ENDDO
-      mcm = n2
+    n1 = MIN(i,j)
+    n2 = MAX(i,j)
+    DO k = 1, n1
+      mcm = k*n2 
+      IF (MOD(mcm,n1) == 0) RETURN
+    ENDDO
+    mcm = n2
   ENDIF
   !
 END FUNCTION mcm
@@ -1268,7 +1235,7 @@ SUBROUTINE set_sym_bl()
   !
   use kinds, only: dp
   USE my_symm_base, only: s, nrot, eps1, sname, ft
-  USE cell_base, ONLY: at, bg
+  USE cell_base, ONLY: at
   USE io_global, only: stdout
   USE matrix_inversion
   !

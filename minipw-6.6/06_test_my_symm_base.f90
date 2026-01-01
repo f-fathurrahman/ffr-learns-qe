@@ -10,7 +10,7 @@ SUBROUTINE test_my_symm_base()
   USE control_flags, ONLY: noinv
   USE extfield, ONLY: gate
 
-  use my_symm_base, ONLY: nsym, nrot, irt, ft, s, sname, fft_fact, t_rev
+  use my_symm_base, ONLY: nsym, nrot, ft, sname, fft_fact
 
   IMPLICIT NONE 
   LOGICAL :: magnetic_sym, time_reversal
