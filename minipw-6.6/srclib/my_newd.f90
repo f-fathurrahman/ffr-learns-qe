@@ -323,6 +323,7 @@ SUBROUTINE my_newd()
   !
 CONTAINS
 
+! inner subroutine
 !------------------------------------------------------------------------
 SUBROUTINE my_newd_so( na )
 !------------------------------------------------------------------------
@@ -335,87 +336,88 @@ SUBROUTINE my_newd_so( na )
   !
   INTEGER :: ijs, is1, is2, kh, lh
   !
-  write(*,*) 'my_newd_so is called'
+  write(*,*)
+  write(*,*) '<div> ENTER my_newd_so (also might include noncollinear magn)'
+  write(*,*) 'pseudopotential has spin-orbit coupling (relativistic)'
+  write(*,*)
   !
   nt = ityp(na)
   ijs = 0
   !
   DO is1 = 1, 2
+    !
+    DO is2 = 1, 2
       !
-      DO is2 = 1, 2
-        !
-        ijs = ijs + 1
-        !
-        IF (domag) THEN
-            DO ih = 1, nh(nt)
-              !
-              DO jh = 1, nh(nt)
-                  !
-                  deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
-                  !
-                  DO kh = 1, nh(nt)
-                    !
-                    DO lh = 1, nh(nt)
-                        !
-                        deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs)   + &
-                          deeq (kh,lh,na,1)*              &
-                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) +  &
-                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))  + &
-                          deeq (kh,lh,na,2)*              &
-                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) +  &
-                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
-                          (0.D0,-1.D0)*deeq (kh,lh,na,3)* &
-                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) -  &
-                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt))  + &
-                          deeq (kh,lh,na,4)*              &
-                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) -  &
-                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt))
-                        !
-                    ENDDO
-                    !
-                  ENDDO
-                  !
-              ENDDO
-              !
-            ENDDO
-            !
-        ELSE
-            !
-            DO ih = 1, nh(nt)
-              !
-              DO jh = 1, nh(nt)
-                  !
-                  deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
-                  !
-                  DO kh = 1, nh(nt)
-                    !
-                    DO lh = 1, nh(nt)
-                        !
-                        deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs) +   &
-                            deeq (kh,lh,na,1)*            &
-                          (fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt)  + &
-                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) ) 
-                        !
-                    ENDDO
-                    !
-                  ENDDO
-                  !
-              ENDDO
-              !
-            ENDDO
-            !
-        ENDIF
-        !
-      ENDDO
+      ijs = ijs + 1
       !
+      IF (domag) THEN
+        !
+        write(*,*) 'Spin-orbit coupling only with noncollinear magnetization'
+        !
+        DO ih = 1, nh(nt)
+          !
+          DO jh = 1, nh(nt)
+            !
+            deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
+            !
+            DO kh = 1, nh(nt)
+              !
+              DO lh = 1, nh(nt)
+              !
+              deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs) + &
+                                      deeq(kh,lh,na,1)*( &
+                                        fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) +  &
+                                        fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) &
+                                      ) + &
+                                      deeq(kh,lh,na,2)*( &
+                                        fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) + &
+                                        fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt) &
+                                      ) + &
+                                      (0.D0,-1.D0)*deeq(kh,lh,na,3)*( &
+                                        fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,2,is2,nt) - &
+                                        fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,1,is2,nt) &
+                                      ) + &
+                                      deeq(kh,lh,na,4)*( &
+                                        fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) -  &
+                                        fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) &
+                                      )
+              ENDDO
+            ENDDO
+          ENDDO
+        ENDDO
+        !
+      ELSE
+        write(*,*) 'Spin-orbit coupling only, no magnetization'
+        !
+        DO ih = 1, nh(nt)
+          !
+          DO jh = 1, nh(nt)
+            !
+            deeq_nc(ih,jh,na,ijs) = dvan_so(ih,jh,ijs,nt)
+            !
+            DO kh = 1, nh(nt)
+              DO lh = 1, nh(nt)
+                deeq_nc(ih,jh,na,ijs) = deeq_nc(ih,jh,na,ijs) + deeq(kh,lh,na,1)*( &
+                                          fcoef(ih,kh,is1,1,nt)*fcoef(lh,jh,1,is2,nt) + &
+                                          fcoef(ih,kh,is1,2,nt)*fcoef(lh,jh,2,is2,nt) &
+                                        ) 
+              ENDDO
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDIF
+    ENDDO
   ENDDO
-  !
-RETURN
-!
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_newd_so (also might include noncollinear magn)'
+  write(*,*)
+
+  RETURN
 END SUBROUTINE my_newd_so
 
 
-
+! inner subroutine
 !------------------------------------------------------------------------
 SUBROUTINE my_newd_nc(na)
 !------------------------------------------------------------------------
@@ -423,26 +425,40 @@ SUBROUTINE my_newd_nc(na)
   IMPLICIT NONE
   !
   INTEGER :: na
-  !
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_newd_nc (noncollinear magn), with possibly using lspinorb'
+  write(*,*)
+  write(*,*) 'pseudopotential has NO spin-orbit coupling'
+  write(*,*) 'i.e. using non-relativisic or scalar relativistic calculation'
+
+
   nt = ityp(na)
   !
   DO ih = 1, nh(nt)
-     DO jh = 1, nh(nt)
+    DO jh = 1, nh(nt)
+      !
+      IF (lspinorb) THEN
         !
-        IF (lspinorb) THEN
-           deeq_nc(ih,jh,na,1) = dvan_so(ih,jh,1,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
-           deeq_nc(ih,jh,na,4) = dvan_so(ih,jh,4,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
-           !
-        ELSE
-           deeq_nc(ih,jh,na,1) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
-           deeq_nc(ih,jh,na,4) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
-           !
-        ENDIF
-        deeq_nc(ih,jh,na,2) = deeq(ih,jh,na,2) - ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
-        deeq_nc(ih,jh,na,3) = deeq(ih,jh,na,2) + ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
-     ENDDO
+        write(*,*) 'using spin-orbit coupling from non-full-relativistic pseudopotentials'
+        ! using dvan_so instead of Dvan
+        deeq_nc(ih,jh,na,1) = dvan_so(ih,jh,1,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
+        deeq_nc(ih,jh,na,4) = dvan_so(ih,jh,4,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
+        !
+      ELSE
+        deeq_nc(ih,jh,na,1) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) + deeq(ih,jh,na,4)
+        deeq_nc(ih,jh,na,4) = dvan(ih,jh,nt) + deeq(ih,jh,na,1) - deeq(ih,jh,na,4)
+        !
+      ENDIF
+      deeq_nc(ih,jh,na,2) = deeq(ih,jh,na,2) - ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
+      deeq_nc(ih,jh,na,3) = deeq(ih,jh,na,2) + ( 0.D0, 1.D0 ) * deeq(ih,jh,na,3)
+    ENDDO
   ENDDO
-  !
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_newd_nc (noncollinear magn), with possibly using lspinorb'
+  write(*,*)
+
   RETURN
   !
 END SUBROUTINE my_newd_nc
