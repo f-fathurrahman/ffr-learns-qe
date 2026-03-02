@@ -57,6 +57,7 @@ SUBROUTINE my_init_wfc( ik )
     !
   ENDIF
   
+  write(*,*) 'nbnd = ', nbnd
   write(*,*) 'natomwfc = ', natomwfc
   write(*,*) 'n_starting_wfc = ', n_starting_wfc
   write(*,*) 'n_starting_atomic_wfc = ', n_starting_atomic_wfc
@@ -125,12 +126,13 @@ SUBROUTINE my_init_wfc( ik )
   lelfield_save = lelfield
   lelfield = .FALSE.
 
-  ! subspace diagonalization (calls Hpsi)
   IF ( dft_is_hybrid()  ) CALL stop_exx() 
 
+  ! subspace diagonalization (calls Hpsi)
   CALL my_rotate_wfc( npwx, ngk(ik), n_starting_wfc, gstart, nbnd, wfcatom, npol, okvan, evc, etatom )
   write(*,*) 'npwx = ', npwx
   write(*,*) 'ngk = ', ngk(ik)
+  write(*,*) 'shape wfcatom = ', shape(wfcatom)
   write(*,*) 'shape evc = ', shape(evc)
 
   lelfield = lelfield_save   ! ffr: set lelfield to its original value
