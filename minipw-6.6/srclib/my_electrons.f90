@@ -20,7 +20,7 @@ SUBROUTINE my_electrons()
   USE extfield,             ONLY : etotefield
   USE wvfct,                ONLY : nbnd, wg, et
   USE klist,                ONLY : nks
-  USE exx,                  ONLY : aceinit,exxinit, exxenergy2, exxbuff, &
+  USE my_exx,               ONLY : aceinit,exxinit, exxenergy2, exxbuff, &
                                    fock0, fock1, fock2, fock3, dexx, use_ace, local_thr 
   USE funct,                ONLY : dft_is_hybrid, exx_is_active
   USE control_flags,        ONLY : adapt_thr, tr2_init, tr2_multi, gamma_only
