@@ -73,8 +73,8 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
                                      calbec_rs_gamma, add_vuspsir_gamma, invfft_orbital_k,  &
                                      fwfft_orbital_k, calbec_rs_k, add_vuspsir_k,           & 
                                      v_loc_psir_inplace
-  USE exx,                     ONLY: use_ace, vexx, vexxace_gamma, vexxace_k
-  USE funct,                   ONLY: exx_is_active
+  USE my_exx, ONLY: use_ace, vexx, vexxace_gamma, vexxace_k
+  USE funct, ONLY: exx_is_active
   USE fft_helper_subroutines
   !
   IMPLICIT NONE
@@ -140,7 +140,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
     !
   ENDIF  
 
-  write(*,*) 'Pass here 146 in my_h_psi'
+  !write(*,*) 'Pass here 146 in my_h_psi'
 
   !
   ! Here the product with the non local potential V_NL psi
@@ -150,16 +150,17 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
     !
     CALL calbec( n, vkb, psi, becp, m )
     !
-    if(allocated(becp%k)) then
-      write(*,*) 'in h_psi: sum becp_k = ', sum(becp%k)*0.5d0 ! to Ha
-    endif
-    if(allocated(becp%nc)) then
-      write(*,*) 'in h_psi: sum becp_nc = ', sum(becp%nc)*0.5d0 ! to Ha
-    endif
-    !s
+    !ffr: For debugging noncol?
+    !if(allocated(becp%k)) then
+    !  write(*,*) 'in h_psi: sum becp_k = ', sum(becp%k)*0.5d0 ! to Ha
+    !endif
+    !if(allocated(becp%nc)) then
+    !  write(*,*) 'in h_psi: sum becp_nc = ', sum(becp%nc)*0.5d0 ! to Ha
+    !endif
+    !
     CALL my_add_vuspsi( lda, n, m, hpsi )
   ENDIF
-  write(*,*) 'Pass here 156 in my_h_psi'
+  !write(*,*) 'Pass here 156 in my_h_psi'
 
   !  
   IF (dft_is_meta()) CALL h_psi_meta( lda, n, m, psi, hpsi )

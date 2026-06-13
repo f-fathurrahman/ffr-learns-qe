@@ -6,6 +6,7 @@ test_loop_addusdens_g.o my_electrons.o my_electrons_scf.o \
 my_compute_magnetization.o my_delta_e.o my_delta_escf.o my_calc_pol.o \
 my_qvan2.o my_sum_band.o my_init_us_2.o my_cegterg.o \
 my_h_psi.o my_s_psi.o my_vloc_psi_k.o my_c_bands.o \
+my_g_psi.o \
 prepare_h_s_psi.o my_newd.o my_add_vuspsi.o my_usnldiag.o \
 my_sum_bec.o my_wfcinit.o my_init_wfc.o my_atomic_wfc.o \
 my_potinit.o my_atomic_rho.o my_init_run.o \

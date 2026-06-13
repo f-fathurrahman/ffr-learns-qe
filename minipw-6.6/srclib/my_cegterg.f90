@@ -2,17 +2,17 @@
 #define ONE  ( 1.D0, 0.D0 )
 !
 !----------------------------------------------------------------------------
-SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
+SUBROUTINE my_cegterg( my_h_psi, my_s_psi, uspp, my_g_psi, &
                     npw, npwx, nvec, nvecx, npol, evc, ethr, &
                     e, btype, notcnv, lrot, dav_iter, nhpsi )
   !----------------------------------------------------------------------------
   !
-  ! ... iterative solution of the eigenvalue problem:
+  ! iterative solution of the eigenvalue problem:
   !
-  ! ... ( H - e S ) * evc = 0
+  ! ( H - e S ) * evc = 0
   !
-  ! ... where H is an hermitean operator, e is a real scalar,
-  ! ... S is an overlap matrix, evc is a complex vector
+  ! where H is an hermitean operator, e is a real scalar,
+  ! S is an overlap matrix, evc is a complex vector
   !
   USE util_param,    ONLY : DP
   USE mp_bands_util, ONLY : intra_bgrp_comm, inter_bgrp_comm, root_bgrp_id,&
@@ -54,7 +54,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
   INTEGER, INTENT(OUT) :: nhpsi
     ! total number of indivitual hpsi
   !
-  ! ... LOCAL variables
+  ! LOCAL variables
   !
   INTEGER, PARAMETER :: maxter = 20
     ! maximum number of iterations
@@ -88,13 +88,13 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
   !
   REAL(DP), EXTERNAL :: ddot
   !
-  EXTERNAL  h_psi,    s_psi,    g_psi
-    ! h_psi(npwx,npw,nvec,psi,hpsi)
+  EXTERNAL  my_h_psi,    my_s_psi,    my_g_psi
+    ! my_h_psi(npwx,npw,nvec,psi,hpsi)
     !     calculates H|psi>
-    ! s_psi(npwx,npw,nvec,spsi)
+    ! my_s_psi(npwx,npw,nvec,spsi)
     !     calculates S|psi> (if needed)
     !     Vectors psi,hpsi,spsi are dimensioned (npwx*npol,nvec)
-    ! g_psi(npwx,npw,notcnv,psi,e)
+    ! my_g_psi(npwx,npw,notcnv,psi,e)
     !    calculates (diag(h)-e)^-1 * psi, diagonal approx. to (h-e)^-1*psi
     !    the first nvec columns contain the trial eigenvectors
   !
@@ -107,7 +107,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
   !
   IF ( nvec > nvecx / 2 ) CALL errore( 'cegterg', 'nvecx is too small', 1 )
   !
-  ! ... threshold for empty bands
+  ! threshold for empty bands
   !
   empty_ethr = MAX( ( ethr * 5.D0 ), 1.D-5 )
   !
@@ -162,16 +162,16 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
   !
   CALL threaded_memcpy(psi, evc, nvec*npol*npwx*2)
   !
-  ! ... hpsi contains h times the basis vectors
+  ! hpsi contains h times the basis vectors
   !
-  CALL h_psi( npwx, npw, nvec, psi, hpsi ) ; nhpsi = nhpsi + nvec
+  CALL my_h_psi( npwx, npw, nvec, psi, hpsi ) ; nhpsi = nhpsi + nvec
   !
-  ! ... spsi contains s times the basis vectors
+  ! spsi contains s times the basis vectors
   !
   IF ( uspp ) CALL s_psi( npwx, npw, nvec, psi, spsi )
   !
-  ! ... hc contains the projection of the hamiltonian onto the reduced 
-  ! ... space vc contains the eigenvectors of hc
+  ! hc contains the projection of the hamiltonian onto the reduced 
+  ! space vc contains the eigenvectors of hc
   !
   CALL divide_all(inter_bgrp_comm,nbase,n_start,n_end,recv_counts,displs)
   CALL mp_type_create_column_section(sc(1,1), 0, nbase, nvecx, column_section_type)
@@ -204,7 +204,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
   !
   DO n = 1, nbase
      !
-     ! ... the diagonal of hc and sc must be strictly real
+     ! the diagonal of hc and sc must be strictly real
      !
      hc(n,n) = CMPLX( REAL( hc(n,n) ), 0.D0 ,kind=DP)
      sc(n,n) = CMPLX( REAL( sc(n,n) ), 0.D0 ,kind=DP)
@@ -234,7 +234,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
      !
   ELSE
      !
-     ! ... diagonalize the reduced hamiltonian
+     ! diagonalize the reduced hamiltonian
      !
      IF( my_bgrp_id == root_bgrp_id ) THEN
         CALL diaghg( nbase, nvec, hc, sc, nvecx, ew, vc, me_bgrp, root_bgrp, intra_bgrp_comm )
@@ -248,7 +248,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
      !
   END IF
   !
-  ! ... iterate
+  ! iterate
   !
   iterate: DO kter = 1, maxter
      !
@@ -260,17 +260,17 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         !
         IF ( .NOT. conv(n) ) THEN
            !
-           ! ... this root not yet converged ... 
+           ! this root not yet converged 
            !
            np = np + 1
            !
-           ! ... reorder eigenvectors so that coefficients for unconverged
-           ! ... roots come first. This allows to use quick matrix-matrix 
-           ! ... multiplications to set a new basis vector (see below)
+           ! reorder eigenvectors so that coefficients for unconverged
+           ! roots come first. This allows to use quick matrix-matrix 
+           ! multiplications to set a new basis vector (see below)
            !
            IF ( np /= n ) vc(:,np) = vc(:,n)
            !
-           ! ... for use in g_psi
+           ! for use in g_psi
            !
            ew(nbase+np) = e(n)
            !
@@ -280,7 +280,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
      !
      nb1 = nbase + 1
      !
-     ! ... expand the basis set with new basis vectors ( H - e*S )|psi> ...
+     ! expand the basis set with new basis vectors ( H - e*S )|psi> ...
      !
      CALL divide(inter_bgrp_comm,nbase,n_start,n_end)
      my_n = n_end - n_start + 1; !write (*,*) nbase,n_start,n_end
@@ -321,15 +321,15 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
      IF (npw < npwx) psi(npw+1:npwx,nb1:nbase+notcnv) = ZERO
      IF (npol == 2)  psi(npwx+npw+1:2*npwx,nb1:nbase+notcnv) = ZERO
      !
-     ! ... approximate inverse iteration
+     ! approximate inverse iteration
      !
-     CALL g_psi( npwx, npw, notcnv, npol, psi(1,nb1), ew(nb1) )
+     CALL my_g_psi( npwx, npw, notcnv, npol, psi(1,nb1), ew(nb1) )
      !
-     ! ... "normalize" correction vectors psi(:,nb1:nbase+notcnv) in
-     ! ... order to improve numerical stability of subspace diagonalization
-     ! ... (cdiaghg) ew is used as work array :
+     ! "normalize" correction vectors psi(:,nb1:nbase+notcnv) in
+     ! order to improve numerical stability of subspace diagonalization
+     ! (cdiaghg) ew is used as work array :
      !
-     ! ...         ew = <psi_i|psi_i>,  i = nbase + 1, nbase + notcnv
+     !          ew = <psi_i|psi_i>,  i = nbase + 1, nbase + notcnv
      !
      DO n = 1, notcnv
         !
@@ -363,13 +363,13 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         END DO
      END DO
      !
-     ! ... here compute the hpsi and spsi of the new functions
+     ! here compute the hpsi and spsi of the new functions
      !
-     CALL h_psi( npwx, npw, notcnv, psi(1,nb1), hpsi(1,nb1) ) ; nhpsi = nhpsi + notcnv
+     CALL my_h_psi( npwx, npw, notcnv, psi(1,nb1), hpsi(1,nb1) ) ; nhpsi = nhpsi + notcnv
      !
-     IF ( uspp ) CALL s_psi( npwx, npw, notcnv, psi(1,nb1), spsi(1,nb1) )
+     IF ( uspp ) CALL my_s_psi( npwx, npw, notcnv, psi(1,nb1), spsi(1,nb1) )
      !
-     ! ... update the reduced hamiltonian
+     ! update the reduced hamiltonian
      !
      CALL divide_all(inter_bgrp_comm,nbase+notcnv,n_start,n_end,recv_counts,displs)
      CALL mp_type_create_column_section(sc(1,1), nbase, notcnv, nvecx, column_section_type)
@@ -405,7 +405,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
      !
      DO n = 1, nbase
         !
-        ! ... the diagonal of hc and sc must be strictly real
+        ! the diagonal of hc and sc must be strictly real
         !
         IF( n>=nb1 ) THEN
            hc(n,n) = CMPLX( REAL( hc(n,n) ), 0.D0 ,kind=DP)
@@ -421,7 +421,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         !
      END DO
      !
-     ! ... diagonalize the reduced hamiltonian
+     ! diagonalize the reduced hamiltonian
      !
 
      IF( my_bgrp_id == root_bgrp_id ) THEN
@@ -432,7 +432,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         CALL mp_bcast( ew, root_bgrp_id, inter_bgrp_comm )
      ENDIF
      !
-     ! ... test for convergence
+     ! test for convergence
      !
      WHERE( btype(1:nvec) == 1 )
         !
@@ -443,18 +443,18 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         conv(1:nvec) = ( ( ABS( ew(1:nvec) - e(1:nvec) ) < empty_ethr ) )
         !
      END WHERE
-     ! ... next line useful for band parallelization of exact exchange
+     ! next line useful for band parallelization of exact exchange
      IF ( nbgrp > 1 ) CALL mp_bcast(conv,root_bgrp_id,inter_bgrp_comm)
      !
      notcnv = COUNT( .NOT. conv(:) )
      !
      e(1:nvec) = ew(1:nvec)
      !
-     ! ... if overall convergence has been achieved, or the dimension of
-     ! ... the reduced basis set is becoming too large, or in any case if
-     ! ... we are at the last iteration refresh the basis set. i.e. replace
-     ! ... the first nvec elements with the current estimate of the
-     ! ... eigenvectors;  set the basis dimension to nvec.
+     ! if overall convergence has been achieved, or the dimension of
+     ! the reduced basis set is becoming too large, or in any case if
+     ! we are at the last iteration refresh the basis set. i.e. replace
+     ! the first nvec elements with the current estimate of the
+     ! eigenvectors;  set the basis dimension to nvec.
      !
      IF ( notcnv == 0 .OR. &
           nbase+notcnv > nvecx .OR. dav_iter == maxter ) THEN
@@ -468,13 +468,13 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         !
         IF ( notcnv == 0 ) THEN
            !
-           ! ... all roots converged: return
+           ! all roots converged: return
            !
            EXIT iterate
            !
         ELSE IF ( dav_iter == maxter ) THEN
            !
-           ! ... last iteration, some roots not converged: return
+           ! last iteration, some roots not converged: return
            !
            !!!WRITE( stdout, '(5X,"WARNING: ",I5, &
            !!!     &   " eigenvalues not converged")' ) notcnv
@@ -484,7 +484,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
            !
         END IF
         !
-        ! ... refresh psi, H*psi and S*psi
+        ! refresh psi, H*psi and S*psi
         !
         CALL threaded_memcpy(psi, evc, nvec*npol*npwx*2)
         !
@@ -502,7 +502,7 @@ SUBROUTINE my_cegterg( h_psi, s_psi, uspp, g_psi, &
         CALL threaded_memcpy(hpsi, psi(1,nvec+1), nvec*npol*npwx*2)
         CALL mp_sum( hpsi(:,1:nvec), inter_bgrp_comm )
         !
-        ! ... refresh the reduced hamiltonian 
+        ! refresh the reduced hamiltonian 
         !
         nbase = nvec
         !

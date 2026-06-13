@@ -327,11 +327,12 @@ SUBROUTINE exxinit( DoLoc )
   USE paw_variables,        ONLY : okpaw
   USE paw_exx,              ONLY : PAW_init_fock_kernel
   USE mp_orthopools,        ONLY : intra_orthopool_comm
-  USE exx_base,             ONLY : nkqs, xkq_collect, index_xk, index_sym,  &
+  USE exx_base, ONLY : nkqs, xkq_collect, index_xk, index_sym,  &
                                     exx_set_symm, rir, working_pool, exxdiv, &
                                     erfc_scrlen, gau_scrlen, exx_divergence
-  USE exx_band,             ONLY : change_data_structure, nwordwfc_exx, &
+  USE exx_band, ONLY : change_data_structure, nwordwfc_exx, &
                                     transform_evc_to_exx, igk_exx, evc_exx
+  use mp_exx, only: negrp
   !
   IMPLICIT NONE
   !
@@ -355,8 +356,16 @@ SUBROUTINE exxinit( DoLoc )
   INTEGER :: ibnd_start_new, ibnd_end_new, max_buff_bands_per_egrp
   INTEGER :: ibnd_exx, evc_offset
 
-  !write(*,*) 'ENTER exxinit: DoLoc = ', DoLoc
-  !stop
+  write(*,*)
+  write(*,*) '<div> ENTER my_exx: exxinit'
+  write(*,*)
+  write(*,*) ' DoLoc = ', DoLoc
+  write(*,*) 'negrp = ', negrp
+  stop 'early stop 364 in my_exx'
+
+  if(negrp /= 1) then
+    stop 'negrp parallezation is disabled here'
+  endif
 
   IF ( DoLoc ) THEN
     WRITE(stdout,'(/,5X,"Using localization algorithm with threshold: ",&
@@ -479,6 +488,8 @@ SUBROUTINE exxinit( DoLoc )
     ENDIF
     !
   ELSE
+    !
+    !ffr: This is the usual case
     !ffr: This is the case of DoLoc = .FALSE.
     !
     IF(.NOT. ALLOCATED(exxbuff)) THEN
@@ -524,6 +535,8 @@ SUBROUTINE exxinit( DoLoc )
     IF( nks > 1 ) THEN
       CALL get_buffer( evc_exx, nwordwfc_exx, iunwfc_exx, ik )
     ENDIF
+    !ffr: Now evc_exx is wave function for exx
+    !ffr: why need to name it *_exx?
     !
     ! ik         = index of k-point in this pool
     ! current_ik = index of k-point over all pools
@@ -580,12 +593,14 @@ SUBROUTINE exxinit( DoLoc )
       !
     ELSE
       !
+      !ffr: This is the usual case
       !ffr: This the case of gamma_only = .FALSE.
       !
-      npw = ngk (ik)
+      npw = ngk(ik)
+      ! ffr: This is loop over all bands.
       write(*,*) 'iexx_start = ', iexx_start
       write(*,*) 'iexx_end = ', iexx_end
-      stop 'Stopped here 588'
+      !stop 'Stopped here 588'
       IBND_LOOP_K : &
       DO ibnd = iexx_start, iexx_end
         !
@@ -613,12 +628,17 @@ SUBROUTINE exxinit( DoLoc )
           ENDDO
           CALL invfft( 'Wave', temppsic, dfftt )
         ENDIF
+        !ffr: dfftt is fft of the wave function, or wave function in real space
         !
+        !write(*,*) 'nkqs = ', nkqs
+        !stop 'stopped here 623'
+        !
+        !ffr: This is loop over kpoints
         DO ikq = 1, nkqs
           !
           IF( index_xk(ikq) /= current_ik ) CYCLE
           !
-          isym = ABS(index_sym(ikq) )
+          isym = ABS(index_sym(ikq)) ! ffr: what's this?
           !
           IF (noncolin) THEN ! noncolinear
             !
@@ -659,7 +679,7 @@ SUBROUTINE exxinit( DoLoc )
             !
             DO ir = 1, nrxxs
               IF (index_sym(ikq) < 0 ) THEN
-                  psic_exx(ir) = CONJG(psic_exx(ir))
+                psic_exx(ir) = CONJG(psic_exx(ir))
               ENDIF
               exxbuff(ir,ibnd,ikq) = psic_exx(ir)
             ENDDO
@@ -694,8 +714,10 @@ SUBROUTINE exxinit( DoLoc )
   !
   ! For US/PAW only: compute <beta_I|psi_j,k+q> for the entire 
   ! de-symmetrized k+q grid by rotating the ones from the irreducible wedge
-  !
-  IF (okvan) CALL rotate_becxx( nkqs, index_xk, index_sym, xkq_collect )
+  ! ffr: why?
+  IF (okvan) then
+    CALL rotate_becxx( nkqs, index_xk, index_sym, xkq_collect )
+  ENDIF
   !
   ! Initialize 4-wavefunctions one-center Fock integrals
   !    \int \psi_a(r)\phi_a(r)\phi_b(r')\psi_b(r')/|r-r'|
@@ -703,91 +725,75 @@ SUBROUTINE exxinit( DoLoc )
   IF (okpaw) CALL PAW_init_fock_kernel()
   !
   CALL change_data_structure( .FALSE. )
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_exx: exxinit'
+  write(*,*)
+
   !
   !
 END SUBROUTINE exxinit
   !
-  !
+
   !-----------------------------------------------------------------------
-  SUBROUTINE vexx( lda, n, m, psi, hpsi, becpsi )
-  !-----------------------------------------------------------------------
-    !! Wrapper routine computing V_x\psi, V_x = exchange potential. 
-    !! Calls generic version vexx_k or Gamma-specific one vexx_gamma.
-    !
-    USE becmod,         ONLY : bec_type
-    USE uspp,           ONLY : okvan
-    USE paw_variables,  ONLY : okpaw
-    USE us_exx,         ONLY : becxx
-    USE mp_exx,         ONLY : negrp, inter_egrp_comm, init_index_over_band
-    USE wvfct,          ONLY : nbnd
-    USE exx_band,       ONLY : transform_psi_to_exx, transform_hpsi_to_local, &
-                               psi_exx, hpsi_exx, igk_exx
-    !
-    IMPLICIT NONE
-    !
-    INTEGER :: lda
-    !! input: leading dimension of arrays psi and hpsi
-    INTEGER :: n
-    !! input: true dimension of psi and hpsi
-    INTEGER :: m
-    !! input: number of states psi
-    COMPLEX(DP) :: psi(lda*npol,m)
-    !! input: m wavefunctions
-    COMPLEX(DP) :: hpsi(lda*npol,m)
-    !! output: V_x*psi
-    TYPE(bec_type), OPTIONAL :: becpsi
-    !! input: <beta|psi>, optional but needed for US and PAW case
-    !
-    INTEGER :: i
-    !
-    IF ((okvan.OR.okpaw) .AND. .NOT. PRESENT(becpsi)) &
-       CALL errore( 'vexx','becpsi needed for US/PAW case', 1 )
-    CALL start_clock( 'vexx' )
-    !
-    IF (negrp > 1) THEN
-       CALL init_index_over_band( inter_egrp_comm, nbnd, m )
-       !
-       ! transform psi to the EXX data structure
-       CALL transform_psi_to_exx( lda, n, m, psi )
-    ENDIF
-    !
-    ! calculate the EXX contribution to hpsi
-    !
-    IF ( gamma_only ) THEN
-       IF (negrp == 1)THEN
-          CALL vexx_gamma( lda, n, m, psi, hpsi, becpsi )
-       ELSE
-          CALL vexx_gamma( lda, n, m, psi_exx, hpsi_exx, becpsi )
-       ENDIF
-    ELSE
-       IF (negrp.eq.1)THEN
-          CALL vexx_k( lda, n, m, psi, hpsi, becpsi )
-       ELSE
-          CALL vexx_k( lda, n, m, psi_exx, hpsi_exx, becpsi )
-       ENDIF
-    ENDIF
-    !
-    IF (negrp > 1) THEN
-       !
-       ! transform hpsi to the local data structure
-       !
-       CALL transform_hpsi_to_local(lda,n,m,hpsi)
-       !
-    ENDIF
-    !
-    CALL stop_clock( 'vexx' )
-    !
-  END SUBROUTINE vexx
+SUBROUTINE vexx( lda, n, m, psi, hpsi, becpsi )
+!-----------------------------------------------------------------------
+  !! Wrapper routine computing V_x\psi, V_x = exchange potential. 
+  !! Calls generic version vexx_k or Gamma-specific one vexx_gamma.
   !
+  USE becmod,         ONLY : bec_type
+  USE uspp,           ONLY : okvan
+  USE paw_variables,  ONLY : okpaw
+  USE us_exx,         ONLY : becxx
+  USE mp_exx,         ONLY : negrp, inter_egrp_comm, init_index_over_band
+  USE wvfct,          ONLY : nbnd
+  USE exx_band,       ONLY : transform_psi_to_exx, transform_hpsi_to_local, &
+                              psi_exx, hpsi_exx, igk_exx
+  !
+  IMPLICIT NONE
+  !
+  INTEGER :: lda
+  !! input: leading dimension of arrays psi and hpsi
+  INTEGER :: n
+  !! input: true dimension of psi and hpsi
+  INTEGER :: m
+  !! input: number of states psi
+  COMPLEX(DP) :: psi(lda*npol,m)
+  !! input: m wavefunctions
+  COMPLEX(DP) :: hpsi(lda*npol,m)
+  !! output: V_x*psi
+  TYPE(bec_type), OPTIONAL :: becpsi
+  !! input: <beta|psi>, optional but needed for US and PAW case
+  !
+  !INTEGER :: i
+  !
+  IF ((okvan.OR.okpaw) .AND. .NOT. PRESENT(becpsi)) then
+    CALL errore( 'vexx','becpsi needed for US/PAW case', 1 )
+  endif
+  !
+  ! !!! negrp stuffs are removed
+  if(negrp > 1) then
+    stop 'negrp > 1 is disabled here'
+  endif
+  !
+  ! calculate the EXX contribution to hpsi
+  IF ( gamma_only ) THEN
+    CALL vexx_gamma( lda, n, m, psi, hpsi, becpsi )
+  ELSE
+    CALL vexx_k( lda, n, m, psi, hpsi, becpsi )
+  ENDIF
+  !
+END SUBROUTINE vexx
+
   !
   !-----------------------------------------------------------------------
   SUBROUTINE vexx_gamma( lda, n, m, psi, hpsi, becpsi )
-    !-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
     !! Gamma-specific version of vexx.
     !
     USE constants,      ONLY : fpi, e2, pi
     USE cell_base,      ONLY : omega
-    USE gvect,          ONLY : ngm, g
+    !USE gvect,          ONLY : ngm, g
     USE wvfct,          ONLY : npwx, current_k, nbnd
     USE klist,          ONLY : xk, nks, nkstot, igk_k
     USE fft_interfaces, ONLY : fwfft, invfft
@@ -1121,424 +1127,425 @@ END SUBROUTINE exxinit
   END SUBROUTINE vexx_gamma
   !
   !
+
   !-----------------------------------------------------------------------
-  SUBROUTINE vexx_k( lda, n, m, psi, hpsi, becpsi )
-    !-----------------------------------------------------------------------
-    !! Generic, k-point version of vexx.
-    !
-    USE constants,      ONLY : fpi, e2, pi
-    USE cell_base,      ONLY : omega
-    USE wvfct,          ONLY : npwx, current_k
-    USE klist,          ONLY : xk, nkstot
-    USE fft_interfaces, ONLY : fwfft, invfft
-    USE becmod,         ONLY : bec_type
-    USE mp_exx,         ONLY : inter_egrp_comm, my_egrp_id, negrp, &
-                               intra_egrp_comm, me_egrp, &
-                               max_pairs, egrp_pairs, ibands, nibands, &
-                               max_ibands, iexx_istart, iexx_iend, &
-                               all_start, all_end, iexx_start, jblock
-    USE mp,             ONLY : mp_sum, mp_barrier, mp_circular_shift_left
-    USE uspp,           ONLY : nkb, okvan
-    USE paw_variables,  ONLY : okpaw
-    USE us_exx,         ONLY : bexg_merge, becxx, addusxx_g, addusxx_r, &
-                               newdxx_g, newdxx_r, add_nlxx_pot, &
-                               qvan_init, qvan_clean
-    USE paw_exx,        ONLY : PAW_newdxx
-    USE exx_base,       ONLY : nqs, xkq_collect, index_xkq, index_xk, &
-                               coulomb_fac, g2_convolution_all
-    USE exx_band,       ONLY : result_sum, igk_exx
-    !
-    !
-    IMPLICIT NONE
-    !
-    INTEGER :: lda
-    !! input: leading dimension of arrays psi and hpsi
-    INTEGER :: n
-    !! input: true dimension of psi and hpsi
-    INTEGER :: m
-    !! input: number of states psi
-    COMPLEX(DP) :: psi(lda*npol,max_ibands)
-    !! input: m wavefunctions
-    COMPLEX(DP) :: hpsi(lda*npol,max_ibands)
-    !! output: V_x*psi
-    TYPE(bec_type), OPTIONAL :: becpsi  ! or call a calbec(...psi) instead
-    !! input: <beta|psi>, optional but needed for US and PAW case
-    !
-    ! local variables
-    !
-    COMPLEX(DP),ALLOCATABLE :: temppsic(:,:), result(:,:)
-    COMPLEX(DP),ALLOCATABLE :: temppsic_nc(:,:,:),result_nc(:,:,:)
-    INTEGER :: request_send, request_recv
-    !
-    COMPLEX(DP),ALLOCATABLE :: deexx(:,:)
-    COMPLEX(DP),ALLOCATABLE,TARGET :: rhoc(:,:), vc(:,:)
+SUBROUTINE vexx_k( lda, n, m, psi, hpsi, becpsi )
+!-----------------------------------------------------------------------
+  !! Generic, k-point version of vexx.
+  !
+  USE constants,      ONLY : fpi, e2, pi
+  USE cell_base,      ONLY : omega
+  USE wvfct,          ONLY : npwx, current_k
+  USE klist,          ONLY : xk, nkstot
+  USE fft_interfaces, ONLY : fwfft, invfft
+  USE becmod,         ONLY : bec_type
+  USE mp_exx,         ONLY : inter_egrp_comm, my_egrp_id, negrp, &
+                              intra_egrp_comm, me_egrp, &
+                              max_pairs, egrp_pairs, ibands, nibands, &
+                              max_ibands, iexx_istart, iexx_iend, &
+                              all_start, all_end, iexx_start, jblock
+  USE mp,             ONLY : mp_sum, mp_barrier, mp_circular_shift_left
+  USE uspp,           ONLY : nkb, okvan
+  USE paw_variables,  ONLY : okpaw
+  USE us_exx,         ONLY : bexg_merge, becxx, addusxx_g, addusxx_r, &
+                              newdxx_g, newdxx_r, add_nlxx_pot, &
+                              qvan_init, qvan_clean
+  USE paw_exx,        ONLY : PAW_newdxx
+  USE exx_base,       ONLY : nqs, xkq_collect, index_xkq, index_xk, &
+                              coulomb_fac, g2_convolution_all
+  USE exx_band,       ONLY : result_sum, igk_exx
+  !
+  !
+  IMPLICIT NONE
+  !
+  INTEGER :: lda
+  !! input: leading dimension of arrays psi and hpsi
+  INTEGER :: n
+  !! input: true dimension of psi and hpsi
+  INTEGER :: m
+  !! input: number of states psi
+  COMPLEX(DP) :: psi(lda*npol,max_ibands)
+  !! input: m wavefunctions
+  COMPLEX(DP) :: hpsi(lda*npol,max_ibands)
+  !! output: V_x*psi
+  TYPE(bec_type), OPTIONAL :: becpsi  ! or call a calbec(...psi) instead
+  !! input: <beta|psi>, optional but needed for US and PAW case
+  !
+  ! local variables
+  !
+  COMPLEX(DP),ALLOCATABLE :: temppsic(:,:), result(:,:)
+  COMPLEX(DP),ALLOCATABLE :: temppsic_nc(:,:,:),result_nc(:,:,:)
+  !INTEGER :: request_send, request_recv
+  !
+  COMPLEX(DP),ALLOCATABLE :: deexx(:,:)
+  COMPLEX(DP),ALLOCATABLE,TARGET :: rhoc(:,:), vc(:,:)
 
-    REAL(DP),   ALLOCATABLE :: fac(:), facb(:)
-    INTEGER :: ibnd, ik, im , ikq, iq, ipol
-    INTEGER :: ir, ig, ir_start, ir_end
-    INTEGER :: irt, nrt, nblock
-    INTEGER :: current_ik
-    INTEGER :: ibnd_loop_start
-    INTEGER :: nrxxs
-    REAL(DP) :: x1, x2, xkp(3), omega_inv, nqs_inv
-    REAL(DP) :: xkq(3)
-    INTEGER, EXTERNAL :: global_kpoint_index
-    DOUBLE PRECISION :: max, tempx
-    COMPLEX(DP), ALLOCATABLE :: big_result(:,:)
-    INTEGER :: ir_out, ipair, jbnd
-    INTEGER :: ii, jstart, jend, jcount, jind
-    INTEGER :: ialloc, ending_im
-    INTEGER :: ijt, njt, jblock_start, jblock_end
-    INTEGER :: iegrp, wegrp
-    !
-    ialloc = nibands(my_egrp_id+1)
-    !
-    ALLOCATE( fac(dfftt%ngm) )
-    nrxxs= dfftt%nnr
-    ALLOCATE( facb(nrxxs) )
-    !
-    IF (noncolin) THEN
-       ALLOCATE( temppsic_nc(nrxxs,npol,ialloc), result_nc(nrxxs,npol,ialloc) )
-    ELSE
-       ALLOCATE( temppsic(nrxxs,ialloc), result(nrxxs,ialloc) )
-    ENDIF
-    !
-    IF (okvan) ALLOCATE( deexx(nkb,ialloc) )
-    !
-    current_ik = global_kpoint_index( nkstot, current_k )
-    xkp = xk(:,current_k)
-    !
-    ALLOCATE( big_result(n*npol,m) )
-    big_result = 0.0_DP
-    !
-    ! allocate arrays for rhoc and vc
-    ALLOCATE( rhoc(nrxxs,jblock), vc(nrxxs,jblock) )
-    !
-    DO ii = 1, nibands(my_egrp_id+1)
-       !
-       ibnd = ibands(ii,my_egrp_id+1)
-       !
-       IF (ibnd==0 .OR. ibnd>m) CYCLE
-       IF (okvan) deexx(:,ii) = 0._DP
-       !
-       IF (noncolin) THEN
-          temppsic_nc(:,:,ii) = 0._DP
-       ELSE
-          DO ir = 1, nrxxs
-             temppsic(ir,ii) = 0._DP
-          ENDDO
-       ENDIF
-       !
-       IF (noncolin) THEN
-          !
-          DO ig = 1, n
-             temppsic_nc(dfftt%nl(igk_exx(ig,current_k)),1,ii) = psi(ig,ii)
-             temppsic_nc(dfftt%nl(igk_exx(ig,current_k)),2,ii) = psi(npwx+ig,ii)
-          ENDDO
-          !
-          CALL invfft( 'Wave', temppsic_nc(:,1,ii), dfftt )
-          CALL invfft( 'Wave', temppsic_nc(:,2,ii), dfftt )
-          !
-       ELSE
-          !
-          DO ig = 1, n
-             temppsic( dfftt%nl(igk_exx(ig,current_k)), ii ) = psi(ig,ii)
-          ENDDO
-          !
-          CALL invfft( 'Wave', temppsic(:,ii), dfftt )
-          !
-       ENDIF
-       !
-       IF (noncolin) THEN
-          DO ir = 1, nrxxs
-             result_nc(ir,1,ii) = 0.0_DP
-             result_nc(ir,2,ii) = 0.0_DP
-          ENDDO
-       ELSE
-          DO ir = 1, nrxxs
-             result(ir,ii) = 0.0_DP
-          ENDDO
-       ENDIF
-       !
-    ENDDO
-    !
-    !precompute these guys
-    omega_inv = 1.0 / omega
-    nqs_inv = 1.0 / nqs
-    !
-    !------------------------------------------------------------------------!
-    ! Beginning of main loop
-    !------------------------------------------------------------------------!
-    DO iq = 1, nqs
-       !
-       ikq = index_xkq(current_ik,iq)
-       ik  = index_xk(ikq)
-       xkq = xkq_collect(:,ikq)
-       !
-       ! calculate the 1/|r-r'| (actually, k+q+g) factor and place it in fac
-       CALL g2_convolution_all( dfftt%ngm, gt, xkp, xkq, iq, current_k )
-       !
+  REAL(DP),   ALLOCATABLE :: fac(:), facb(:)
+  INTEGER :: ibnd, ik, im , ikq, iq, ipol
+  INTEGER :: ir, ig, ir_start, ir_end
+  INTEGER :: irt, nrt, nblock
+  INTEGER :: current_ik
+  !INTEGER :: ibnd_loop_start
+  INTEGER :: nrxxs
+  REAL(DP) :: xkp(3), omega_inv, nqs_inv
+  REAL(DP) :: xkq(3)
+  INTEGER, EXTERNAL :: global_kpoint_index
+  DOUBLE PRECISION :: max, tempx
+  COMPLEX(DP), ALLOCATABLE :: big_result(:,:)
+  INTEGER :: ir_out, ipair, jbnd
+  INTEGER :: ii, jstart, jend, jcount, jind
+  INTEGER :: ialloc, ending_im
+  INTEGER :: ijt, njt, jblock_start, jblock_end
+  INTEGER :: iegrp, wegrp
+  !
+  ialloc = nibands(my_egrp_id+1)
+  !
+  ALLOCATE( fac(dfftt%ngm) )
+  nrxxs= dfftt%nnr
+  ALLOCATE( facb(nrxxs) )
+  !
+  IF (noncolin) THEN
+      ALLOCATE( temppsic_nc(nrxxs,npol,ialloc), result_nc(nrxxs,npol,ialloc) )
+  ELSE
+      ALLOCATE( temppsic(nrxxs,ialloc), result(nrxxs,ialloc) )
+  ENDIF
+  !
+  IF (okvan) ALLOCATE( deexx(nkb,ialloc) )
+  !
+  current_ik = global_kpoint_index( nkstot, current_k )
+  xkp = xk(:,current_k)
+  !
+  ALLOCATE( big_result(n*npol,m) )
+  big_result = 0.0_DP
+  !
+  ! allocate arrays for rhoc and vc
+  ALLOCATE( rhoc(nrxxs,jblock), vc(nrxxs,jblock) )
+  !
+  DO ii = 1, nibands(my_egrp_id+1)
+      !
+      ibnd = ibands(ii,my_egrp_id+1)
+      !
+      IF (ibnd==0 .OR. ibnd>m) CYCLE
+      IF (okvan) deexx(:,ii) = 0._DP
+      !
+      IF (noncolin) THEN
+        temppsic_nc(:,:,ii) = 0._DP
+      ELSE
+        DO ir = 1, nrxxs
+            temppsic(ir,ii) = 0._DP
+        ENDDO
+      ENDIF
+      !
+      IF (noncolin) THEN
+        !
+        DO ig = 1, n
+            temppsic_nc(dfftt%nl(igk_exx(ig,current_k)),1,ii) = psi(ig,ii)
+            temppsic_nc(dfftt%nl(igk_exx(ig,current_k)),2,ii) = psi(npwx+ig,ii)
+        ENDDO
+        !
+        CALL invfft( 'Wave', temppsic_nc(:,1,ii), dfftt )
+        CALL invfft( 'Wave', temppsic_nc(:,2,ii), dfftt )
+        !
+      ELSE
+        !
+        DO ig = 1, n
+            temppsic( dfftt%nl(igk_exx(ig,current_k)), ii ) = psi(ig,ii)
+        ENDDO
+        !
+        CALL invfft( 'Wave', temppsic(:,ii), dfftt )
+        !
+      ENDIF
+      !
+      IF (noncolin) THEN
+        DO ir = 1, nrxxs
+            result_nc(ir,1,ii) = 0.0_DP
+            result_nc(ir,2,ii) = 0.0_DP
+        ENDDO
+      ELSE
+        DO ir = 1, nrxxs
+            result(ir,ii) = 0.0_DP
+        ENDDO
+      ENDIF
+      !
+  ENDDO
+  !
+  !precompute these guys
+  omega_inv = 1.0 / omega
+  nqs_inv = 1.0 / nqs
+  !
+  !------------------------------------------------------------------------!
+  ! Beginning of main loop
+  !------------------------------------------------------------------------!
+  DO iq = 1, nqs
+      !
+      ikq = index_xkq(current_ik,iq)
+      ik  = index_xk(ikq)
+      xkq = xkq_collect(:,ikq)
+      !
+      ! calculate the 1/|r-r'| (actually, k+q+g) factor and place it in fac
+      CALL g2_convolution_all( dfftt%ngm, gt, xkp, xkq, iq, current_k )
+      !
 ! JRD - below not threaded
-       facb = 0D0
-       DO ig = 1, dfftt%ngm
-          facb(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
-       ENDDO
-       !
-       IF ( okvan .AND..NOT.tqr ) CALL qvan_init( dfftt%ngm, xkq, xkp )
-       !
-       DO iegrp = 1, negrp
-          !
-          ! compute the id of group whose data is currently worked on
-          wegrp = MOD(iegrp+my_egrp_id-1, negrp)+1
-          njt = (all_end(wegrp)-all_start(wegrp)+jblock)/jblock
-          !
-          DO ijt = 1, njt
-             !
-             jblock_start = (ijt - 1) * jblock + all_start(wegrp)
-             jblock_end = MIN(jblock_start+jblock-1,all_end(wegrp))
-             !
-             DO ii = 1, nibands(my_egrp_id+1)
-                !
-                ibnd = ibands(ii,my_egrp_id+1)
-                !
-                IF (ibnd==0 .OR. ibnd>m) CYCLE
-                !
-                !determine which j-bands to calculate
-                jstart = 0
-                jend = 0
-                !
-                DO ipair = 1, max_pairs
-                   IF (egrp_pairs(1,ipair,my_egrp_id+1) == ibnd) THEN
-                      IF (jstart == 0) THEN
-                         jstart = egrp_pairs(2,ipair,my_egrp_id+1)
-                         jend = jstart
-                      ELSE
-                         jend = egrp_pairs(2,ipair,my_egrp_id+1)
-                      ENDIF
-                   ENDIF
-                ENDDO
-                !
-                jstart = MAX( jstart, jblock_start )
-                jend = MIN( jend, jblock_end )
-                !
-                !how many iters
-                jcount = jend-jstart+1
-                IF (jcount <= 0) CYCLE
-                !
-                !----------------------------------------------------------------------!
-                !INNER LOOP START
-                !----------------------------------------------------------------------!
-                !
-                nblock = 2048
-                nrt = (nrxxs+nblock-1)/nblock
-                !
-                DO irt = 1, nrt
-                   DO jbnd = jstart, jend
-                      ir_start = (irt - 1) * nblock + 1
-                      ir_end = MIN(ir_start+nblock-1, nrxxs)
-                      IF (noncolin) THEN
-                         DO ir = ir_start, ir_end
-                            rhoc(ir,jbnd-jstart+1) = ( CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
-                                                       iexx_start,ikq))*temppsic_nc(ir,1,ii) + &
-                                                       CONJG(exxbuff(nrxxs+ir,jbnd-all_start(wegrp)+ &
-                                                       iexx_start,ikq))*temppsic_nc(ir,2,ii) )/omega
-                         ENDDO
-                      ELSE
-                         DO ir = ir_start, ir_end
-                            rhoc(ir,jbnd-jstart+1) = CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
-                                                     iexx_start,ikq))*temppsic(ir,ii)*omega_inv
-                         ENDDO
-                      ENDIF
-                   ENDDO
-                ENDDO
-                !
-                !   add augmentation in REAL space HERE
-                IF (okvan .AND. tqr) THEN ! augment the "charge" in real space
-                   DO jbnd = jstart, jend
-                      CALL addusxx_r(rhoc(:,jbnd-jstart+1), becxx(ikq)%k(:,jbnd), becpsi%k(:,ibnd))
-                   ENDDO
-                ENDIF
-                !
-                !   brings it to G-space
-                DO jbnd=jstart, jend
-                   CALL fwfft( 'Rho', rhoc(:,jbnd-jstart+1), dfftt )
-                ENDDO
-                !
-                !   add augmentation in G space HERE
-                IF (okvan .AND. .NOT. tqr) THEN
-                   DO jbnd = jstart, jend
-                      CALL addusxx_g( dfftt, rhoc(:,jbnd-jstart+1), xkq, xkp, &
-                      'c', becphi_c=becxx(ikq)%k(:,jbnd),becpsi_c=becpsi%k(:,ibnd) )
-                   ENDDO
-                ENDIF
-                !   charge done
-                !
+      facb = 0D0
+      DO ig = 1, dfftt%ngm
+        facb(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
+      ENDDO
+      !
+      IF ( okvan .AND..NOT.tqr ) CALL qvan_init( dfftt%ngm, xkq, xkp )
+      !
+      DO iegrp = 1, negrp
+        !
+        ! compute the id of group whose data is currently worked on
+        wegrp = MOD(iegrp+my_egrp_id-1, negrp)+1
+        njt = (all_end(wegrp)-all_start(wegrp)+jblock)/jblock
+        !
+        DO ijt = 1, njt
+            !
+            jblock_start = (ijt - 1) * jblock + all_start(wegrp)
+            jblock_end = MIN(jblock_start+jblock-1,all_end(wegrp))
+            !
+            DO ii = 1, nibands(my_egrp_id+1)
+              !
+              ibnd = ibands(ii,my_egrp_id+1)
+              !
+              IF (ibnd==0 .OR. ibnd>m) CYCLE
+              !
+              !determine which j-bands to calculate
+              jstart = 0
+              jend = 0
+              !
+              DO ipair = 1, max_pairs
+                  IF (egrp_pairs(1,ipair,my_egrp_id+1) == ibnd) THEN
+                    IF (jstart == 0) THEN
+                        jstart = egrp_pairs(2,ipair,my_egrp_id+1)
+                        jend = jstart
+                    ELSE
+                        jend = egrp_pairs(2,ipair,my_egrp_id+1)
+                    ENDIF
+                  ENDIF
+              ENDDO
+              !
+              jstart = MAX( jstart, jblock_start )
+              jend = MIN( jend, jblock_end )
+              !
+              !how many iters
+              jcount = jend-jstart+1
+              IF (jcount <= 0) CYCLE
+              !
+              !----------------------------------------------------------------------!
+              !INNER LOOP START
+              !----------------------------------------------------------------------!
+              !
+              nblock = 2048
+              nrt = (nrxxs+nblock-1)/nblock
+              !
+              DO irt = 1, nrt
+                  DO jbnd = jstart, jend
+                    ir_start = (irt - 1) * nblock + 1
+                    ir_end = MIN(ir_start+nblock-1, nrxxs)
+                    IF (noncolin) THEN
+                        DO ir = ir_start, ir_end
+                          rhoc(ir,jbnd-jstart+1) = ( CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
+                                                      iexx_start,ikq))*temppsic_nc(ir,1,ii) + &
+                                                      CONJG(exxbuff(nrxxs+ir,jbnd-all_start(wegrp)+ &
+                                                      iexx_start,ikq))*temppsic_nc(ir,2,ii) )/omega
+                        ENDDO
+                    ELSE
+                        DO ir = ir_start, ir_end
+                          rhoc(ir,jbnd-jstart+1) = CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
+                                                    iexx_start,ikq))*temppsic(ir,ii)*omega_inv
+                        ENDDO
+                    ENDIF
+                  ENDDO
+              ENDDO
+              !
+              !   add augmentation in REAL space HERE
+              IF (okvan .AND. tqr) THEN ! augment the "charge" in real space
+                  DO jbnd = jstart, jend
+                    CALL addusxx_r(rhoc(:,jbnd-jstart+1), becxx(ikq)%k(:,jbnd), becpsi%k(:,ibnd))
+                  ENDDO
+              ENDIF
+              !
+              !   brings it to G-space
+              DO jbnd=jstart, jend
+                  CALL fwfft( 'Rho', rhoc(:,jbnd-jstart+1), dfftt )
+              ENDDO
+              !
+              !   add augmentation in G space HERE
+              IF (okvan .AND. .NOT. tqr) THEN
+                  DO jbnd = jstart, jend
+                    CALL addusxx_g( dfftt, rhoc(:,jbnd-jstart+1), xkq, xkp, &
+                    'c', becphi_c=becxx(ikq)%k(:,jbnd),becpsi_c=becpsi%k(:,ibnd) )
+                  ENDDO
+              ENDIF
+              !   charge done
+              !
 
-                DO irt = 1, nrt
-                   DO jbnd = jstart, jend
-                      ir_start = (irt - 1) * nblock + 1
-                      ir_end = MIN(ir_start+nblock-1,nrxxs)
-                      DO ir = ir_start, ir_end
-                         vc(ir,jbnd-jstart+1) = facb(ir) * rhoc(ir,jbnd-jstart+1)*&
-                                                x_occupation(jbnd,ik) * nqs_inv
-                      ENDDO
-                   ENDDO
-                ENDDO
-                !
-                ! Add ultrasoft contribution (RECIPROCAL SPACE)
-                ! compute alpha_I,j,k+q = \sum_J \int <beta_J|phi_j,k+q> V_i,j,k,q Q_I,J(r) d3r
-                IF (okvan .AND. .NOT. tqr) THEN
-                   DO jbnd=jstart, jend
-                      CALL newdxx_g( dfftt, vc(:,jbnd-jstart+1), xkq, xkp, 'c',&
-                                     deexx(:,ii), becphi_c=becxx(ikq)%k(:,jbnd) )
-                   ENDDO
-                ENDIF
-                !
-                !brings back v in real space
-                DO jbnd = jstart, jend
-                   CALL invfft( 'Rho', vc(:,jbnd-jstart+1), dfftt )
-                ENDDO
-                !
-                ! Add ultrasoft contribution (REAL SPACE)
-                IF (okvan .AND. tqr) THEN
-                   DO jbnd = jstart, jend
-                      CALL newdxx_r( dfftt, vc(:,jbnd-jstart+1), becxx(ikq)%k(:,jbnd),deexx(:,ii) )
-                   ENDDO
-                ENDIF
-                !
-                ! Add PAW one-center contribution
-                IF (okpaw) THEN
-                   DO jbnd = jstart, jend
-                      CALL PAW_newdxx( x_occupation(jbnd,ik)/nqs, becxx(ikq)%k(:,jbnd), &
-                                       becpsi%k(:,ibnd), deexx(:,ii) )
-                   ENDDO
-                ENDIF
-                !
-                ! accumulates over bands and k points
-                !
-                DO irt = 1, nrt
-                   DO jbnd = jstart, jend
-                      ir_start = (irt - 1) * nblock + 1
-                      ir_end = MIN(ir_start+nblock-1, nrxxs)
-                      IF (noncolin) THEN
-                         DO ir = ir_start, ir_end
-                            result_nc(ir,1,ii) = result_nc(ir,1,ii) + vc(ir,jbnd-jstart+1) * &
-                                                 exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
-                            result_nc(ir,2,ii) = result_nc(ir,2,ii) + vc(ir,jbnd-jstart+1) * &
-                                                 exxbuff(ir+nrxxs,jbnd-all_start(wegrp)+iexx_start,ikq)
-                         ENDDO
-                      ELSE
-                         DO ir = ir_start, ir_end
-                            result(ir,ii) = result(ir,ii) + vc(ir,jbnd-jstart+1)* &
-                                            exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
-                         ENDDO
-                      ENDIF
-                   ENDDO
-                ENDDO
-                !
-                !----------------------------------------------------------------------!
-                !INNER LOOP END
-                !----------------------------------------------------------------------!
-                !
-             ENDDO !I-LOOP
-          ENDDO !IJT
-          !
-          ! get the next nbnd/negrp data
-          IF (negrp > 1) CALL mp_circular_shift_left( exxbuff(:,:,ikq), me_egrp, inter_egrp_comm )
-          !
-       ENDDO !iegrp
-       !
-       IF ( okvan .AND..NOT.tqr ) CALL qvan_clean()
-       !
-    ENDDO
-    !
-    !
-    !
-    DO ii = 1, nibands(my_egrp_id+1)
-       !
-       ibnd = ibands(ii,my_egrp_id+1)
-       !
-       IF (ibnd==0 .OR. ibnd>m) CYCLE
-       !
-       IF (okvan) THEN
-          CALL mp_sum( deexx(:,ii), intra_egrp_comm )
-       ENDIF
-       !
-       IF (noncolin) THEN
-          !brings back result in G-space
-          CALL fwfft( 'Wave', result_nc(:,1,ii), dfftt )
-          CALL fwfft( 'Wave', result_nc(:,2,ii), dfftt )
-          !
-          DO ig = 1, n
-             big_result(ig,ibnd) = big_result(ig,ibnd) - exxalfa* &
-                                   result_nc(dfftt%nl(igk_exx(ig,current_k)),1,ii)
-             big_result(n+ig,ibnd) = big_result(n+ig,ibnd) - exxalfa* &
-                                     result_nc(dfftt%nl(igk_exx(ig,current_k)),2,ii)
-          ENDDO
-       ELSE
-          !
-          CALL fwfft( 'Wave', result(:,ii), dfftt )
-          !
-          DO ig = 1, n
-             big_result(ig,ibnd) = big_result(ig,ibnd) - exxalfa* &
-                                   result(dfftt%nl(igk_exx(ig,current_k)),ii)
-          ENDDO
-       ENDIF
-       !
-       ! add non-local \sum_I |beta_I> \alpha_Ii (the sum on i is outside)
-       IF (okvan) CALL add_nlxx_pot( lda, big_result(:,ibnd), xkp, n, igk_exx(:,current_k), &
-                                    deexx(:,ii), eps_occ, exxalfa )
-       !
-    ENDDO
-    !
-    !deallocate temporary arrays
-    DEALLOCATE( rhoc, vc )
-    !
-    !sum result
-    CALL result_sum( n*npol, m, big_result )
-    !
-    IF (iexx_istart(my_egrp_id+1) > 0) THEN
-       !
-       IF (negrp == 1) THEN
-          ending_im = m
-       ELSE
-          ending_im = iexx_iend(my_egrp_id+1) - iexx_istart(my_egrp_id+1) + 1
-       ENDIF
-       !
-       IF (noncolin) THEN
-          DO im = 1, ending_im
-             DO ig = 1, n
-                hpsi(ig,im) = hpsi(ig,im) + big_result(ig,im+iexx_istart(my_egrp_id+1)-1)
-             ENDDO
-             DO ig = 1, n
-                hpsi(lda+ig,im) = hpsi(lda+ig,im) + big_result(n+ig,im+iexx_istart(my_egrp_id+1)-1)
-             ENDDO
-          ENDDO
-       ELSE
-          DO im = 1, ending_im
-             DO ig = 1, n
-                hpsi(ig,im) = hpsi(ig,im) + big_result(ig,im+iexx_istart(my_egrp_id+1)-1)
-             ENDDO
-          ENDDO
-       ENDIF
-    ENDIF
-    !
-    IF (noncolin) THEN
-       DEALLOCATE( temppsic_nc, result_nc )
-    ELSE
-       DEALLOCATE( temppsic, result )
-    ENDIF
-    !
-    DEALLOCATE( big_result )
-    DEALLOCATE( fac, facb )
-    IF (okvan) DEALLOCATE( deexx )
-    !
-  END SUBROUTINE vexx_k
+              DO irt = 1, nrt
+                  DO jbnd = jstart, jend
+                    ir_start = (irt - 1) * nblock + 1
+                    ir_end = MIN(ir_start+nblock-1,nrxxs)
+                    DO ir = ir_start, ir_end
+                        vc(ir,jbnd-jstart+1) = facb(ir) * rhoc(ir,jbnd-jstart+1)*&
+                                              x_occupation(jbnd,ik) * nqs_inv
+                    ENDDO
+                  ENDDO
+              ENDDO
+              !
+              ! Add ultrasoft contribution (RECIPROCAL SPACE)
+              ! compute alpha_I,j,k+q = \sum_J \int <beta_J|phi_j,k+q> V_i,j,k,q Q_I,J(r) d3r
+              IF (okvan .AND. .NOT. tqr) THEN
+                  DO jbnd=jstart, jend
+                    CALL newdxx_g( dfftt, vc(:,jbnd-jstart+1), xkq, xkp, 'c',&
+                                    deexx(:,ii), becphi_c=becxx(ikq)%k(:,jbnd) )
+                  ENDDO
+              ENDIF
+              !
+              !brings back v in real space
+              DO jbnd = jstart, jend
+                  CALL invfft( 'Rho', vc(:,jbnd-jstart+1), dfftt )
+              ENDDO
+              !
+              ! Add ultrasoft contribution (REAL SPACE)
+              IF (okvan .AND. tqr) THEN
+                  DO jbnd = jstart, jend
+                    CALL newdxx_r( dfftt, vc(:,jbnd-jstart+1), becxx(ikq)%k(:,jbnd),deexx(:,ii) )
+                  ENDDO
+              ENDIF
+              !
+              ! Add PAW one-center contribution
+              IF (okpaw) THEN
+                  DO jbnd = jstart, jend
+                    CALL PAW_newdxx( x_occupation(jbnd,ik)/nqs, becxx(ikq)%k(:,jbnd), &
+                                      becpsi%k(:,ibnd), deexx(:,ii) )
+                  ENDDO
+              ENDIF
+              !
+              ! accumulates over bands and k points
+              !
+              DO irt = 1, nrt
+                  DO jbnd = jstart, jend
+                    ir_start = (irt - 1) * nblock + 1
+                    ir_end = MIN(ir_start+nblock-1, nrxxs)
+                    IF (noncolin) THEN
+                        DO ir = ir_start, ir_end
+                          result_nc(ir,1,ii) = result_nc(ir,1,ii) + vc(ir,jbnd-jstart+1) * &
+                                                exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
+                          result_nc(ir,2,ii) = result_nc(ir,2,ii) + vc(ir,jbnd-jstart+1) * &
+                                                exxbuff(ir+nrxxs,jbnd-all_start(wegrp)+iexx_start,ikq)
+                        ENDDO
+                    ELSE
+                        DO ir = ir_start, ir_end
+                          result(ir,ii) = result(ir,ii) + vc(ir,jbnd-jstart+1)* &
+                                          exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
+                        ENDDO
+                    ENDIF
+                  ENDDO
+              ENDDO
+              !
+              !----------------------------------------------------------------------!
+              !INNER LOOP END
+              !----------------------------------------------------------------------!
+              !
+            ENDDO !I-LOOP
+        ENDDO !IJT
+        !
+        ! get the next nbnd/negrp data
+        IF (negrp > 1) CALL mp_circular_shift_left( exxbuff(:,:,ikq), me_egrp, inter_egrp_comm )
+        !
+      ENDDO !iegrp
+      !
+      IF ( okvan .AND..NOT.tqr ) CALL qvan_clean()
+      !
+  ENDDO
+  !
+  !
+  !
+  DO ii = 1, nibands(my_egrp_id+1)
+      !
+      ibnd = ibands(ii,my_egrp_id+1)
+      !
+      IF (ibnd==0 .OR. ibnd>m) CYCLE
+      !
+      IF (okvan) THEN
+        CALL mp_sum( deexx(:,ii), intra_egrp_comm )
+      ENDIF
+      !
+      IF (noncolin) THEN
+        !brings back result in G-space
+        CALL fwfft( 'Wave', result_nc(:,1,ii), dfftt )
+        CALL fwfft( 'Wave', result_nc(:,2,ii), dfftt )
+        !
+        DO ig = 1, n
+            big_result(ig,ibnd) = big_result(ig,ibnd) - exxalfa* &
+                                  result_nc(dfftt%nl(igk_exx(ig,current_k)),1,ii)
+            big_result(n+ig,ibnd) = big_result(n+ig,ibnd) - exxalfa* &
+                                    result_nc(dfftt%nl(igk_exx(ig,current_k)),2,ii)
+        ENDDO
+      ELSE
+        !
+        CALL fwfft( 'Wave', result(:,ii), dfftt )
+        !
+        DO ig = 1, n
+            big_result(ig,ibnd) = big_result(ig,ibnd) - exxalfa* &
+                                  result(dfftt%nl(igk_exx(ig,current_k)),ii)
+        ENDDO
+      ENDIF
+      !
+      ! add non-local \sum_I |beta_I> \alpha_Ii (the sum on i is outside)
+      IF (okvan) CALL add_nlxx_pot( lda, big_result(:,ibnd), xkp, n, igk_exx(:,current_k), &
+                                  deexx(:,ii), eps_occ, exxalfa )
+      !
+  ENDDO
+  !
+  !deallocate temporary arrays
+  DEALLOCATE( rhoc, vc )
+  !
+  !sum result
+  CALL result_sum( n*npol, m, big_result )
+  !
+  IF (iexx_istart(my_egrp_id+1) > 0) THEN
+      !
+      IF (negrp == 1) THEN
+        ending_im = m
+      ELSE
+        ending_im = iexx_iend(my_egrp_id+1) - iexx_istart(my_egrp_id+1) + 1
+      ENDIF
+      !
+      IF (noncolin) THEN
+        DO im = 1, ending_im
+            DO ig = 1, n
+              hpsi(ig,im) = hpsi(ig,im) + big_result(ig,im+iexx_istart(my_egrp_id+1)-1)
+            ENDDO
+            DO ig = 1, n
+              hpsi(lda+ig,im) = hpsi(lda+ig,im) + big_result(n+ig,im+iexx_istart(my_egrp_id+1)-1)
+            ENDDO
+        ENDDO
+      ELSE
+        DO im = 1, ending_im
+            DO ig = 1, n
+              hpsi(ig,im) = hpsi(ig,im) + big_result(ig,im+iexx_istart(my_egrp_id+1)-1)
+            ENDDO
+        ENDDO
+      ENDIF
+  ENDIF
+  !
+  IF (noncolin) THEN
+      DEALLOCATE( temppsic_nc, result_nc )
+  ELSE
+      DEALLOCATE( temppsic, result )
+  ENDIF
+  !
+  DEALLOCATE( big_result )
+  DEALLOCATE( fac, facb )
+  IF (okvan) DEALLOCATE( deexx )
+  !
+END SUBROUTINE vexx_k
   !
   !
   !-----------------------------------------------------------------------
   FUNCTION exxenergy()
-    !-----------------------------------------------------------------------
+  !-----------------------------------------------------------------------
     !! NB: This function is meant to give the SAME RESULT as exxenergy2.
     !! It is worth keeping it in the repository because in spite of being
     !! slower it is a simple driver using vexx potential routine so it is

@@ -198,7 +198,7 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
   ! block dimensions used in PPCG 
   !
   ! Davidson diagonalization uses these external routines on groups of nvec bands
-  EXTERNAL h_psi, s_psi, g_psi
+  EXTERNAL my_h_psi, my_s_psi, my_g_psi
   ! subroutine h_psi(npwx,npw,nvec,psi,hpsi)  computes H*psi
   ! subroutine s_psi(npwx,npw,nvec,psi,spsi)  computes S*psi (if needed)
   ! subroutine g_psi(npwx,npw,nvec,psi,eig)   computes G*psi -> psi
@@ -318,7 +318,7 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
              avg_iter = avg_iter + cg_iter
              !
           ELSE IF ( isolve == 2 ) THEN
-             CALL ppcg_gamma( h_psi, s_psi, okvan, h_diag, &
+             CALL ppcg_gamma( my_h_psi, my_s_psi, okvan, h_diag, &
                          npwx, npw, nbnd, evc, et(1,ik), btype(1,ik), &
                          0.1d0*ethr, max_ppcg_iter, notconv, ppcg_iter, sbsize , rrstep, iter )
              !
@@ -326,7 +326,7 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
              !
           ELSE
              !
-             CALL paro_gamma_new( h_psi, s_psi, hs_psi, g_1psi, okvan, &
+             CALL paro_gamma_new( my_h_psi, my_s_psi, hs_psi, g_1psi, okvan, &
                         npwx, npw, nbnd, evc, et(1,ik), btype(1,ik), ethr, notconv, nhpsi )
              !
              avg_iter = avg_iter + nhpsi/float(nbnd) 
@@ -364,17 +364,17 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
           IF ( use_para_diag ) then
              !
 !             ! make sure that all processors have the same wfc
-             CALL pregterg( h_psi, s_psi, okvan, g_psi, &
+             CALL pregterg( my_h_psi, my_s_psi, okvan, my_g_psi, &
                          npw, npwx, nbnd, nbndx, evc, ethr, &
                          et(1,ik), btype(1,ik), notconv, lrot, dav_iter, nhpsi )
                                    !    BEWARE gstart has been removed from call 
              !
           ELSE
              !
-             CALL regterg(  h_psi, s_psi, okvan, g_psi, &
+             CALL regterg(  my_h_psi, my_s_psi, okvan, my_g_psi, &
                          npw, npwx, nbnd, nbndx, evc, ethr, &
                          et(1,ik), btype(1,ik), notconv, lrot, dav_iter, nhpsi )
-                                   !    BEWARE gstart has been removed from call
+            !    BEWARE gstart has been removed from call
           ENDIF
           !
           avg_iter = avg_iter + dav_iter
@@ -487,7 +487,7 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
              !
           ELSE IF ( isolve == 2) then
              ! BEWARE npol should be added to the arguments
-             CALL ppcg_k( h_psi, s_psi, okvan, h_diag, &
+             CALL ppcg_k( my_h_psi, my_s_psi, okvan, h_diag, &
                          npwx, npw, nbnd, npol, evc, et(1,ik), btype(1,ik), &
                          0.1d0*ethr, max_ppcg_iter, notconv, ppcg_iter, sbsize , rrstep, iter )
              !
@@ -495,7 +495,7 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
              !
           ELSE 
              !
-             CALL paro_k_new( h_psi, s_psi, hs_psi, g_1psi, okvan, &
+             CALL paro_k_new( my_h_psi, my_s_psi, hs_psi, g_1psi, okvan, &
                         npwx, npw, nbnd, npol, evc, et(1,ik), btype(1,ik), ethr, notconv, nhpsi )
              !
              avg_iter = avg_iter + nhpsi/float(nbnd) 
@@ -534,13 +534,13 @@ SUBROUTINE my_diag_bands( iter, ik, avg_iter )
           !
           IF ( use_para_diag ) THEN
              !
-             CALL pcegterg( h_psi, s_psi, okvan, g_psi, &
+             CALL pcegterg( my_h_psi, my_s_psi, okvan, my_g_psi, &
                             npw, npwx, nbnd, nbndx, npol, evc, ethr, &
                             et(1,ik), btype(1,ik), notconv, lrot, dav_iter, nhpsi )
              !
           ELSE
              !
-             CALL my_cegterg( h_psi, s_psi, okvan, g_psi, &
+             CALL my_cegterg( my_h_psi, my_s_psi, okvan, my_g_psi, &
                            npw, npwx, nbnd, nbndx, npol, evc, ethr, &
                            et(1,ik), btype(1,ik), notconv, lrot, dav_iter, nhpsi )
           ENDIF
