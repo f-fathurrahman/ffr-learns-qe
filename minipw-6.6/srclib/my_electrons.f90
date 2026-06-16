@@ -20,8 +20,8 @@ SUBROUTINE my_electrons()
   USE extfield,             ONLY : etotefield
   USE wvfct,                ONLY : nbnd, wg, et
   USE klist,                ONLY : nks
-  USE my_exx,               ONLY : aceinit, exxinit, exxenergy2, exxbuff, &
-                                   fock0, fock1, fock2, fock3, dexx, use_ace, local_thr 
+  USE exx,  ONLY : aceinit, exxinit, exxenergy2, exxbuff, &
+                   fock0, fock1, fock2, fock3, dexx, use_ace, local_thr 
   USE funct,                ONLY : dft_is_hybrid, exx_is_active
   USE control_flags,        ONLY : adapt_thr, tr2_init, tr2_multi, gamma_only
   !
@@ -69,7 +69,7 @@ SUBROUTINE my_electrons()
     ! Self-consistency loop. For hybrid functionals the exchange potential
     ! is calculated with the orbitals at previous step (none at first step)
     !
-    CALL my_electrons_scf (printout, exxen)
+    CALL my_electrons_scf(printout, exxen)
     ! Early return
     IF( .NOT. dft_is_hybrid() ) then
       RETURN
@@ -106,7 +106,10 @@ SUBROUTINE my_electrons()
       ! Activate exact exchange, set orbitals used in its calculation,
       ! then calculate exchange energy (will be useful at next step)
       !
-      CALL exxinit(DoLoc)
+      !CALL exxinit(DoLoc)
+      CALL my_exx_exxinit(DoLoc)
+      !stop 'stopped here 110 in my_electrons'
+      !
       IF( DoLoc .and. gamma_only) THEN
         CALL localize_orbitals( )
       ELSEIF( DoLoc ) THEN
@@ -142,7 +145,9 @@ SUBROUTINE my_electrons()
       !
       ! Set new orbitals for the calculation of the exchange term
       !
-      CALL exxinit( DoLoc )
+      !CALL exxinit( DoLoc )
+      CALL my_exx_exxinit(DoLoc)
+      !
       IF( DoLoc .and. gamma_only) THEN
         CALL localize_orbitals( )
       ELSE IF (DoLoc) THEN

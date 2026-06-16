@@ -73,7 +73,8 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
                                      calbec_rs_gamma, add_vuspsir_gamma, invfft_orbital_k,  &
                                      fwfft_orbital_k, calbec_rs_k, add_vuspsir_k,           & 
                                      v_loc_psir_inplace
-  USE my_exx, ONLY: use_ace, vexx, vexxace_gamma, vexxace_k
+  USE exx, ONLY: use_ace, vexxace_gamma, vexxace_k
+  USE exx, ONLY: vexx
   USE funct, ONLY: exx_is_active
   USE fft_helper_subroutines
   !
@@ -190,7 +191,8 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
         CALL vexxace_k( lda, m, psi, ee, hpsi )
       ENDIF
     ELSE
-      CALL vexx( lda, n, m, psi, hpsi, becp )
+      !CALL vexx( lda, n, m, psi, hpsi, becp )
+      CALL my_exx_vexx_no_becpsi(lda, n, m, psi, hpsi)
     ENDIF
   ENDIF
 

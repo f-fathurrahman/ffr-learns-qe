@@ -1,6 +1,5 @@
 # !!! Use .o extension
 OBJ_FFR_PW = \
-my_exx.o \
 prepare_all.o my_addusdens.o my_addusdens_g.o \
 test_loop_addusdens_g.o my_electrons.o my_electrons_scf.o \
 my_compute_magnetization.o my_delta_e.o my_delta_escf.o my_calc_pol.o \
@@ -24,7 +23,8 @@ info_upf.o write_array.o \
 my_rotate_wfc.o my_rotate_wfc_k.o \
 my_vloc_psi_nc.o \
 my_average_pp.o my_init_at_1.o my_init_us_1.o \
-my_symme.o my_sym_rho_serial.o
+my_symme.o my_sym_rho_serial.o \
+my_exx_exxinit.o my_exx_vexx.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

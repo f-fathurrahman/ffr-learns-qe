@@ -173,6 +173,9 @@ MODULE exx
        !
        gcutmt = MAX(ecutfock/tpiba2, gkcut)
     ENDIF
+    write(*,*) 'ecutwfc = ', ecutwfc
+    write(*,*) 'ecutfock = ', ecutfock
+    write(*,*) 'gcutmt = ', gcutmt
     !
     ! ... set up fft descriptors, including parallel stuff: sticks, planes, etc.
     !
