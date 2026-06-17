@@ -42,11 +42,17 @@ SUBROUTINE my_exx_exxinit( DoLoc )
   USE paw_exx,              ONLY : PAW_init_fock_kernel
   USE mp_orthopools,        ONLY : intra_orthopool_comm
   USE exx_base, ONLY : nkqs, xkq_collect, index_xk, index_sym,  &
-                                    exx_set_symm, rir, working_pool, exxdiv, &
-                                    erfc_scrlen, gau_scrlen, exx_divergence
+                       exx_set_symm, rir, working_pool, exxdiv, &
+                       erfc_scrlen, gau_scrlen, exx_divergence
   USE exx_band, ONLY : change_data_structure, nwordwfc_exx, &
-                                    transform_evc_to_exx, igk_exx, evc_exx
+                       transform_evc_to_exx, igk_exx, evc_exx
   use mp_exx, only: negrp
+  !
+  ! additional
+  USE exx_base, only: use_coulomb_vcut_spheric, use_coulomb_vcut_ws, x_gamma_extrapolation, &
+                    & exxdiv_treatment, use_regularization
+
+
   !
   IMPLICIT NONE
   !
@@ -76,7 +82,13 @@ SUBROUTINE my_exx_exxinit( DoLoc )
   write(*,*) 'DoLoc = ', DoLoc
   write(*,*) 'negrp = ', negrp
   write(*,*) 'eps_occ = ', eps_occ
-  !stop 'early stop 364 in my_exx_exxinit'
+  write(*,*) 'use_coulomb_vcut_ws = ', use_coulomb_vcut_ws
+  write(*,*) 'use_coulomb_vcut_spheric = ', use_coulomb_vcut_spheric
+  write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
+  write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
+  write(*,*) 'use_regularization = ', use_regularization
+  
+  stop 'early stop 364 in my_exx_exxinit'
 
   if(negrp /= 1) then
     stop 'negrp parallezation is disabled here'
