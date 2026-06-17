@@ -25,7 +25,9 @@ my_vloc_psi_nc.o \
 my_average_pp.o my_init_at_1.o my_init_us_1.o \
 my_symme.o my_sym_rho_serial.o \
 my_exx_exxinit.o my_exx_vexx.o \
-my_exx_base_g2_convolution.o
+my_exx_base_g2_convolution.o \
+my_exx_base_exx_grid_init.o \
+my_exx_base_exx_qgrid_init.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \
