@@ -1,6 +1,6 @@
 
 !-----------------------------------------------------------------------
-SUBROUTINE my_exx_base_g2_convolution( ngm, g, xk, xkq, fac )
+SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
 !----------------------------------------------------------------------
   !! This routine calculates the 1/|r-r'| part of the exact exchange
   !! expression in reciprocal space (the G^-2 factor).
@@ -113,11 +113,11 @@ SUBROUTINE my_exx_base_g2_convolution( ngm, g, xk, xkq, fac )
       ENDIF
     ENDIF
   ENDDO
-END SUBROUTINE my_exx_base_g2_convolution
+END SUBROUTINE my_g2_convolution
 
 
 !-----------------------------------------------------------------------
-SUBROUTINE my_exx_base_g2_convolution_all( ngm, g, xk, xkq, iq, current_k )
+SUBROUTINE my_g2_convolution_all( ngm, g, xk, xkq, iq, current_k )
 !-----------------------------------------------------------------------
   !! Wrapper for g2_convolution.
   !
@@ -153,8 +153,8 @@ SUBROUTINE my_exx_base_g2_convolution_all( ngm, g, xk, xkq, iq, current_k )
   ! return if this k and k' already computed, otherwise compute it
   IF ( coulomb_done(iq,current_k) ) RETURN
   !
-  CALL g2_convolution( ngm, g, xk, xkq, coulomb_fac(:,iq,current_k) )
+  CALL my_g2_convolution( ngm, g, xk, xkq, coulomb_fac(:,iq,current_k) )
   !
   coulomb_done(iq,current_k) = .TRUE.
   !
-END SUBROUTINE my_exx_base_g2_convolution_all
+END SUBROUTINE my_g2_convolution_all

@@ -192,7 +192,7 @@ SUBROUTINE my_h_psi_( lda, n, m, psi, hpsi )
       ENDIF
     ELSE
       !CALL vexx( lda, n, m, psi, hpsi, becp )
-      CALL my_exx_vexx_no_becpsi(lda, n, m, psi, hpsi)
+      CALL my_vexx_no_becpsi(lda, n, m, psi, hpsi)
     ENDIF
   ENDIF
 

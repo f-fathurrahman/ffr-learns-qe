@@ -107,7 +107,7 @@ SUBROUTINE my_electrons()
       ! then calculate exchange energy (will be useful at next step)
       !
       !CALL exxinit(DoLoc)
-      CALL my_exx_exxinit(DoLoc)
+      CALL my_exxinit(DoLoc)
       !stop 'stopped here 110 in my_electrons'
       !
       IF( DoLoc .and. gamma_only) THEN
@@ -146,7 +146,7 @@ SUBROUTINE my_electrons()
       ! Set new orbitals for the calculation of the exchange term
       !
       !CALL exxinit( DoLoc )
-      CALL my_exx_exxinit(DoLoc)
+      CALL my_exxinit(DoLoc)
       !
       IF( DoLoc .and. gamma_only) THEN
         CALL localize_orbitals( )

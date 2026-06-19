@@ -1,6 +1,7 @@
+! This is from exx module
 ! ffr: becpsi is removed
 !--------------------------------------------
-SUBROUTINE my_exx_vexx_no_becpsi( lda, n, m, psi, hpsi )
+SUBROUTINE my_vexx_no_becpsi( lda, n, m, psi, hpsi )
 !--------------------------------------------
   USE kinds, ONLY : DP
   USE noncollin_module, ONLY : npol
@@ -55,12 +56,12 @@ SUBROUTINE my_exx_vexx_no_becpsi( lda, n, m, psi, hpsi )
     CALL my_exx_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
   ENDIF
   !
-END SUBROUTINE my_exx_vexx_no_becpsi
+END SUBROUTINE my_vexx_no_becpsi
 
 
 
 !-------------------------------------------------------
-SUBROUTINE my_exx_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
+SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
 !-------------------------------------------------------
   USE kinds, ONLY : DP
   USE noncollin_module, ONLY : npol, noncolin
@@ -478,13 +479,13 @@ SUBROUTINE my_exx_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
   ENDIF
   !
   IF (noncolin) THEN
-      DEALLOCATE( temppsic_nc, result_nc )
+    DEALLOCATE( temppsic_nc, result_nc )
   ELSE
-      DEALLOCATE( temppsic, result )
+    DEALLOCATE( temppsic, result )
   ENDIF
   !
   DEALLOCATE( big_result )
   DEALLOCATE( fac, facb )
   IF (okvan) DEALLOCATE( deexx )
   !
-END SUBROUTINE my_exx_vexx_k_no_becpsi
+END SUBROUTINE my_vexx_k_no_becpsi

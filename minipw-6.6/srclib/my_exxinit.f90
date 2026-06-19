@@ -1,12 +1,11 @@
-!ffr: originally from my_exx module
+!ffr: originally from exx module
 
 !------------------------------------------------------------------------
-SUBROUTINE my_exx_exxinit( DoLoc )
+SUBROUTINE my_exxinit( DoLoc )
 !------------------------------------------------------------------------
   !! This subroutine is run before the first H_psi() of each iteration. 
   !! It saves the wavefunctions for the right density matrix, in real space.
   !
-  ! from my_exx module
   !---------------------------------------------------------------
   USE kinds, ONLY : DP
   USE noncollin_module, ONLY : noncolin, npol
@@ -87,6 +86,9 @@ SUBROUTINE my_exx_exxinit( DoLoc )
   write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
   write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
   write(*,*) 'use_regularization = ', use_regularization
+
+  ! debug exx_grid_init
+  call my_exx_grid_init(.true.) ! reinitialize
   
   stop 'early stop 364 in my_exx_exxinit'
 
@@ -98,8 +100,7 @@ SUBROUTINE my_exx_exxinit( DoLoc )
     WRITE(stdout,'(/,5X,"Using localization algorithm with threshold: ",&
             & D10.2)') local_thr
     ! IF (.NOT.gamma_only) CALL errore('exxinit','SCDM with K-points NYI',1)
-    IF (okvan .OR. okpaw) CALL errore( 'exxinit','SCDM with USPP/PAW not &
-                                        &implemented', 1 )
+    IF (okvan .OR. okpaw) CALL errore( 'exxinit','SCDM with USPP/PAW not implemented', 1 )
   ENDIF 
   IF( use_ace ) THEN
     WRITE(stdout,'(/,5X,"Using ACE for calculation of exact exchange")') 
@@ -454,7 +455,7 @@ SUBROUTINE my_exx_exxinit( DoLoc )
   CALL change_data_structure( .FALSE. )
 
   write(*,*)
-  write(*,*) '</div> EXIT my_exx_exxinit()'
+  write(*,*) '</div> EXIT my_exxinit()'
   write(*,*)
 
-END SUBROUTINE my_exx_exxinit
+END SUBROUTINE my_exxinit

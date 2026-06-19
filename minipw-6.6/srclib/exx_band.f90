@@ -130,7 +130,7 @@ MODULE exx_band
     IF( .not.allocated(ngk_local) ) allocate(ngk_local(nks))
     ngk_local = ngk
     !
-    IF ( .not.allocated(comm_recv) ) THEN
+    IF ( .not. allocated(comm_recv) ) THEN
        !
        ! initialize all of the conversion maps and change the data structure
        !

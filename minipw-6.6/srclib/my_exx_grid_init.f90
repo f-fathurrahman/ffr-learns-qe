@@ -1,7 +1,7 @@
 ! This will be called in setup.f90
 
 !------------------------------------------------------------------------
-SUBROUTINE my_exx_base_exx_grid_init( reinit )
+SUBROUTINE my_exx_grid_init( reinit )
 !------------------------------------------------------------------------
   use kinds, only : dp
   !
@@ -16,10 +16,11 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
   use exx_base, only : index_sym, index_xk, index_xkq, xkq_collect, &
                      & x_gamma_extrapolation, nqs, nq1, nq2, nq3, nkqs, &
                      & grid_factor, eps, exx_grid_initialized
+  use exx_base, only : exx_grid_check ! subroutine
   !
   IMPLICIT NONE
   !
-  LOGICAL, OPTIONAL :: reinit
+  LOGICAL :: reinit !ffr: removed optional qualifier
   !! reinitialize exx if .TRUE.
   !
   ! local variables
@@ -32,17 +33,19 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
   LOGICAL :: xk_not_found
   REAL(DP) :: sxk(3), dxk(3), xk_cryst(3)
   CHARACTER(LEN=6), EXTERNAL :: int_to_char
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_exx_grid_init'
+  write(*,*)
+  write(*,*) 'reinit = ', reinit
+
   !
-  CALL start_clock ( 'exx_grid' )
-  !
-  IF ( PRESENT (reinit) ) THEN
-    IF ( reinit ) THEN
-      IF (ALLOCATED(xkq_collect))  DEALLOCATE( xkq_collect )
-      IF (ALLOCATED(index_xk)   )  DEALLOCATE( index_xk    )
-      IF (ALLOCATED(index_sym)  )  DEALLOCATE( index_sym   )
-      exx_grid_initialized = .FALSE.
-      nkqs = 0
-    ENDIF
+  IF ( reinit ) THEN
+    IF (ALLOCATED(xkq_collect))  DEALLOCATE( xkq_collect )
+    IF (ALLOCATED(index_xk))  DEALLOCATE( index_xk    )
+    IF (ALLOCATED(index_sym))  DEALLOCATE( index_sym   )
+    exx_grid_initialized = .FALSE.
+    nkqs = 0
   ENDIF
   !
   !ffr: this is the default value
@@ -55,10 +58,18 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
     nq1=1; nq2=1; nq3=1
   ENDIF
   !
-  IF (ANY( (/nq1,nq2,nq3/) <=0 )) CALL errore( 'exx_grid_init', "wrong EXX q grid", 1 )
+  IF( ANY( (/nq1,nq2,nq3/) <=0 ) ) THEN
+    CALL errore( 'exx_grid_init', "wrong EXX q grid", 1 )
+  ENDIF
   !
-  IF (exx_grid_initialized) CALL errore( 'exx_grid_init', "grid already initialized", 1 )
+  IF( exx_grid_initialized) THEN 
+    CALL errore( 'exx_grid_init', "grid already initialized", 1 )
+  ENDIF
   exx_grid_initialized = .TRUE.
+
+  write(*,*)
+  write(*,'(1x,A,3I4)') 'nq1, nq2, nq3 = ', nq1, nq2, nq3
+
   !
   ! definitions and checks
   !
@@ -139,9 +150,8 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
   sign_ = -1
   nqx = (/nq1, nq2, nq3/)
   DO WHILE(.TRUE.)
-    CALL my_exx_qgrid_init(temp_nkqs, xk_collect, temp_xkq, &
-                        nkqs, temp_index_ikq, dxk)
-
+    CALL my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp_index_ikq, dxk)
+    !
     ! Good q-point mesh
     IF (ALL(ABS(dxk) < eps ) ) THEN
       !
@@ -178,6 +188,7 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
     IF (sign_ < 0) idx = idx + 1
     !
   ENDDO
+  write(*,*) 
   !
   ! allocate and fill the arrays xkq(3,nkqs), index_xk(nkqs) and index_sym(nkqs)
   ! NOTE: nkqs will be redefined as nspin_lsda*nkqs later 
@@ -186,10 +197,10 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
             index_sym(nspin_lsda*nkqs) )
   !
   DO ik = 1, nkqs
-    ikq               = temp_index_ikq(ik)
+    ikq = temp_index_ikq(ik)
     xkq_collect(:,ik) = temp_xkq(:,ikq)
-    index_xk(ik)      = temp_index_xk(ikq)
-    index_sym(ik)     = temp_index_sym(ikq)
+    index_xk(ik) = temp_index_xk(ikq)
+    index_sym(ik) = temp_index_sym(ikq)
   ENDDO
   !
   CALL cryst_to_cart( nkqs, xkq_collect, bg, +1 )
@@ -200,8 +211,7 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
     IF ( nkqs < 100 .OR. iverbosity > 0 ) THEN
         WRITE( *, '(5x,a)' ) '(k+q)-points:'
         DO ik = 1, nkqs
-          WRITE( *, '(3f12.7,5x,2i5)') (xkq_collect(ikq,ik), ikq=1,3), &
-                index_xk(ik), index_sym(ik)
+          WRITE( *, '(3f12.7,5x,2i5)') (xkq_collect(ikq,ik), ikq=1,3), index_xk(ik), index_sym(ik)
         ENDDO
     ELSE
         WRITE( *, '(5x,a)' ) "(set verbosity='high' to see the list)"
@@ -213,9 +223,9 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
   ! if nspin == 2, the kpoints are repeated in couples (spin up, spin down)
   IF (nspin_lsda == 2) THEN
     DO ik = 1, nkstot/2
-        DO iq = 1, nqs
-          index_xkq(nkstot/2+ik,iq) = index_xkq(ik,iq) + nkqs
-        ENDDO
+      DO iq = 1, nqs
+        index_xkq(nkstot/2+ik,iq) = index_xkq(ik,iq) + nkqs
+      ENDDO
     ENDDO
     !
     DO ikq = 1, nkqs
@@ -243,9 +253,12 @@ SUBROUTINE my_exx_base_exx_grid_init( reinit )
     ENDDO
   ENDDO
   qnorm = qnorm * tpiba
-  !
-  CALL stop_clock( 'exx_grid' )
-  !
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_exx_grid_init'
+  write(*,*)
+
+  stop 'early stop in my_exx_grid_init 261'
+
   RETURN
-  !
-END SUBROUTINE my_exx_base_exx_grid_init
+END SUBROUTINE my_exx_grid_init
