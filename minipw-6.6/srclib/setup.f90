@@ -557,7 +557,6 @@ SUBROUTINE setup()
   IF ( .NOT. lbands ) THEN
      CALL irreducible_BZ (nrot_, s, nsym, time_reversal, &
                           magnetic_sym, at, bg, npk, nkstot, xk, wk, t_rev)
-     write(*,*) 'After irreducible_BZ: nkstot = ', nkstot
   ELSE
      one = SUM (wk(1:nkstot))
      IF ( one > 0.0_dp ) wk(1:nkstot) = wk(1:nkstot) / one

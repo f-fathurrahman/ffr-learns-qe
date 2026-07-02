@@ -8,7 +8,6 @@ SUBROUTINE my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp
   !
   USE klist,     ONLY : nkstot
   USE cell_base, ONLY : at
-  USE symm_base, ONLY : nsym
   !
   use exx_base, only: index_xkq, nq1, nq2, nq3, eps, nqs
   !
@@ -27,8 +26,12 @@ SUBROUTINE my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp
   INTEGER, ALLOCATABLE :: new_ikq(:)
   REAL(DP) :: sxk(3), xk_cryst(3), dq1, dq2, dq3
   LOGICAL :: xk_not_found
+  
+  write(*,*)
+  write(*,*) '<div> ENTER my_exx_qgrid_init'
+  write(*,*)
+  
   !
-  max_nk = nkstot * MIN(48, 2 * nsym)
   ALLOCATE( new_ikq(max_nk) )
 
   IF ( ALLOCATED(index_xkq) ) DEALLOCATE( index_xkq )
@@ -62,9 +65,10 @@ SUBROUTINE my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp
           !
           DO ikq = 1, temp_nkqs
             IF ( xk_not_found ) THEN
-              dxk(:) = sxk(:)-temp_xkq(:,ikq) - NINT(sxk(:)-temp_xkq(:,ikq))
+              dxk(:) = sxk(:) - temp_xkq(:,ikq) - NINT(sxk(:)-temp_xkq(:,ikq))
               IF ( ALL(ABS(dxk) < eps ) ) THEN
                 xk_not_found = .FALSE.
+                write(*,'(1x,3I4,3F18.10)') iq1, iq2, iq3, dxk
                 IF ( new_ikq(ikq) == 0) THEN
                   nkqs = nkqs + 1
                   temp_index_ikq(nkqs) = ikq
@@ -85,6 +89,10 @@ SUBROUTINE my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp
     ENDDO
     !
   ENDDO
+  !
+  write(*,*)
+  write(*,*) '</div> EXIT my_exx_qgrid_init'
+  write(*,*)
   !
   DEALLOCATE( new_ikq )
 END SUBROUTINE my_exx_qgrid_init

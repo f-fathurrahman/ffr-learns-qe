@@ -9,7 +9,6 @@ SUBROUTINE my_exxinit( DoLoc )
   !---------------------------------------------------------------
   USE kinds, ONLY : DP
   USE noncollin_module, ONLY : noncolin, npol
-  USE io_global, ONLY : stdout
   !
   USE control_flags, ONLY : gamma_only
   USE fft_types, ONLY : fft_type_descriptor
@@ -97,13 +96,12 @@ SUBROUTINE my_exxinit( DoLoc )
   endif
 
   IF ( DoLoc ) THEN
-    WRITE(stdout,'(/,5X,"Using localization algorithm with threshold: ",&
-            & D10.2)') local_thr
+    WRITE(*,'(/,5X,"Using localization algorithm with threshold: ", D10.2)') local_thr
     ! IF (.NOT.gamma_only) CALL errore('exxinit','SCDM with K-points NYI',1)
     IF (okvan .OR. okpaw) CALL errore( 'exxinit','SCDM with USPP/PAW not implemented', 1 )
   ENDIF 
   IF( use_ace ) THEN
-    WRITE(stdout,'(/,5X,"Using ACE for calculation of exact exchange")') 
+    WRITE(*,'(/,5X,"Using ACE for calculation of exact exchange")') 
   ENDIF
   !
   ! ffr: why need this? Only mandatory for parallelization?

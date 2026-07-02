@@ -41,9 +41,9 @@ SUBROUTINE my_exx_grid_init( reinit )
 
   !
   IF ( reinit ) THEN
-    IF (ALLOCATED(xkq_collect))  DEALLOCATE( xkq_collect )
-    IF (ALLOCATED(index_xk))  DEALLOCATE( index_xk    )
-    IF (ALLOCATED(index_sym))  DEALLOCATE( index_sym   )
+    IF (ALLOCATED(xkq_collect))  DEALLOCATE(xkq_collect)
+    IF (ALLOCATED(index_xk))  DEALLOCATE(index_xk)
+    IF (ALLOCATED(index_sym))  DEALLOCATE(index_sym)
     exx_grid_initialized = .FALSE.
     nkqs = 0
   ENDIF
@@ -94,14 +94,20 @@ SUBROUTINE my_exx_grid_init( reinit )
   ! find all k-points equivalent by symmetry to the points in the k-list
   !
   temp_nkqs = 0
+  write(*,*) 'nsym = ', nsym
   !
   !ffr: loop over symmetry elements
   DO isym = 1, nsym
+    write(*,*)
+    write(*,*) 'isym = ', isym
     DO ik = 1, nkstot
       !
       ! go to crystalline coordinates
+      write(*,*)
       xk_cryst(:) = xk_collect(:,ik)
+      write(*,'(1x,A,I4,3F18.10)') 'ik, xk_cryst(:) bg   = ', ik, xk_cryst(:)
       CALL cryst_to_cart( 1, xk_cryst, at, -1 )
+      write(*,'(1x,A,I4,3F18.10)') 'ik, xk_cryst(:) cart = ', ik, xk_cryst(:)
       ! rotate with this sym.op.
       sxk(:) = s(:,1,isym)*xk_cryst(1) + s(:,2,isym)*xk_cryst(2) + s(:,3,isym)*xk_cryst(3)
       ! add sxk to the auxiliary list IF it is not already present
@@ -134,7 +140,7 @@ SUBROUTINE my_exx_grid_init( reinit )
         ENDIF
       ENDDO
       !
-      IF (xk_not_found .AND. .NOT. (noncolin.AND.domag) ) THEN
+      IF (xk_not_found .AND. .NOT. (noncolin .AND. domag) ) THEN
         temp_nkqs = temp_nkqs + 1
         temp_xkq(:,temp_nkqs) = sxk(:)
         temp_index_xk(temp_nkqs)  = ik
@@ -143,6 +149,7 @@ SUBROUTINE my_exx_grid_init( reinit )
       !
     ENDDO
   ENDDO
+  write(*,*) 'temp_nkqs = ', temp_nkqs
   !
   ! Find good q-point grid. Decrease the nqX until a good grid is found or
   ! until it is 1 x 1 x 1 (always good)
@@ -150,15 +157,18 @@ SUBROUTINE my_exx_grid_init( reinit )
   sign_ = -1
   nqx = (/nq1, nq2, nq3/)
   DO WHILE(.TRUE.)
+    write(*,*) 'before exx_qgrid_init: nkqs = ', nkqs
     CALL my_exx_qgrid_init(max_nk, temp_nkqs, xk_collect, temp_xkq, nkqs, temp_index_ikq, dxk)
+    write(*,*) 'after exx_qgrid_init: nkqs = ', nkqs
+    write(*,*) 'dxk = ', dxk
     !
     ! Good q-point mesh
     IF (ALL(ABS(dxk) < eps ) ) THEN
       !
-      IF (idx > 1) &
+      IF (idx > 1) THEN 
         WRITE(*, '(5x,a)') "EXX: WARNING: q-point mesh has been updated!"
-      !
-      WRITE(*, '(5x,a,3i5)') "EXX: q-point mesh: ", nq1, nq2, nq3
+      ENDIF
+      WRITE(*, '(5x,a,3i5)') "Found good qpoint mesh for EXX: q-point mesh: ", nq1, nq2, nq3
       EXIT ! DO WHILE
     ENDIF
     !
@@ -240,7 +250,7 @@ SUBROUTINE my_exx_grid_init( reinit )
   DEALLOCATE( temp_index_xk, temp_index_sym, temp_index_ikq, temp_xkq )
   !
   ! check that everything is what it should be
-  CALL exx_grid_check( xk_collect(:,:) )
+  CALL my_exx_grid_check( xk_collect, nspin_lsda*nkqs )
   DEALLOCATE( xk_collect )
   !
   ! qnorm = max |q|, used in allocate_nlpot to compute the maximum size
@@ -253,6 +263,7 @@ SUBROUTINE my_exx_grid_init( reinit )
     ENDDO
   ENDDO
   qnorm = qnorm * tpiba
+  write(*,*) 'qnorm = ', qnorm
 
   write(*,*)
   write(*,*) '</div> EXIT my_exx_grid_init'

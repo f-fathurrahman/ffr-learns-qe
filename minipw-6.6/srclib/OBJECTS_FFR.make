@@ -28,7 +28,8 @@ my_symme.o my_sym_rho_serial.o \
 my_exxinit.o my_vexx.o \
 my_g2_convolution.o \
 my_exx_grid_init.o \
-my_exx_qgrid_init.o
+my_exx_qgrid_init.o \
+my_exx_grid_check.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

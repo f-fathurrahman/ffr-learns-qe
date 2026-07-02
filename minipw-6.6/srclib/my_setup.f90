@@ -32,7 +32,7 @@ SUBROUTINE my_setup()
   USE kinds,              ONLY : DP
   USE constants,          ONLY : eps8, e2, fpi, pi, degspin
   USE parameters,         ONLY : npk
-  USE io_global,          ONLY : stdout, ionode, ionode_id
+  USE io_global,          ONLY : ionode_id
   USE io_files,           ONLY : xmlfile
   USE cell_base,          ONLY : at, bg, alat, tpiba, tpiba2, ibrav
   USE ions_base,          ONLY : nat, tau, ntyp => nsp, ityp, zv
@@ -40,8 +40,8 @@ SUBROUTINE my_setup()
   USE gvect,              ONLY : gcutm, ecutrho
   USE gvecw,              ONLY : gcutw, ecutwfc
   USE gvecs,              ONLY : doublegrid, gcutms, dual
-  USE klist,              ONLY : xk, wk, nks, nelec, degauss, lgauss, &
-                                 ltetra, lxkcry, nkstot, &
+  USE klist,              ONLY : xk, wk, nks, nelec, lgauss, &
+                                 ltetra, nkstot, &
                                  nelup, neldw, two_fermi_energies, &
                                  tot_charge, tot_magnetization
   USE ener,               ONLY : ef, ef_up, ef_dw
@@ -49,8 +49,8 @@ SUBROUTINE my_setup()
   USE start_k,            ONLY : nks_start, xk_start, wk_start, &
                                  nk1, nk2, nk3, k1, k2, k3
   USE ktetra,             ONLY : tetra_type, opt_tetra_init, tetra_init
-  USE symm_base,          ONLY : s, t_rev, irt, nrot, nsym, invsym, nosym, &
-                                 d1,d2,d3, time_reversal, sname, set_sym_bl, &
+  USE symm_base,          ONLY : s, t_rev, nrot, nsym, invsym, nosym, &
+                                 d1,d2,d3, time_reversal, set_sym_bl, &
                                  find_sym, inverse_s, no_t_rev, fft_fact,  &
                                  allfrac
   USE wvfct,              ONLY : nbnd, nbndx
@@ -63,22 +63,17 @@ SUBROUTINE my_setup()
   USE uspp,               ONLY : okvan
   USE ldaU,               ONLY : lda_plus_u, init_lda_plus_u
   USE bp,                 ONLY : gdir, lberry, nppstr, lelfield, lorbm, nx_el,&
-                                 nppstr_3d,l3dstring, efield
+                                 nppstr_3d, l3dstring
   USE fixed_occ,          ONLY : f_inp, tfixed_occ, one_atom_occupations
   USE mp_images,          ONLY : intra_image_comm
   USE mp_pools,           ONLY : kunit
-  USE mp_bands,           ONLY : intra_bgrp_comm, nyfft
   USE mp,                 ONLY : mp_bcast
   USE lsda_mod,           ONLY : lsda, nspin, current_spin, isk, &
                                  starting_magnetization
   USE spin_orb,           ONLY : lspinorb, domag
   USE noncollin_module,   ONLY : noncolin, npol, i_cons, m_loc, &
-                                 angle1, angle2, bfield, ux, nspin_lsda, &
+                                 angle1, angle2, ux, nspin_lsda, &
                                  nspin_gga, nspin_mag
-  !USE qexsd_module,       ONLY : qexsd_readschema
-  !USE qexsd_copy,         ONLY : qexsd_copy_efermi
-  !USE qes_libs_module,    ONLY : qes_reset
-  !USE qes_types_module,   ONLY : output_type
   USE exx,                ONLY : ecutfock
   USE exx_base,           ONLY : exx_grid_init, exx_mp_init, exx_div_check
   USE funct,              ONLY : dft_is_meta, dft_is_hybrid, dft_is_gradient
@@ -547,9 +542,11 @@ SUBROUTINE my_setup()
   ! ... "irreducible_BZ" computes the missing k-points.
   !
   IF ( .NOT. lbands ) THEN
-     CALL irreducible_BZ (nrot_, s, nsym, time_reversal, &
-                          magnetic_sym, at, bg, npk, nkstot, xk, wk, t_rev)
-     write(*,*) 'After irreducible_BZ: nkstot = ', nkstot
+    CALL irreducible_BZ(nrot_, s, nsym, time_reversal, &
+                    &   magnetic_sym, at, bg, npk, nkstot, xk, wk, t_rev)
+    write(*,*)
+    write(*,*) '--- After irreducible_BZ: nkstot = ', nkstot
+    write(*,*)
   ELSE
      one = SUM (wk(1:nkstot))
      IF ( one > 0.0_dp ) wk(1:nkstot) = wk(1:nkstot) / one
