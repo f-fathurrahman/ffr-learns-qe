@@ -95,6 +95,9 @@ MODULE exx_band
     LOGICAL :: exst_mem, exst_file
     !
     IF (negrp == 1) THEN
+      write(*,*)
+      write(*,*) 'INFO: transform_evc_to_exx: no change in data structure is necessary'
+      write(*,*)
        !
        ! no change in data structure is necessary
        ! just copy all of the required data

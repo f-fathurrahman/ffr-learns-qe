@@ -723,8 +723,8 @@ SUBROUTINE print_energies ( printout )
 9080 FORMAT(/'     total energy              =',0PF17.8,' Ry' )
 9081 FORMAT(/'!    total energy              =',0PF17.8,' Ry' )
 9082 FORMAT( '     Harris-Foulkes estimate   =',0PF17.8,' Ry' )
-9083 FORMAT( '     estimated scf accuracy    <',0PF17.8,' Ry' )
-9084 FORMAT( '     estimated scf accuracy    <',1PE17.1,' Ry' )
+9083 FORMAT( '     estimated scf accuracy less than ',0PF17.8,' Ry' ) ! < will messed up html div
+9084 FORMAT( '     estimated scf accuracy less than ',1PE17.1,' Ry' )
 9085 FORMAT(/'     total all-electron energy =',0PF17.6,' Ry' )
 9170 FORMAT( '     internal energy E=F+TS    =',0PF17.8,' Ry' )
   END SUBROUTINE print_energies

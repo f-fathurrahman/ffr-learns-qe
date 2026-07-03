@@ -25,11 +25,13 @@ my_rotate_wfc.o my_rotate_wfc_k.o \
 my_vloc_psi_nc.o \
 my_average_pp.o my_init_at_1.o my_init_us_1.o \
 my_symme.o my_sym_rho_serial.o \
-my_exxinit.o my_vexx.o \
+my_exxinit.o \
+my_vexx_no_becpsi.o \
 my_g2_convolution.o \
 my_exx_grid_init.o \
 my_exx_qgrid_init.o \
-my_exx_grid_check.o
+my_exx_grid_check.o \
+my_exx_fft_create.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

@@ -269,7 +269,7 @@ SUBROUTINE my_exx_grid_init( reinit )
   write(*,*) '</div> EXIT my_exx_grid_init'
   write(*,*)
 
-  stop 'early stop in my_exx_grid_init 261'
+  !stop 'early stop in my_exx_grid_init 261'
 
   RETURN
 END SUBROUTINE my_exx_grid_init

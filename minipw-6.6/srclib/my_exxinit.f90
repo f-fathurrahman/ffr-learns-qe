@@ -75,7 +75,7 @@ SUBROUTINE my_exxinit( DoLoc )
   INTEGER :: ibnd_exx, evc_offset
 
   write(*,*)
-  write(*,*) '<div> ENTER my_exx_exxinit()'
+  write(*,*) '<div> ENTER my_exxinit()'
   write(*,*)
   write(*,*) 'DoLoc = ', DoLoc
   write(*,*) 'negrp = ', negrp
@@ -85,11 +85,6 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
   write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
   write(*,*) 'use_regularization = ', use_regularization
-
-  ! debug exx_grid_init
-  call my_exx_grid_init(.true.) ! reinitialize
-  
-  stop 'early stop 364 in my_exx_exxinit'
 
   if(negrp /= 1) then
     stop 'negrp parallezation is disabled here'
@@ -115,7 +110,7 @@ SUBROUTINE my_exxinit( DoLoc )
     ENDDO
   ENDIF
   !
-  CALL exx_fft_create()
+  CALL my_exx_fft_create()
   !
   ! Note that nxxs is not the same as nrxxs in parallel case
   nxxs = dfftt%nr1x * dfftt%nr2x * dfftt%nr3x
@@ -455,5 +450,7 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*)
   write(*,*) '</div> EXIT my_exxinit()'
   write(*,*)
+
+  !stop 'early stop in my_exxinit'
 
 END SUBROUTINE my_exxinit

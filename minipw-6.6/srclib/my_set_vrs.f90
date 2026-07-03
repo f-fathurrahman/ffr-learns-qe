@@ -35,8 +35,6 @@ SUBROUTINE my_set_vrs( vrs, vltot, vr, kedtau, kedtaur, nrxx, nspin, doublegrid 
   ! input: true if a doublegrid is used
   LOGICAL :: doublegrid
 
-  INTEGER :: i
-
   write(*,*)
   write(*,*) '<div> ENTER my_set_vrs'
   write(*,*)

@@ -5,7 +5,6 @@ SUBROUTINE my_electrons()
 
   USE kinds,                ONLY : DP
   USE check_stop,           ONLY : check_stop_now, stopped_by_user
-  USE io_global,            ONLY : stdout, ionode
   USE fft_base,             ONLY : dfftp
   USE gvecs,                ONLY : doublegrid
   USE lsda_mod,             ONLY : nspin
@@ -80,7 +79,7 @@ SUBROUTINE my_electrons()
     IF( stopped_by_user .OR. .NOT. conv_elec ) THEN
       conv_elec = .FALSE.
       IF ( .NOT. first) THEN
-        WRITE(stdout,'(5x,"Calculation (EXX) stopped during iteration #", &
+        WRITE(*,'(5x,"Calculation (EXX) stopped during iteration #", &
                      & i6)') iter
         CALL seqopn (iunres, 'restart_e', 'formatted', exst)
         WRITE (iunres, *) iter-1, tr2, dexx
@@ -106,7 +105,6 @@ SUBROUTINE my_electrons()
       ! Activate exact exchange, set orbitals used in its calculation,
       ! then calculate exchange energy (will be useful at next step)
       !
-      !CALL exxinit(DoLoc)
       CALL my_exxinit(DoLoc)
       !stop 'stopped here 110 in my_electrons'
       !
@@ -129,8 +127,13 @@ SUBROUTINE my_electrons()
       CALL v_of_rho( rho, rho_core, rhog_core, ehart, etxc, vtxc, eth, etotefield, charge, v)
       etot = etot + etxc + exxen
       !
-      IF (okpaw) CALL PAW_potential(rho%bec, ddd_PAW, epaw,etot_cmp_paw)
+      IF (okpaw) THEN
+        CALL PAW_potential(rho%bec, ddd_PAW, epaw,etot_cmp_paw)
+      ENDIF
       CALL set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
+      !
+      flush(6)
+      stop 'Early stop 135 in my_electrons'
       !
     ELSE
       !
@@ -145,7 +148,6 @@ SUBROUTINE my_electrons()
       !
       ! Set new orbitals for the calculation of the exchange term
       !
-      !CALL exxinit( DoLoc )
       CALL my_exxinit(DoLoc)
       !
       IF( DoLoc .and. gamma_only) THEN
@@ -181,7 +183,7 @@ SUBROUTINE my_electrons()
       !
       IF ( dexx < 0.0_dp ) THEN
         IF( Doloc ) THEN
-          WRITE(stdout,'(5x,a,1e12.3)') "BEWARE: negative dexx:", dexx
+          WRITE(*,'(5x,a,1e12.3)') "BEWARE: negative dexx:", dexx
           dexx = ABS ( dexx )
         ELSE
           CALL errore( 'electrons', 'dexx is negative! &
@@ -197,39 +199,39 @@ SUBROUTINE my_electrons()
       exxen = 0.5D0*fock2 
       !
       IF ( dexx < tr2_final ) THEN
-        WRITE( stdout, 9066 ) '!!', etot, hwf_energy
+        WRITE( *, 9066 ) '!!', etot, hwf_energy
       ELSE
-        WRITE( stdout, 9066 ) '  ', etot, hwf_energy
+        WRITE( *, 9066 ) '  ', etot, hwf_energy
       ENDIF
       IF( dexx > 1.d-8 ) THEN
-        WRITE( stdout, 9067 ) dexx
+        WRITE( *, 9067 ) dexx
       ELSE
-        WRITE( stdout, 9068 ) dexx
+        WRITE( *, 9068 ) dexx
       ENDIF
       !
-      WRITE( stdout, 9062 ) - fock1
+      WRITE( *, 9062 ) - fock1
       IF (use_ace) THEN
-        WRITE( stdout, 9063 ) 0.5D0*fock2
+        WRITE( *, 9063 ) 0.5D0*fock2
       ELSE
-        WRITE( stdout, 9064 ) 0.5D0*fock2
+        WRITE( *, 9064 ) 0.5D0*fock2
       ENDIF
       !
       IF ( dexx < tr2_final ) THEN
         IF ( do_makov_payne ) CALL makov_payne( etot )
-        WRITE( stdout, 9101 )
+        WRITE( *, 9101 )
         RETURN
       ENDIF
       !
       IF( adapt_thr ) THEN
         tr2 = MAX(tr2_multi * dexx, tr2_final)
-        WRITE( stdout, 9121 ) tr2
+        WRITE( *, 9121 ) tr2
       ENDIF
     ENDIF
     !
-    WRITE( stdout,'(/5x,"EXX: now go back to refine exchange calculation")')
+    WRITE( *,'(/5x,"EXX: now go back to refine exchange calculation")')
     !
     IF ( check_stop_now() ) THEN
-      WRITE(stdout,'(5x,"Calculation (EXX) stopped after iteration #", i6)') iter
+      WRITE(*,'(5x,"Calculation (EXX) stopped after iteration #", i6)') iter
       conv_elec=.FALSE.
       CALL seqopn (iunres, 'restart_e', 'formatted', exst)
       WRITE (iunres, *) iter, tr2, dexx
@@ -243,8 +245,8 @@ SUBROUTINE my_electrons()
     !
   ENDDO
   !
-  WRITE( stdout, 9120 ) iter
-  FLUSH( stdout )
+  WRITE(*, 9120) iter
+  !FLUSH(6)
   !
   RETURN
   !
