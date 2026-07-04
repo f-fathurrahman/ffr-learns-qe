@@ -32,7 +32,8 @@ my_exx_grid_init.o \
 my_exx_qgrid_init.o \
 my_exx_grid_check.o \
 my_exx_fft_create.o \
-my_exx_set_symm.o
+my_exx_set_symm.o \
+my_vexx_k_no_becpsi_qe52.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

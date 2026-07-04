@@ -39,7 +39,8 @@ SUBROUTINE my_vexx_no_becpsi( lda, n, m, psi, hpsi )
   IF ( gamma_only ) THEN
     stop 'This is not supported, label 48 in my_vexx_no_becpsi'
   ELSE
-    CALL my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
+    !CALL my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
+    CALL my_vexx_k_no_becpsi_qe52( lda, n, m, psi, hpsi )
   ENDIF
   !
 END SUBROUTINE

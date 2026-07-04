@@ -206,6 +206,9 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
     DEALLOCATE(temppsic, result) 
   ENDIF
   !
-  DEALLOCATE(rhoc, vc, fac )
+  DEALLOCATE(rhoc, vc, fac)
+  !
+  !write(*,*) 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
+  !stop
   !
 END SUBROUTINE
