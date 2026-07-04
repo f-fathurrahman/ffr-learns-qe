@@ -14,7 +14,7 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   USE mp,             ONLY : mp_sum, mp_barrier, mp_bcast
   use noncollin_module, only: npol, noncolin
   USE exx, only: exxbuff, x_occupation, exxalfa, dfftt, eps_occ, gt
-  USE exx_base, ONLY : nqs, xkq_collect, index_xkq, index_xk
+  USE exx_base, ONLY : nqs, xkq_collect, index_xkq, index_xk, coulomb_fac
   USE exx_band, ONLY : result_sum, igk_exx
   !
   !
@@ -39,7 +39,6 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   !
   INTEGER, EXTERNAL :: global_kpoint_index
   !
-  ALLOCATE( fac(dfftt%ngm) )
   nrxxs = dfftt%nnr
   !
   IF (noncolin) THEN
@@ -48,6 +47,7 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
     ALLOCATE( temppsic(nrxxs), result(nrxxs) )
   ENDIF
   !
+  ALLOCATE(fac(nrxxs))
   ALLOCATE(rhoc(nrxxs), vc(nrxxs))
   !
   current_ik = global_kpoint_index( nkstot, current_k )
@@ -107,9 +107,15 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
       xkq  = xkq_collect(:,ikq)
       ! calculate the 1/|r-r'| (actually, k+q+g) factor and place it in fac
       CALL my_g2_convolution_all( dfftt%ngm, gt, xkp, xkq, iq, current_k )
+      !CALL my_g2_convolution(dfftt%ngm, gt, xkp, xkq, fac)
+      fac = 0D0
+      DO ig = 1, dfftt%ngm
+        fac(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
+      ENDDO
       !
       IBND_LOOP_K : &
       DO ibnd = 1, nbnd !for each band of psi
+        !write(*,*) 'ibnd = ', ibnd
         !
         IF( ABS(x_occupation(ibnd,ik)) < eps_occ) THEN 
           CYCLE IBND_LOOP_K
@@ -135,11 +141,6 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
         !
         vc = 0._DP
         !
-        !DO ig = 1, exx_fft%ngmt
-        !  vc(dfftt%nl(igk_exx(ig,current_k))) = fac(ig)
-        !  !vc(exx_fft%nlt(ig)) = fac(ig) * rhoc(exx_fft%nlt(ig)) * &
-        !  !                              x_occupation(ibnd,ik) / nqs
-        !ENDDO
         !ffr multiply point by points?
         DO ir = 1,nrxxs
           vc(ir) = fac(ir) * rhoc(ir)*x_occupation(ibnd,ik)/nqs
@@ -208,7 +209,8 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   !
   DEALLOCATE(rhoc, vc, fac)
   !
-  !write(*,*) 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
-  !stop
+  !flush(6) ! stdout
+  !flush(0) ! stderr
+  !stop 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
   !
 END SUBROUTINE
