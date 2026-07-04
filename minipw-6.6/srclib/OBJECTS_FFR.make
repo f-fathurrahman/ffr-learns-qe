@@ -31,7 +31,8 @@ my_g2_convolution.o \
 my_exx_grid_init.o \
 my_exx_qgrid_init.o \
 my_exx_grid_check.o \
-my_exx_fft_create.o
+my_exx_fft_create.o \
+my_exx_set_symm.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \

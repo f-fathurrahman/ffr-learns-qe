@@ -124,7 +124,7 @@ SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
   INTEGER :: ijt, njt, jblock_start, jblock_end
   INTEGER :: iegrp, wegrp
   !
-  ialloc = nibands(my_egrp_id+1)
+  ialloc = nibands(my_egrp_id+1) !ffr: what's this?
   !
   ALLOCATE( fac(dfftt%ngm) )
   nrxxs= dfftt%nnr
@@ -144,10 +144,19 @@ SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
   !
   ! allocate arrays for rhoc and vc
   ALLOCATE( rhoc(nrxxs,jblock), vc(nrxxs,jblock) )
+
+  write(*,*) 'ENTER my_vexx_k_no_becpsi' 
+
+  write(*,*) 'my_egrp_id = ', my_egrp_id
+  write(*,*) 'nibands(my_egrp_id+1) = ', nibands(my_egrp_id+1)
+  !
+  !stop 'early stop 153 in my_vexx_k_no_becpsi'
+  !
   !
   DO ii = 1, nibands(my_egrp_id+1)
     !
     ibnd = ibands(ii,my_egrp_id+1)
+    write(*,*) 'ii, ibnd = ', ii, ibnd
     !
     IF (ibnd==0 .OR. ibnd>m) CYCLE
     !
@@ -191,6 +200,9 @@ SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
       ENDIF
       !
   ENDDO
+  
+  !stop 'early stop 204 my_vexx_k_no_becpsi'
+
   !
   !precompute these guys
   omega_inv = 1.0 / omega
@@ -215,15 +227,18 @@ SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
     ENDDO
     !
     DO iegrp = 1, negrp
+      write(*,*) 'iq, ikq, ik, iegrp, njt = ', iq, ikq, ik, iegrp
       !
       ! compute the id of group whose data is currently worked on
       wegrp = MOD(iegrp+my_egrp_id-1, negrp)+1
       njt = (all_end(wegrp)-all_start(wegrp)+jblock)/jblock
+      write(*,*) 'wegrp, njt = ', wegrp, njt
       !
       DO ijt = 1, njt
         !
         jblock_start = (ijt - 1) * jblock + all_start(wegrp)
         jblock_end = MIN(jblock_start+jblock-1,all_end(wegrp))
+        write(*,*) 'jblock_start, jblock_end = ', jblock_start, jblock_end
         !
         DO ii = 1, nibands(my_egrp_id+1)
           !
@@ -245,103 +260,92 @@ SUBROUTINE my_vexx_k_no_becpsi( lda, n, m, psi, hpsi )
               ENDIF
             ENDIF
           ENDDO
-            !
-            jstart = MAX( jstart, jblock_start )
-            jend = MIN( jend, jblock_end )
-            !
-            !how many iters
-            jcount = jend-jstart+1
-            IF (jcount <= 0) CYCLE
-            !
-            !----------------------------------------------------------------------!
-            !INNER LOOP START
-            !----------------------------------------------------------------------!
-            !
-            nblock = 2048
-            nrt = (nrxxs+nblock-1)/nblock
-            !
-            DO irt = 1, nrt
-              DO jbnd = jstart, jend
-                ir_start = (irt - 1) * nblock + 1
-                ir_end = MIN(ir_start+nblock-1, nrxxs)
-                IF (noncolin) THEN
-                  DO ir = ir_start, ir_end
-                    rhoc(ir,jbnd-jstart+1) = ( CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
-                                               iexx_start,ikq))*temppsic_nc(ir,1,ii) + &
-                                               CONJG(exxbuff(nrxxs+ir,jbnd-all_start(wegrp)+ &
-                                               iexx_start,ikq))*temppsic_nc(ir,2,ii) )/omega
-                  ENDDO
-                ELSE
-                  DO ir = ir_start, ir_end
-                    rhoc(ir,jbnd-jstart+1) = CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
-                                              iexx_start,ikq))*temppsic(ir,ii)*omega_inv
-                  ENDDO
-                ENDIF
-              ENDDO
-            ENDDO
-            !
-            !   brings it to G-space
-            DO jbnd=jstart, jend
-                CALL fwfft( 'Rho', rhoc(:,jbnd-jstart+1), dfftt )
-            ENDDO
-            !
-            DO irt = 1, nrt
-              DO jbnd = jstart, jend
-                ir_start = (irt - 1) * nblock + 1
-                ir_end = MIN(ir_start+nblock-1,nrxxs)
-                DO ir = ir_start, ir_end
-                    vc(ir,jbnd-jstart+1) = facb(ir) * rhoc(ir,jbnd-jstart+1)*&
-                                          x_occupation(jbnd,ik) * nqs_inv
-                ENDDO
-              ENDDO
-            ENDDO
-            ! brings back v in real space
+          !
+          jstart = MAX( jstart, jblock_start )
+          jend = MIN( jend, jblock_end )
+          !
+          !how many iters
+          jcount = jend-jstart+1
+          IF (jcount <= 0) CYCLE
+          !
+          !----------------------------------------------------------------------!
+          !INNER LOOP START
+          !----------------------------------------------------------------------!
+          !
+          nblock = 2048
+          nrt = (nrxxs+nblock-1)/nblock
+          !
+          DO irt = 1, nrt
             DO jbnd = jstart, jend
-              CALL invfft( 'Rho', vc(:,jbnd-jstart+1), dfftt )
+              ir_start = (irt - 1) * nblock + 1
+              ir_end = MIN(ir_start+nblock-1, nrxxs)
+              IF (noncolin) THEN
+                DO ir = ir_start, ir_end
+                  rhoc(ir,jbnd-jstart+1) = ( CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
+                                              iexx_start,ikq))*temppsic_nc(ir,1,ii) + &
+                                              CONJG(exxbuff(nrxxs+ir,jbnd-all_start(wegrp)+ &
+                                              iexx_start,ikq))*temppsic_nc(ir,2,ii) )/omega
+                ENDDO
+              ELSE
+                DO ir = ir_start, ir_end
+                  rhoc(ir,jbnd-jstart+1) = CONJG(exxbuff(ir,jbnd-all_start(wegrp)+ &
+                                            iexx_start,ikq))*temppsic(ir,ii)*omega_inv
+                ENDDO
+              ENDIF
             ENDDO
-            !
-            ! accumulates over bands and k points
-            !
-            DO irt = 1, nrt
-              DO jbnd = jstart, jend
-                ir_start = (irt - 1) * nblock + 1
-                ir_end = MIN(ir_start+nblock-1, nrxxs)
-                IF (noncolin) THEN
-                  DO ir = ir_start, ir_end
-                    result_nc(ir,1,ii) = result_nc(ir,1,ii) + vc(ir,jbnd-jstart+1) * &
-                                          exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
-                    result_nc(ir,2,ii) = result_nc(ir,2,ii) + vc(ir,jbnd-jstart+1) * &
-                                          exxbuff(ir+nrxxs,jbnd-all_start(wegrp)+iexx_start,ikq)
-                  ENDDO
-                ELSE
-                  DO ir = ir_start, ir_end
-                    result(ir,ii) = result(ir,ii) + vc(ir,jbnd-jstart+1)* &
-                                    exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
-                  ENDDO
-                ENDIF
+          ENDDO
+          !
+          !   brings it to G-space
+          DO jbnd=jstart, jend
+            CALL fwfft( 'Rho', rhoc(:,jbnd-jstart+1), dfftt )
+          ENDDO
+          !
+          DO irt = 1, nrt
+            DO jbnd = jstart, jend
+              ir_start = (irt - 1) * nblock + 1
+              ir_end = MIN(ir_start+nblock-1,nrxxs)
+              DO ir = ir_start, ir_end
+                vc(ir,jbnd-jstart+1) = facb(ir) * rhoc(ir,jbnd-jstart+1)*x_occupation(jbnd,ik) * nqs_inv
               ENDDO
             ENDDO
-            !
-            !----------------------------------------------------------------------!
-            !INNER LOOP END
-            !----------------------------------------------------------------------!
-            !
-          ENDDO !I-LOOP
+          ENDDO
+          ! brings back v in real space
+          DO jbnd = jstart, jend
+            CALL invfft( 'Rho', vc(:,jbnd-jstart+1), dfftt )
+          ENDDO
+          !
+          ! accumulates over bands and k points
+          !
+          DO irt = 1, nrt
+            DO jbnd = jstart, jend
+              ir_start = (irt - 1) * nblock + 1
+              ir_end = MIN(ir_start+nblock-1, nrxxs)
+              IF (noncolin) THEN
+                DO ir = ir_start, ir_end
+                  result_nc(ir,1,ii) = result_nc(ir,1,ii) + vc(ir,jbnd-jstart+1) * &
+                                        exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
+                  result_nc(ir,2,ii) = result_nc(ir,2,ii) + vc(ir,jbnd-jstart+1) * &
+                                        exxbuff(ir+nrxxs,jbnd-all_start(wegrp)+iexx_start,ikq)
+                ENDDO
+              ELSE
+                DO ir = ir_start, ir_end
+                  result(ir,ii) = result(ir,ii) + vc(ir,jbnd-jstart+1)* &
+                                  exxbuff(ir,jbnd-all_start(wegrp)+iexx_start,ikq)
+                ENDDO
+              ENDIF
+            ENDDO
+          ENDDO
+          !
+          !----------------------------------------------------------------------!
+          !INNER LOOP END
+          !----------------------------------------------------------------------!
+          !
+        ENDDO !I-LOOP
       ENDDO !IJT
-      !
-      ! get the next nbnd/negrp data
-      IF (negrp > 1) CALL mp_circular_shift_left( exxbuff(:,:,ikq), me_egrp, inter_egrp_comm )
-        !
     ENDDO !iegrp
-    !
-    !ffr: why this?
-    !IF( okvan .AND. .NOT. tqr ) then
-    !  CALL qvan_clean()
-    !endif
-    !
   ENDDO
   !
-  !
+  stop 'early stop 356 my_vexx_k_no_becpsi'
   !
   DO ii = 1, nibands(my_egrp_id+1)
       !

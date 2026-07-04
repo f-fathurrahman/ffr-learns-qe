@@ -11,7 +11,7 @@ subroutine scale_sym_ops (nsym, s, ft, nr1, nr2, nr3, s_scaled, ftau)
   !
   !    Generate rotation matrices and fractional translations in scaled
   !    crystallographic axis from symmetries, check their consistency.
-  !    For use in real-space symmetrization routine "rotate_grud_point"
+  !    For use in real-space symmetrization routine "rotate_grid_point"
   !
   use kinds, only : dp
   implicit none

@@ -20,16 +20,11 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
   !
   IMPLICIT NONE
   !
-  INTEGER,  INTENT(IN) :: ngm
-  !! Number of G vectors
-  REAL(DP), INTENT(IN) :: g(3,ngm)
-  !! Cartesian components of G vectors
-  REAL(DP), INTENT(IN) :: xk(3)
-  !! current k vector
-  REAL(DP), INTENT(IN) :: xkq(3)
-  !! current q vector
-  REAL(DP), INTENT(INOUT) :: fac(ngm)
-  !! Calculated convolution
+  INTEGER,  INTENT(IN) :: ngm !! Number of G vectors
+  REAL(DP), INTENT(IN) :: g(3,ngm) !! Cartesian components of G vectors
+  REAL(DP), INTENT(IN) :: xk(3) !! current k vector
+  REAL(DP), INTENT(IN) :: xkq(3) !! current q vector
+  REAL(DP), INTENT(INOUT) :: fac(ngm) !! Calculated convolution
   !
   ! local variables
   !
@@ -66,11 +61,11 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
     DO ig = 1, ngm
       q(:)= xk(:) - xkq(:) + g(:,ig)
       qq_track(ig) = SUM(q(:)**2) * tpiba2
-      x = (q(1)*at(1,1)+q(2)*at(2,1)+q(3)*at(3,1))*nqhalf_dble(1)
+      x = (q(1)*at(1,1) + q(2)*at(2,1) + q(3)*at(3,1))*nqhalf_dble(1)
       odg(1) = ABS(x-NINT(x)) < eps
-      x = (q(1)*at(1,2)+q(2)*at(2,2)+q(3)*at(3,2))*nqhalf_dble(2)
+      x = (q(1)*at(1,2) + q(2)*at(2,2) + q(3)*at(3,2))*nqhalf_dble(2)
       odg(2) = ABS(x-NINT(x)) < eps
-      x = (q(1)*at(1,3)+q(2)*at(2,3)+q(3)*at(3,3))*nqhalf_dble(3)
+      x = (q(1)*at(1,3) + q(2)*at(2,3) + q(3)*at(3,3))*nqhalf_dble(3)
       odg(3) = ABS(x-NINT(x)) < eps
       IF( ALL( odg(:) ) ) THEN
         grid_factor_track(ig) = 0._DP ! on double grid
@@ -79,8 +74,9 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
       ENDIF
     ENDDO
   ELSE
+    !ffr: This is the usual one, loop over G-vectors
     DO ig = 1, ngm
-      q(:) = xk(:) - xkq(:) + g(:,ig)
+      q(:) = xk(:) - xkq(:) + g(:,ig) !ffr: Is this G+q ?
       qq_track(ig) = SUM(q(:)**2) * tpiba2
     ENDDO
     grid_factor_track = 1._DP

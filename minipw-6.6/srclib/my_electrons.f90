@@ -132,8 +132,8 @@ SUBROUTINE my_electrons()
       ENDIF
       CALL set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
       !
-      flush(6)
-      stop 'Early stop 135 in my_electrons'
+      !flush(6)
+      !stop 'Early stop 135 in my_electrons'
       !
     ELSE
       !

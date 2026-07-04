@@ -49,6 +49,7 @@ SUBROUTINE my_exxinit( DoLoc )
   ! additional
   USE exx_base, only: use_coulomb_vcut_spheric, use_coulomb_vcut_ws, x_gamma_extrapolation, &
                     & exxdiv_treatment, use_regularization
+  use exx_base, only: gau_scrlen, erf_scrlen, erfc_scrlen, exxdiv, yukawa, eps_qdiv
 
 
   !
@@ -77,14 +78,6 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*)
   write(*,*) '<div> ENTER my_exxinit()'
   write(*,*)
-  write(*,*) 'DoLoc = ', DoLoc
-  write(*,*) 'negrp = ', negrp
-  write(*,*) 'eps_occ = ', eps_occ
-  write(*,*) 'use_coulomb_vcut_ws = ', use_coulomb_vcut_ws
-  write(*,*) 'use_coulomb_vcut_spheric = ', use_coulomb_vcut_spheric
-  write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
-  write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
-  write(*,*) 'use_regularization = ', use_regularization
 
   if(negrp /= 1) then
     stop 'negrp parallezation is disabled here'
@@ -135,8 +128,8 @@ SUBROUTINE my_exxinit( DoLoc )
   ENDIF
   !ffr: what's this?
   IF( .NOT. gamma_only ) THEN
-    CALL exx_set_symm( dfftt%nr1, dfftt%nr2,  dfftt%nr3, &
-                       dfftt%nr1x, dfftt%nr2x, dfftt%nr3x )
+    CALL my_exx_set_symm( dfftt%nr1, dfftt%nr2,  dfftt%nr3, &
+                          dfftt%nr1x, dfftt%nr2x, dfftt%nr3x )
   ENDIF
   !
   ! set occupations of wavefunctions used in the calculation of exchange term
@@ -351,6 +344,8 @@ SUBROUTINE my_exxinit( DoLoc )
         ENDIF
         !ffr: dfftt is fft of the wave function, or wave function in real space
         !
+        !ffr: At this point temppsic is ready, contains real space repr of evc_exx
+        !
         !write(*,*) 'nkqs = ', nkqs
         !stop 'stopped here 623'
         !
@@ -392,7 +387,9 @@ SUBROUTINE my_exxinit( DoLoc )
               ENDDO
             ENDIF ! index_sym
           !
-          ELSE ! noncolinear
+          ELSE
+            !
+            !ffr This is the usual one
             !
             DO ir = 1, nrxxs
               psic_exx(ir) = temppsic(rir(ir,isym))
@@ -446,6 +443,25 @@ SUBROUTINE my_exxinit( DoLoc )
   IF (okpaw) CALL PAW_init_fock_kernel()
   !
   CALL change_data_structure( .FALSE. )
+
+  ! write out several parameter before exiting
+  write(*,*) '----------------------------------------------------------------'
+  write(*,*) 'DoLoc = ', DoLoc
+  write(*,*) 'negrp = ', negrp
+  write(*,*) 'eps_occ = ', eps_occ
+  write(*,*) 'use_coulomb_vcut_ws = ', use_coulomb_vcut_ws
+  write(*,*) 'use_coulomb_vcut_spheric = ', use_coulomb_vcut_spheric
+  write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
+  write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
+  write(*,*) 'use_regularization = ', use_regularization
+  write(*,*) 'exxdiv = ', exxdiv
+  write(*,*) 'eps_qdiv = ', eps_qdiv
+  write(*,*) 'gau_scrlen = ', gau_scrlen
+  write(*,*) 'erf_scrlen = ', erf_scrlen
+  write(*,*) 'erfc_scrlen = ', erfc_scrlen
+  write(*,*) 'yukawa = ', yukawa
+  write(*,*) '----------------------------------------------------------------'
+
 
   write(*,*)
   write(*,*) '</div> EXIT my_exxinit()'
