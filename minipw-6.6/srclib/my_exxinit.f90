@@ -147,8 +147,13 @@ SUBROUTINE my_exxinit( DoLoc )
       occ(1:nbnd,ik) = 0._DP
     ENDIF
   ENDDO
+  !ffr: wg is the weight of each band and kpt (combination of focc and wk)
+  !ffr: x_occupation is now only focc
   !
   CALL poolcollect( nbnd, nks, occ, nkstot, x_occupation )
+  !write(*,*) 'occ = ', occ
+  !write(*,*) 'x_occupation = ', x_occupation
+  !stop 'early stop in 154'
   !
   DEALLOCATE( occ )
   !
@@ -161,8 +166,17 @@ SUBROUTINE my_exxinit( DoLoc )
       IF (ABS(x_occupation(ibnd,ik)) > eps_occ) x_nbnd_occ = ibnd
     ENDDO
   ENDDO
+  write(*,*) 'nbnd = ', nbnd
+  write(*,*) 'eps_occ = ', eps_occ
+  write(*,*) 'x_nbnd_occ = ', x_nbnd_occ
+  ! These should be small
+  write(*,*) 'x_occupation(x_nbnd_occ:nbnd,1) = ', x_occupation(x_nbnd_occ:nbnd,1)
+  !stop 'Early stop 170'
   !
+  !ffr: by default we use all bands?
   IF (nbndproj == 0) nbndproj = nbnd
+  write(*,*) 'nbndproj = ', nbndproj
+  !stop 'Early stop 178'
   !
   CALL divide( inter_egrp_comm, x_nbnd_occ, ibnd_start, ibnd_end )
   CALL init_index_over_band( inter_egrp_comm, nbnd, nbnd )
@@ -216,6 +230,11 @@ SUBROUTINE my_exxinit( DoLoc )
       ENDIF
     ENDIF
   ENDIF
+  write(*,*) 'nrxxs = ', nrxxs
+  write(*,*) 'npol = ', npol
+  write(*,*) 'nkqs = ', nkqs
+  write(*,*) 'shape exxbuff = ', shape(exxbuff)
+  stop 'Early stop 234'
   !
   !
   ! assign buffer

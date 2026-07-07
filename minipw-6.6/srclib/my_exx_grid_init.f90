@@ -264,6 +264,9 @@ SUBROUTINE my_exx_grid_init( reinit )
   ENDDO
   qnorm = qnorm * tpiba
   write(*,*) 'qnorm = ', qnorm
+  write(*,*) 'nkqs = ', nkqs
+  write(*,*) 'nks = ', nks
+  write(*,*) 'nq1,nq2,nq3 = ', nq1, nq2, nq3
 
   write(*,*)
   write(*,*) '</div> EXIT my_exx_grid_init'

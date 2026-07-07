@@ -60,6 +60,8 @@ SUBROUTINE my_exx_set_symm( nr1, nr2, nr3, nr1x, nr2x, nr3x )
   write(*,*) 
   write(*,*) '</div> EXIT my_exx_set_symm'
   write(*,*)
+  flush(0) ! flush stderr
+  !stop 'Early stop 63 in my_exx_set_symm'
   !
   return
   !
