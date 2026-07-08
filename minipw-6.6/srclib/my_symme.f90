@@ -630,7 +630,7 @@ gloop:    DO jg=iig,ngm_
     !
     !
     IF ( no_rho_sym) RETURN
-    CALL sym_rho_serial ( ngm, g, nspin, rhog )
+    CALL my_sym_rho_serial ( ngm, g, nspin, rhog )
     RETURN
   END SUBROUTINE sym_rho
 

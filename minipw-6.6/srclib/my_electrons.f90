@@ -8,11 +8,10 @@ SUBROUTINE my_electrons()
   USE fft_base,             ONLY : dfftp
   USE gvecs,                ONLY : doublegrid
   USE lsda_mod,             ONLY : nspin
-  USE ener,                 ONLY : etot, hwf_energy, eband, ehart, &
-                                   vtxc, etxc, etxcc, ewld, epaw, &
-                                   elondon, edftd3, ef_up, ef_dw
+  USE ener,                 ONLY : etot, hwf_energy, ehart, &
+                                   vtxc, etxcc, epaw, etxc
   USE scf,                  ONLY : rho, rho_core, rhog_core, v, vltot, vrs, &
-                                   kedtau, vnew
+                                   kedtau
   USE control_flags,        ONLY : tr2, niter, conv_elec, restart, do_makov_payne
   USE io_files,             ONLY : iunres, seqopn
   USE ldaU,                 ONLY : eth
@@ -22,12 +21,14 @@ SUBROUTINE my_electrons()
   USE exx,  ONLY : aceinit, exxinit, exxenergy2, exxbuff, &
                    fock0, fock1, fock2, fock3, dexx, use_ace, local_thr 
   USE funct,                ONLY : dft_is_hybrid, exx_is_active
-  USE control_flags,        ONLY : adapt_thr, tr2_init, tr2_multi, gamma_only
+  USE control_flags,        ONLY : adapt_thr, tr2_multi, gamma_only
   !
   USE paw_variables,        ONLY : okpaw, ddd_paw
   USE paw_onecenter,        ONLY : PAW_potential
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE ions_base,            ONLY : nat
+  USE loc_scdm_k,           ONLY : localize_orbitals_k
+  USE loc_scdm,             ONLY : localize_orbitals
   USE loc_scdm_k,           ONLY : localize_orbitals_k
   !
   IMPLICIT NONE

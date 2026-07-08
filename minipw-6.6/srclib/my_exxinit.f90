@@ -234,7 +234,7 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) 'npol = ', npol
   write(*,*) 'nkqs = ', nkqs
   write(*,*) 'shape exxbuff = ', shape(exxbuff)
-  stop 'Early stop 234'
+  !stop 'Early stop 234'
   !
   !
   ! assign buffer
