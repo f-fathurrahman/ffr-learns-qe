@@ -141,7 +141,8 @@ SUBROUTINE my_exxinit( DoLoc )
   ALLOCATE( occ(nbnd,nks) )
   !ffr: do not include orbitals with small occupations (?)
   DO ik = 1, nks
-    IF( ABS(wk(ik)) > eps_occ ) THEN
+    !write(*,*) 'wk(ik) = ', wk(ik)
+    IF( ABS(wk(ik)) > eps_occ ) THEN ! ffr: why using wk ?
       occ(1:nbnd,ik) = wg(1:nbnd,ik) / wk(ik)
     ELSE
       occ(1:nbnd,ik) = 0._DP
@@ -194,6 +195,8 @@ SUBROUTINE my_exxinit( DoLoc )
     ibnd_buff_end   = ibnd_end_new
     max_buff_bands_per_egrp = MAXVAL(all_end(:)-all_start(:))+1
   ENDIF
+  write(*,*) 'ibnd_buff_start = ', ibnd_buff_start
+  write(*,*) 'ibnd_buff_end = ', ibnd_buff_end
   !
   !
   IF( DoLoc ) THEN

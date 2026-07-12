@@ -99,6 +99,8 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   iexch = get_iexch()
   icorr = get_icorr()
+  write(*,*) 'subroutine xc: iexch = ', iexch
+  write(*,*) 'subroutine xc: icorr = ', icorr
   !
   ex_out = 0.0_DP ; vx_out = 0.0_DP
   ec_out = 0.0_DP ; vc_out = 0.0_DP
@@ -150,7 +152,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   ! ... EXCHANGE
 
   IF( is_libxc(1) ) THEN
-     !write(*,*) 'using libxc: iexch = ', iexch
+     write(*,*) 'using libxc: iexch = ', iexch
      !write(*,*) 'rho_threshold = ', rho_threshold
      CALL xc_f03_func_init( xc_func, iexch, sv_d )
        xc_info1 = xc_f03_func_get_info( xc_func )
@@ -162,7 +164,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   ! ... CORRELATION
   IF ( is_libxc(2) ) THEN
-     !write(*,*) 'using libxc: icorr = ', icorr
+     write(*,*) 'using libxc: icorr = ', icorr
      !write(*,*) 'rho_threshold = ', rho_threshold
       CALL xc_f03_func_init( xc_func, icorr, sv_d )
       xc_info2 = xc_f03_func_get_info( xc_func )
@@ -173,10 +175,13 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   IF ( ((.NOT.is_libxc(1)) .OR. (.NOT.is_libxc(2))) &
         .AND. fkind_x/=XC_EXCHANGE_CORRELATION ) THEN
-     !
-     !write(*,*)
-     !write(*,*) '!!!!!! LDA/LSDA: Not using LibXC !!!!!'
-     !write(*,*)
+     
+     write(*,*)
+     write(*,*) '----- INFO: LDA/LSDA: Not using LibXC -----'
+     write(*,*) 'sr_d = ', sr_d
+     write(*,*)
+     flush(0)
+     !stop 'Early stop 184 in xc_lda_lsda_driver'
      SELECT CASE( sr_d )
      CASE( 1 )
         !
@@ -354,6 +359,15 @@ SUBROUTINE xc_lda( length, rho_in, ex_out, ec_out, vx_out, vc_out )
         'finite size corrected exchange used w/o initialization', 1 )
   ENDIF
   !
+
+   !ffr: warning when using this because I set it to zeros
+   if(iexch==4 .OR. iexch==5) then
+      write(*,*)
+      write(*,*) '----- WARNING WARNING This iexch=', iexch, ' is modified to be zeros -----'
+      write(*,*)
+   endif
+
+
 !$omp parallel if(ntids==1)
 !$omp do private( rho, rs, ex, ec, ec_, vx, vc, vc_ )
   DO ir = 1, length
@@ -387,12 +401,13 @@ SUBROUTINE xc_lda( length, rho_in, ex_out, ec_out, vx_out, vc_out )
         !
      CASE( 4, 5 )                   ! 'oep','hf'
         !
-        IF ( exx_started ) THEN
+        !XXX temporarily disabled by ffr
+        ! IF ( exx_started ) THEN
            ex = 0.0_DP
            vx = 0.0_DP
-        ELSE
-           CALL slater( rs, ex, vx )
-        ENDIF
+        !ELSE
+        !   CALL slater( rs, ex, vx )
+        !ENDIF
         !
      CASE( 6, 7 )                   ! 'pb0x' or 'DF-cx-0', or 'DF2-0',
         !                           ! 'B3LYP'

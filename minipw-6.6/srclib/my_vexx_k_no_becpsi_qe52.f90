@@ -47,7 +47,8 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
     ALLOCATE( temppsic(nrxxs), result(nrxxs) )
   ENDIF
   !
-  ALLOCATE(fac(nrxxs))
+  !ALLOCATE(fac(nrxxs))
+  ALLOCATE(fac(dfftt%ngm))
   ALLOCATE(rhoc(nrxxs), vc(nrxxs))
   !
   current_ik = global_kpoint_index( nkstot, current_k )
@@ -105,13 +106,12 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
       ikq  = index_xkq(current_ik,iq)
       ik   = index_xk(ikq)
       xkq  = xkq_collect(:,ikq)
-      ! calculate the 1/|r-r'| (actually, k+q+g) factor and place it in fac
-      CALL my_g2_convolution_all( dfftt%ngm, gt, xkp, xkq, iq, current_k )
-      !CALL my_g2_convolution(dfftt%ngm, gt, xkp, xkq, fac)
-      fac = 0D0
-      DO ig = 1, dfftt%ngm
-        fac(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
-      ENDDO
+      ! calculate the 1/|r-r'| (actually, k+q+g) factor, result is in global variable coulomb_fac
+      fac = 0.d0 ! need this?
+      CALL my_g2_convolution( dfftt%ngm, gt, xkp, xkq, fac )
+      !DO ig = 1, dfftt%ngm
+      !  fac(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
+      !ENDDO
       !
       IBND_LOOP_K : &
       DO ibnd = 1, nbnd !for each band of psi
@@ -141,10 +141,13 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
         !
         vc = 0._DP
         !
-        !ffr multiply point by points?
-        DO ir = 1,nrxxs
-          vc(ir) = fac(ir) * rhoc(ir)*x_occupation(ibnd,ik)/nqs
+        DO ig = 1, dfftt%ngm
+          vc(dfftt%nl(ig)) = fac(ig) * rhoc(dfftt%nl(ig)) * x_occupation(ibnd,ik) / nqs
         ENDDO
+        !ffr: multiply by points?
+        !DO ir = 1,nrxxs
+        !  vc(ir) = fac(ir) * rhoc(ir)*x_occupation(ibnd,ik)/nqs
+        !ENDDO
         !
         !brings back v in real space
         CALL invfft('Rho', vc, dfftt)

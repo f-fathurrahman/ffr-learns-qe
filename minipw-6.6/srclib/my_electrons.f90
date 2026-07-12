@@ -69,7 +69,8 @@ SUBROUTINE my_electrons()
     ! Self-consistency loop. For hybrid functionals the exchange potential
     ! is calculated with the orbitals at previous step (none at first step)
     !
-    CALL my_electrons_scf(printout, exxen)
+    !CALL my_electrons_scf(printout, exxen)
+    CALL my_electrons_scf(2, exxen)
     ! Early return
     IF( .NOT. dft_is_hybrid() ) then
       RETURN
