@@ -29,10 +29,25 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
   ! local variables
   !
   INTEGER :: ig !Counters
-  REAL(DP) :: q(3), qq, x
+  REAL(DP) :: q(3), qq, x, x1, x2, x3
   REAL(DP) :: grid_factor_track(ngm), qq_track(ngm)
   REAL(DP) :: nqhalf_dble(3)
   LOGICAL :: odg(3)
+  real(8) :: my_exx_divergence ! function
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_g2_convolution'
+  write(*,*)
+  write(*,'(1x,A,3F18.10)') 'xk = ', xk
+  write(*,'(1x,A,3F18.10)') 'xkq = ', xkq
+  write(*,*) 'grid_factor = ', grid_factor
+  write(*,*) 'exxdiv = ', exxdiv
+  write(*,*) 'eps = ', eps
+  write(*,*) 'at(1,:) = ', at(1,:)
+  write(*,*) 'at(2,:) = ', at(2,:)
+  write(*,*) 'at(3,:) = ', at(3,:)
+  write(*,*)
+
   !
   ! First the types of Coulomb potential that need q(3) and an external call
   IF( use_coulomb_vcut_ws ) THEN
@@ -61,17 +76,21 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
     DO ig = 1, ngm
       q(:)= xk(:) - xkq(:) + g(:,ig)
       qq_track(ig) = SUM(q(:)**2) * tpiba2
-      x = (q(1)*at(1,1) + q(2)*at(2,1) + q(3)*at(3,1))*nqhalf_dble(1)
-      odg(1) = ABS(x-NINT(x)) < eps
-      x = (q(1)*at(1,2) + q(2)*at(2,2) + q(3)*at(3,2))*nqhalf_dble(2)
-      odg(2) = ABS(x-NINT(x)) < eps
-      x = (q(1)*at(1,3) + q(2)*at(2,3) + q(3)*at(3,3))*nqhalf_dble(3)
-      odg(3) = ABS(x-NINT(x)) < eps
+      !
+      x1 = (q(1)*at(1,1) + q(2)*at(2,1) + q(3)*at(3,1))*nqhalf_dble(1)
+      odg(1) = ABS(x1-NINT(x1)) < eps
+      !
+      x2 = (q(1)*at(1,2) + q(2)*at(2,2) + q(3)*at(3,2))*nqhalf_dble(2)
+      odg(2) = ABS(x2 - NINT(x2)) < eps
+      !
+      x3 = (q(1)*at(1,3) + q(2)*at(2,3) + q(3)*at(3,3))*nqhalf_dble(3)
+      odg(3) = ABS(x3 - NINT(x3)) < eps
       IF( ALL( odg(:) ) ) THEN
         grid_factor_track(ig) = 0._DP ! on double grid
       ELSE
         grid_factor_track(ig) = grid_factor ! not on double grid
       ENDIF
+      !write(*,*) x1, x2, x3, odg
     ENDDO
   ELSE
     !ffr: This is the usual one, loop over G-vectors
@@ -81,6 +100,8 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
     ENDDO
     grid_factor_track = 1._DP
   ENDIF
+  !write(*,*) 'sum qq_track = ', sum(qq_track)
+  !write(*,*) 'sum grid_factor_track = ', sum(grid_factor_track)
   !
   ! The big loop
   !
@@ -109,6 +130,18 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
       ENDIF
     ENDIF
   ENDDO
+
+  write(*,*) 'sum fac = ', sum(fac)
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_g2_convolution'
+  write(*,*)
+
+  exxdiv = my_exx_divergence()
+  write(*,*) 'exxdiv = ', exxdiv
+
+  stop 'Early stop 126 in my_g2_convolution'
+
 END SUBROUTINE my_g2_convolution
 
 

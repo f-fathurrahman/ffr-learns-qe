@@ -14,7 +14,7 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   USE mp,             ONLY : mp_sum, mp_barrier, mp_bcast
   use noncollin_module, only: npol, noncolin
   USE exx, only: exxbuff, x_occupation, exxalfa, dfftt, eps_occ, gt
-  USE exx_base, ONLY : nqs, xkq_collect, index_xkq, index_xk, coulomb_fac
+  USE exx_base, ONLY : nqs, xkq_collect, index_xkq, index_xk
   USE exx_band, ONLY : result_sum, igk_exx
   !
   !
@@ -109,6 +109,8 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
       ! calculate the 1/|r-r'| (actually, k+q+g) factor, result is in global variable coulomb_fac
       fac = 0.d0 ! need this?
       CALL my_g2_convolution( dfftt%ngm, gt, xkp, xkq, fac )
+      !write(*,*) 'xkq = ', xkq, ' xkp = ', xkp
+      write(*,*) 'im, iq, sum fac = ', im, iq, sum(fac)*0.5d0
       !DO ig = 1, dfftt%ngm
       !  fac(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
       !ENDDO
@@ -212,8 +214,8 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   !
   DEALLOCATE(rhoc, vc, fac)
   !
-  !flush(6) ! stdout
-  !flush(0) ! stderr
-  !stop 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
+  flush(6) ! stdout
+  flush(0) ! stderr
+  stop 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
   !
 END SUBROUTINE

@@ -34,7 +34,8 @@ my_exx_grid_check.o \
 my_exx_fft_create.o \
 my_exx_set_symm.o \
 my_vexx_k_no_becpsi_qe52.o \
-my_exxenergy2_k_qe52.o
+my_exxenergy2_k_qe52.o \
+my_exx_divergence.o
 
 OBJ_FFR_LD1X = \
 ld1x_my_all_electron.o \
