@@ -33,7 +33,7 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
   REAL(DP) :: grid_factor_track(ngm), qq_track(ngm)
   REAL(DP) :: nqhalf_dble(3)
   LOGICAL :: odg(3)
-  real(8) :: my_exx_divergence ! function
+  !real(8) :: my_exx_divergence ! function
 
   write(*,*)
   write(*,*) '<div> ENTER my_g2_convolution'
@@ -137,10 +137,10 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
   write(*,*) '</div> EXIT my_g2_convolution'
   write(*,*)
 
-  exxdiv = my_exx_divergence()
-  write(*,*) 'exxdiv = ', exxdiv
+  !exxdiv = my_exx_divergence()
+  !write(*,*) 'exxdiv = ', exxdiv
 
-  stop 'Early stop 126 in my_g2_convolution'
+  !stop 'Early stop 126 in my_g2_convolution'
 
 END SUBROUTINE my_g2_convolution
 

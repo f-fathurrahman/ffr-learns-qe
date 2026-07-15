@@ -50,6 +50,7 @@ SUBROUTINE my_exxinit( DoLoc )
   USE exx_base, only: use_coulomb_vcut_spheric, use_coulomb_vcut_ws, x_gamma_extrapolation, &
                     & exxdiv_treatment, use_regularization
   use exx_base, only: gau_scrlen, erf_scrlen, erfc_scrlen, exxdiv, yukawa, eps_qdiv
+  use exx, only: exxenergy, exxenergy2
 
 
   !
@@ -476,7 +477,7 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) 'x_gamma_extrapolation = ', x_gamma_extrapolation
   write(*,*) 'exxdiv_treatment = ', trim(exxdiv_treatment)
   write(*,*) 'use_regularization = ', use_regularization
-  write(*,*) 'exxdiv = ', exxdiv
+  write(*,*) 'exxdiv (in Ha) = ', exxdiv*0.5d0
   write(*,*) 'eps_qdiv = ', eps_qdiv
   write(*,*) 'gau_scrlen = ', gau_scrlen
   write(*,*) 'erf_scrlen = ', erf_scrlen
@@ -484,11 +485,14 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) 'yukawa = ', yukawa
   write(*,*) '----------------------------------------------------------------'
 
+  write(*,*) 'exxenergy = ', exxenergy()
+  write(*,*) 'exxenergy2 = ', exxenergy2()
+
 
   write(*,*)
   write(*,*) '</div> EXIT my_exxinit()'
   write(*,*)
 
-  !stop 'early stop in my_exxinit'
+  stop 'early stop in my_exxinit'
 
 END SUBROUTINE my_exxinit

@@ -6,7 +6,6 @@
   USE cell_base, ONLY : bg, at, alat, omega
   USE gvect, ONLY : ngm, g
   USE gvecw, ONLY : gcutw
-  USE mp_exx, ONLY : intra_egrp_comm
   USE control_flags, ONLY : gamma_only
   USE mp, ONLY : mp_sum
   use gvecw, only: ecutwfc
@@ -85,7 +84,7 @@
               ELSE
                 div = div + EXP( -alpha * qq) / (qq + yukawa/tpiba2) * grid_factor
               ENDIF
-              write(*,*) ig, qq, div
+              !write(*,*) ig, qq, div
             ENDIF
           ENDIF
         ENDDO ! ig
@@ -100,16 +99,20 @@
   !
   IF ( .NOT. x_gamma_extrapolation ) THEN
     IF ( yukawa > 0._dp) THEN
-        div = div + tpiba2/yukawa
+      div = div + tpiba2/yukawa
     ELSEIF( erfc_scrlen > 0._dp ) THEN
-        div = div + tpiba2/4.d0/erfc_scrlen**2
+      div = div + tpiba2/4.d0/erfc_scrlen**2
     ELSE
-        div = div - alpha
+      div = div - alpha
     ENDIF
   ENDIF
   write(*,*) 'Line 114 div = ', div
   !
-  div = div * e2 * fpi / tpiba2 / nqs
+  div = div * e2 * fpi / tpiba2 / nqs ! 4*pi/(4pi^2 / alat)
+  write(*,*) 'e2 = ', e2
+  write(*,*) 'fpi / tpiba2 = ', fpi / tpiba2
+  write(*,*) 'alat^2/pi = ', alat**2/pi
+  write(*,*) '(in Ry) div = ', div ! in 
   !
   alpha = alpha / tpiba2
   !
@@ -128,9 +131,11 @@
         aa = aa - EXP( -alpha * qq) * yukawa / (qq + yukawa)*dq
     ENDIF
   ENDDO
+  write(*,*) 'aa = ', aa
   !
   aa = aa * 8.d0/fpi
   aa = aa + 1._dp/SQRT(alpha*0.25d0*fpi)
+  write(*,*) 'aa = ', aa
   IF ( erf_scrlen > 0) aa = 1._dp/SQRT((alpha+1._dp/4.d0/erf_scrlen**2)*0.25d0*fpi)
   div = div - e2*omega * aa
   !
