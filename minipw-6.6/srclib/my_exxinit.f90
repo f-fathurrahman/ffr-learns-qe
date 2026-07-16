@@ -486,7 +486,7 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) '----------------------------------------------------------------'
 
   write(*,*) 'exxenergy = ', exxenergy()
-  write(*,*) 'exxenergy2 = ', exxenergy2()
+  !write(*,*) 'exxenergy2 = ', exxenergy2() ! This will hang up
 
 
   write(*,*)
