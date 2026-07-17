@@ -35,18 +35,18 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
   LOGICAL :: odg(3)
   !real(8) :: my_exx_divergence ! function
 
-  write(*,*)
-  write(*,*) '<div> ENTER my_g2_convolution'
-  write(*,*)
-  write(*,'(1x,A,3F18.10)') 'xk = ', xk
-  write(*,'(1x,A,3F18.10)') 'xkq = ', xkq
-  write(*,*) 'grid_factor = ', grid_factor
-  write(*,*) 'exxdiv = ', exxdiv
-  write(*,*) 'eps = ', eps
-  write(*,*) 'at(1,:) = ', at(1,:)
-  write(*,*) 'at(2,:) = ', at(2,:)
-  write(*,*) 'at(3,:) = ', at(3,:)
-  write(*,*)
+  !write(*,*)
+  !write(*,*) '<div> ENTER my_g2_convolution'
+  !write(*,*)
+  !write(*,'(1x,A,3F18.10)') 'xk = ', xk
+  !write(*,'(1x,A,3F18.10)') 'xkq = ', xkq
+  !write(*,*) 'grid_factor = ', grid_factor
+  !write(*,*) 'exxdiv = ', exxdiv
+  !write(*,*) 'eps = ', eps
+  !write(*,*) 'at(1,:) = ', at(1,:)
+  !write(*,*) 'at(2,:) = ', at(2,:)
+  !write(*,*) 'at(3,:) = ', at(3,:)
+  !write(*,*)
 
   !
   ! First the types of Coulomb potential that need q(3) and an external call
@@ -131,11 +131,11 @@ SUBROUTINE my_g2_convolution( ngm, g, xk, xkq, fac )
     ENDIF
   ENDDO
 
-  write(*,*) 'sum fac = ', sum(fac)
+  !write(*,*) 'sum fac = ', sum(fac)
 
-  write(*,*)
-  write(*,*) '</div> EXIT my_g2_convolution'
-  write(*,*)
+  !write(*,*)
+  !write(*,*) '</div> EXIT my_g2_convolution'
+  !write(*,*)
 
   !exxdiv = my_exx_divergence()
   !write(*,*) 'exxdiv = ', exxdiv

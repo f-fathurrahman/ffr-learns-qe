@@ -110,7 +110,7 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
       fac = 0.d0 ! need this?
       CALL my_g2_convolution( dfftt%ngm, gt, xkp, xkq, fac )
       !write(*,*) 'xkq = ', xkq, ' xkp = ', xkp
-      write(*,*) 'im, iq, sum fac = ', im, iq, sum(fac)*0.5d0
+      !write(*,*) 'im, iq, sum fac = ', im, iq, sum(fac)*0.5d0
       !DO ig = 1, dfftt%ngm
       !  fac(dfftt%nl(ig)) = coulomb_fac(ig,iq,current_k)
       !ENDDO
@@ -214,8 +214,8 @@ SUBROUTINE my_vexx_k_no_becpsi_qe52(lda, n, m, psi, hpsi)
   !
   DEALLOCATE(rhoc, vc, fac)
   !
-  flush(6) ! stdout
-  flush(0) ! stderr
-  stop 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
+  !flush(6) ! stdout
+  !flush(0) ! stderr
+  !stop 'Early stop 210 in my_vexx_k_no_becpsi_qe52'
   !
 END SUBROUTINE

@@ -134,7 +134,15 @@ SUBROUTINE my_electrons()
       ENDIF
       CALL set_vrs( vrs, vltot, v%of_r, kedtau, v%kin_r, dfftp%nnr, nspin, doublegrid )
       !
-      !flush(6)
+      write(*,*)
+      write(*,*) 'At first step of exact exchange:'
+      write(*,*) 'idum = ', idum
+      write(*,*) 'fock0 = ', fock0
+      write(*,*) 'fock1 = ', fock1
+      write(*,*) 'fock2 = ', fock2
+      write(*,*) 'etxc = ', etxc
+      write(*,*) 'exxen = ', exxen
+      flush(0)
       !stop 'Early stop 135 in my_electrons'
       !
     ELSE
@@ -149,7 +157,7 @@ SUBROUTINE my_electrons()
       ENDIF
       !
       ! Set new orbitals for the calculation of the exchange term
-      !
+      ! ffr: exxbuf is updated
       CALL my_exxinit(DoLoc)
       !
       IF( DoLoc .and. gamma_only) THEN
@@ -199,6 +207,17 @@ SUBROUTINE my_electrons()
       etot = etot + exxen + 0.5D0*fock2 - fock1
       hwf_energy = hwf_energy + exxen + 0.5D0*fock2 - fock1 ! [LP]
       exxen = 0.5D0*fock2 
+      !
+      write(*,*)
+      write(*,*) 'At the end of step exact exchange:'
+      write(*,*) 'idum = ', idum
+      write(*,*) 'fock0 = ', fock0
+      write(*,*) 'fock1 = ', fock1
+      write(*,*) 'fock2 = ', fock2
+      write(*,*) '0.5D0*fock2 - fock1 = ', 0.5D0*fock2 - fock1
+      write(*,*) 'etxc = ', etxc
+      write(*,*) 'exxen = ', exxen
+      write(*,*) 'exxen*2 = ', exxen*2
       !
       IF ( dexx < tr2_final ) THEN
         WRITE( *, 9066 ) '!!', etot, hwf_energy

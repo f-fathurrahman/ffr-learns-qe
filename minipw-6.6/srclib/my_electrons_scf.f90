@@ -122,6 +122,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   write(*,*)
   write(*,*) '<div> ENTER my_electrons_scf'
   write(*,*) 'printout = ', printout
+  write(*,*) 'exxen input = ', exxen
   write(*,*)
 
   lhb = .FALSE.

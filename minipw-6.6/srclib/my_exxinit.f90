@@ -154,7 +154,7 @@ SUBROUTINE my_exxinit( DoLoc )
   !
   CALL poolcollect( nbnd, nks, occ, nkstot, x_occupation )
   !write(*,*) 'occ = ', occ
-  !write(*,*) 'x_occupation = ', x_occupation
+  write(*,*) 'Some x_occupation(1:3,1) = ', x_occupation(1:3,1)
   !stop 'early stop in 154'
   !
   DEALLOCATE( occ )
@@ -493,6 +493,6 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) '</div> EXIT my_exxinit()'
   write(*,*)
 
-  stop 'early stop in my_exxinit'
+  !stop 'early stop in my_exxinit'
 
 END SUBROUTINE my_exxinit
