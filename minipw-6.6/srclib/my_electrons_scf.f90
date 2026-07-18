@@ -13,7 +13,6 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   !
   USE kinds,                ONLY : DP
   USE check_stop,           ONLY : check_stop_now, stopped_by_user
-  USE io_global,            ONLY : stdout
   USE cell_base,            ONLY : at, bg, alat, omega
   USE ions_base,            ONLY : zv, nat, nsp, ityp, tau, compute_eextfor, atm, &
                                    ntyp => nsp
@@ -132,9 +131,10 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
   !
   CALL memstat( kilobytes )
-  IF( kilobytes > 0 ) WRITE( stdout, 9001 ) kilobytes/1000.0
+  IF( kilobytes > 0 ) WRITE( *, 9001 ) kilobytes/1000.0
   !
-  FLUSH( stdout )
+  FLUSH(0)
+  FLUSH(6)
 
   ! calculates the ewald contribution to total energy
   IF ( do_comp_esm ) THEN
@@ -169,9 +169,10 @@ SUBROUTINE my_electrons_scf( printout, exxen )
 
   CALL create_scf_type( rhoin )
   
-  WRITE( stdout, 9002 )
+  WRITE( *, 9002 )
   9002 FORMAT(/'     Self-consistent Calculation' )
-  FLUSH( stdout )
+  flush(0)
+  FLUSH(6)
 
   CALL open_mix_file( iunmix, 'mix', exst )
 
@@ -192,9 +193,10 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     
     iter = iter + 1
 
-    WRITE( stdout, 9010 ) iter, ecutwfc, mixing_beta
+    WRITE( *, 9010 ) iter, ecutwfc, mixing_beta
     9010 FORMAT(/'     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2 )
-    FLUSH( stdout )
+    flush(0)
+    FLUSH(6)
 
     ! Convergence threshold for iterative diagonalization is
     ! automatically updated during self consistency
@@ -323,7 +325,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         !
         IF( dr2 < tr2_min ) THEN
           !
-          WRITE( stdout, '(/,5X,"Threshold (ethr) on eigenvalues was ", &
+          WRITE( *, '(/,5X,"Threshold (ethr) on eigenvalues was ", &
                            &    "too large:",/,5X,                      &
                            & "Diagonalizing with lowered threshold",/)' )
           !
@@ -432,7 +434,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
       IF( conv_elec ) CALL report_mag()
     ENDIF
 
-    IF( conv_elec ) WRITE( stdout, 9101 )
+    IF( conv_elec ) WRITE( *, 9101 )
  
     IF( conv_elec ) THEN 
       scf_error = dr2
@@ -447,7 +449,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
     ENDIF
     !
     IF( ABS( charge - nelec ) / charge > 1.D-7 ) THEN
-      WRITE( stdout, 9050 ) charge, nelec
+      WRITE( *, 9050 ) charge, nelec
       IF( ABS( charge - nelec ) / charge > 1.D-3 ) THEN
         IF(.not.lgauss) THEN
           CALL errore( 'electrons', 'charge is wrong: smearing is needed', 1 )
@@ -529,7 +531,7 @@ SUBROUTINE my_electrons_scf( printout, exxen )
         !
         IF ( do_comp_esm ) CALL esm_printpot( rho%of_g )
         !
-        WRITE( stdout, 9110 ) iter
+        WRITE( *, 9110 ) iter
         !
         ! jump to the end
         !
@@ -547,10 +549,11 @@ SUBROUTINE my_electrons_scf( printout, exxen )
   n_scf_steps = iter
   scf_error = dr2
   !
-  WRITE( stdout, 9101 )
-  WRITE( stdout, 9120 ) iter
+  WRITE( *, 9101 )
+  WRITE( *, 9120 ) iter
   !
-10  FLUSH( stdout )
+  flush(0)
+10  FLUSH(6)
   !
   ! exiting: write (unless disabled) the charge density to file
   ! (also write ldaU ns coefficients and PAW becsum)
@@ -603,36 +606,36 @@ SUBROUTINE print_energies ( printout )
   IF ( printout == 0 ) RETURN
   IF ( ( conv_elec .OR. MOD(iter,iprint) == 0 ) .AND. printout > 1 ) THEN
      !
-     WRITE( stdout, 9081 ) etot
-     IF ( only_paw ) WRITE( stdout, 9085 ) etot+total_core_energy
-     IF ( iverbosity > 1 ) WRITE( stdout, 9082 ) hwf_energy
+     WRITE( *, 9081 ) etot
+     IF ( only_paw ) WRITE( *, 9085 ) etot+total_core_energy
+     IF ( iverbosity > 1 ) WRITE( *, 9082 ) hwf_energy
      IF ( dr2 > eps8 ) THEN
-        WRITE( stdout, 9083 ) dr2
+        WRITE( *, 9083 ) dr2
      ELSE
-        WRITE( stdout, 9084 ) dr2
+        WRITE( *, 9084 ) dr2
      END IF
      IF ( lgauss ) then
-        WRITE( stdout, 9070 ) demet
-        WRITE( stdout, 9170 ) etot-demet
-        WRITE( stdout, 9061 )
+        WRITE( *, 9070 ) demet
+        WRITE( *, 9170 ) etot-demet
+        WRITE( *, 9061 )
      ELSE
-        WRITE( stdout, 9060 )
+        WRITE( *, 9060 )
      END IF
-     WRITE( stdout, 9062 ) (eband + deband), ehart, ( etxc - etxcc ), ewld
+     WRITE( *, 9062 ) (eband + deband), ehart, ( etxc - etxcc ), ewld
      !
-     IF ( llondon ) WRITE ( stdout , 9074 ) elondon
-     IF ( ldftd3 )  WRITE ( stdout , 9078 ) edftd3
-     IF ( lxdm )    WRITE ( stdout , 9075 ) exdm
-     IF ( ts_vdw )  WRITE ( stdout , 9076 ) 2.0d0*EtsvdW
-     IF ( textfor)  WRITE ( stdout , 9077 ) eext
-     IF ( tefield )            WRITE( stdout, 9064 ) etotefield
-     IF ( gate )               WRITE( stdout, 9065 ) etotgatefield
-     IF ( ABS (descf) > eps8 ) WRITE( stdout, 9069 ) descf
+     IF ( llondon ) WRITE ( * , 9074 ) elondon
+     IF ( ldftd3 )  WRITE ( * , 9078 ) edftd3
+     IF ( lxdm )    WRITE ( * , 9075 ) exdm
+     IF ( ts_vdw )  WRITE ( * , 9076 ) 2.0d0*EtsvdW
+     IF ( textfor)  WRITE ( * , 9077 ) eext
+     IF ( tefield )            WRITE( *, 9064 ) etotefield
+     IF ( gate )               WRITE( *, 9065 ) etotgatefield
+     IF ( ABS (descf) > eps8 ) WRITE( *, 9069 ) descf
      IF ( okpaw ) THEN
-       WRITE( stdout, 9067 ) epaw
+       WRITE( *, 9067 ) epaw
        ! Detailed printout of PAW energy components, if verbosity is high
        IF(iverbosity>0)THEN
-       WRITE( stdout, 9068) SUM(etot_cmp_paw(:,1,1)), &
+       WRITE( *, 9068) SUM(etot_cmp_paw(:,1,1)), &
                             SUM(etot_cmp_paw(:,1,2)), &
                             SUM(etot_cmp_paw(:,2,1)), &
                             SUM(etot_cmp_paw(:,2,2)), &
@@ -649,46 +652,47 @@ SUBROUTINE print_energies ( printout )
      ! potential energy Omega = E - muN, -muN is the potentiostat
      ! contribution.
      !
-     IF ( lfcpopt .OR. lfcpdyn ) WRITE( stdout, 9072 ) ef*tot_charge
+     IF ( lfcpopt .OR. lfcpdyn ) WRITE( *, 9072 ) ef*tot_charge
      !
   ELSE IF ( conv_elec ) THEN
      !
-     WRITE( stdout, 9081 ) etot
-     IF ( iverbosity > 1 ) WRITE( stdout, 9082 ) hwf_energy
+     WRITE( *, 9081 ) etot
+     IF ( iverbosity > 1 ) WRITE( *, 9082 ) hwf_energy
      IF ( dr2 > eps8 ) THEN
-        WRITE( stdout, 9083 ) dr2
+        WRITE( *, 9083 ) dr2
      ELSE
-        WRITE( stdout, 9084 ) dr2
+        WRITE( *, 9084 ) dr2
      END IF
      IF ( lgauss ) then
-        WRITE( stdout, 9070 ) demet
-        WRITE( stdout, 9170 ) etot-demet
+        WRITE( *, 9070 ) demet
+        WRITE( *, 9170 ) etot-demet
      ENDIF
      !
   ELSE
      !
-     WRITE( stdout, 9080 ) etot
-     IF ( iverbosity > 1 ) WRITE( stdout, 9082 ) hwf_energy
+     WRITE( *, 9080 ) etot
+     IF ( iverbosity > 1 ) WRITE( *, 9082 ) hwf_energy
      IF ( dr2 > eps8 ) THEN
-        WRITE( stdout, 9083 ) dr2
+        WRITE( *, 9083 ) dr2
      ELSE
-        WRITE( stdout, 9084 ) dr2
+        WRITE( *, 9084 ) dr2
      END IF
   ENDIF
   !
   CALL plugin_print_energies()
   !
-  IF ( lsda ) WRITE( stdout, 9017 ) magtot, absmag
+  IF ( lsda ) WRITE( *, 9017 ) magtot, absmag
   !
   IF ( noncolin .AND. domag ) &
-       WRITE( stdout, 9018 ) magtot_nc(1:3), absmag
+       WRITE( *, 9018 ) magtot_nc(1:3), absmag
   !
   IF ( i_cons == 3 .OR. i_cons == 4 )  &
-       WRITE( stdout, 9071 ) bfield(1), bfield(2), bfield(3)
+       WRITE( *, 9071 ) bfield(1), bfield(2), bfield(3)
   IF ( i_cons /= 0 .AND. i_cons < 4 ) &
-       WRITE( stdout, 9073 ) lambda
+       WRITE( *, 9073 ) lambda
   !
-  FLUSH( stdout )
+  flush(0)
+  FLUSH(6)
   !
   RETURN
        !

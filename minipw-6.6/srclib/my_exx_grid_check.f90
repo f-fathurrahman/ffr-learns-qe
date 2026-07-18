@@ -33,10 +33,10 @@ SUBROUTINE my_exx_grid_check( xk_collect, ld2 )
   !
   DO ik = 1, nkstot
     write(*,*)
-    write(*,*) 'Begin ik = ', ik
+    !write(*,*) 'Begin ik = ', ik
     xk_cryst(:) = xk_collect(:,ik)
     CALL cryst_to_cart( 1, xk_cryst, at, -1 )
-    write(*,*) 'xk_cryst = ', xk_cryst
+    !write(*,*) 'xk_cryst = ', xk_cryst
     !
     iq = 0
     DO iq1 = 1, nq1
@@ -54,7 +54,7 @@ SUBROUTINE my_exx_grid_check( xk_collect, ld2 )
           xkk_cryst(:) = at(1,:)*xk_collect(1,ikk) + &
                          at(2,:)*xk_collect(2,ikk) + &
                          at(3,:)*xk_collect(3,ikk)
-          write(*,*) 'xkk_cryst = ', xkk_cryst
+          !write(*,*) 'xkk_cryst = ', xkk_cryst
           IF(isym < 0 ) THEN
             xkk_cryst(:) = -xkk_cryst(:)
           ENDIF
@@ -62,9 +62,9 @@ SUBROUTINE my_exx_grid_check( xk_collect, ld2 )
           dxk(:) = s(:,1,isym)*xkk_cryst(1) + &
                    s(:,2,isym)*xkk_cryst(2) + &
                    s(:,3,isym)*xkk_cryst(3) - sxk(:)
-          write(*,'(1x,A,3I4,3F18.10)') 'Before nint: ', iq1, iq2, iq3, dxk
+          !write(*,'(1x,A,3I4,3F18.10)') 'Before nint: ', iq1, iq2, iq3, dxk
           dxk(:) = dxk(:) - NINT(dxk(:))
-          write(*,'(1x,A,3I4,3F18.10)') 'After nint: ', iq1, iq2, iq3, dxk
+          !write(*,'(1x,A,3I4,3F18.10)') 'After nint: ', iq1, iq2, iq3, dxk
           IF ( .NOT. ( ABS(dxk(1)) <= eps .AND. &
                        ABS(dxk(2)) <= eps .AND. &
                        ABS(dxk(3)) <= eps )   ) THEN

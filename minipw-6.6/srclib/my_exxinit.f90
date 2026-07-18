@@ -485,7 +485,7 @@ SUBROUTINE my_exxinit( DoLoc )
   write(*,*) 'yukawa = ', yukawa
   write(*,*) '----------------------------------------------------------------'
 
-  write(*,*) 'exxenergy = ', exxenergy()
+  !write(*,*) 'exxenergy = ', exxenergy() !ffr: this is slow !!!
   !write(*,*) 'exxenergy2 = ', exxenergy2() ! This will hang up
 
 

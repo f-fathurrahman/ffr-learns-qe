@@ -49,6 +49,7 @@ SUBROUTINE my_electrons()
   LOGICAL :: first, exst
   REAL(DP) :: etot_cmp_paw(nat,2,2)
   LOGICAL :: DoLoc
+  real(dp) :: dummy_exxen
   !
   !
   DoLoc = local_thr > 0.0d0
@@ -115,8 +116,11 @@ SUBROUTINE my_electrons()
       ELSEIF( DoLoc ) THEN
         CALL localize_orbitals_k( )
       ENDIF 
+      write(*,*) 'Pass here 118 in my_electrons'
       IF( use_ace )THEN
-        CALL aceinit ( DoLoc ) 
+        !CALL aceinit( DoLoc )
+        write(*,*) 'Will call my_aceinit'
+        CALL my_aceinit( DoLoc, dummy_exxen )
         fock2 = exxenergyace()
       ELSE
         fock2 = exxenergy2()
@@ -142,7 +146,8 @@ SUBROUTINE my_electrons()
       write(*,*) 'fock2 = ', fock2
       write(*,*) 'etxc = ', etxc
       write(*,*) 'exxen = ', exxen
-      flush(0)
+      flush(6) ! stdout
+      flush(0) ! stderr
       !stop 'Early stop 135 in my_electrons'
       !
     ELSE
@@ -166,7 +171,7 @@ SUBROUTINE my_electrons()
         CALL localize_orbitals_k( )
       ENDIF 
       IF( use_ace ) then
-        CALL aceinit( DoLoc, fock3 )
+        CALL my_aceinit( DoLoc, fock3 )
       ENDIF
       !
       ! fock2 is the exchange energy calculated for orbitals at step n,
@@ -250,6 +255,9 @@ SUBROUTINE my_electrons()
     ENDIF
     !
     WRITE( *,'(/5x,"EXX: now go back to refine exchange calculation")')
+    flush(6) ! stdout
+    flush(0) ! stderr
+    !stop 'Early stop 260 in my_electrons'
     !
     IF ( check_stop_now() ) THEN
       WRITE(*,'(5x,"Calculation (EXX) stopped after iteration #", i6)') iter
@@ -267,7 +275,7 @@ SUBROUTINE my_electrons()
   ENDDO
   !
   WRITE(*, 9120) iter
-  !FLUSH(6)
+  FLUSH(6)
   !
   RETURN
   !
