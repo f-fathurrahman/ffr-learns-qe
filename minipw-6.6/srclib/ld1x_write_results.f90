@@ -376,7 +376,7 @@ subroutine write_results
      enddo
   enddo
 1400 format(5x,'s(',a2,'/',a2,') =',f10.6,2x, &
-       '<r> =',f9.4,2x,'<r2> =',f10.4,2x,'r(max) =',f9.4)
+       'avg r =',f9.4,2x,' avg r2 =',f10.4,2x,'r(max) =',f9.4)
 1401 format(5x,'s(',a2,'/',a2,') =',f10.6)
 
   IF (rel==2.and.verbosity=='high'.and..not.noscf) &

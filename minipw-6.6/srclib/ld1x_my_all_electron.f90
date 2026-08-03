@@ -20,7 +20,7 @@ SUBROUTINE my_all_electron(ild,ic)
   INTEGER :: i
 
   WRITE(*,*)
-  WRITE(*,*) '***** ENTER my_all_electron *****'
+  WRITE(*,*) '<div> ENTER my_all_electron'
   WRITE(*,*)
 
   WRITE(*,*) 'ndmx = ', ndmx
@@ -119,7 +119,7 @@ SUBROUTINE my_all_electron(ild,ic)
   !
 
   WRITE(*,*)
-  WRITE(*,*) '***** EXIT my_all_electron *****'
+  WRITE(*,*) '</div> EXIT my_all_electron'
   WRITE(*,*)
 
   RETURN

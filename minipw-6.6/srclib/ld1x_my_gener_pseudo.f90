@@ -76,13 +76,13 @@ subroutine my_gener_pseudo()
 
 
   WRITE(*,*)
-  WRITE(*,*) '***** ENTER my_gener_pseudo *****'
+  WRITE(*,*) '<div> ENTER my_gener_pseudo'
   WRITE(*,*)
 
 
   if (lpaw) then
     write(stdout, '(/,5x,21(''-''),'' Generating PAW atomic setup '',20(''-''),/)')
-  elseif (pseudotype == 1.or.pseudotype == 2) then
+  elseif (pseudotype == 1 .or. pseudotype == 2) then
     write(stdout, '(/,5x,21(''-''),'' Generating NC pseudopotential '',21(''-''),/)')
   elseif (pseudotype == 3) then
     write(stdout, '(/,5x,21(''-''),'' Generating US pseudopotential '',21(''-''),/)')
@@ -137,7 +137,7 @@ subroutine my_gener_pseudo()
   ! find ik, ikus, and ikloc
   do ns = 1,nbeta
     !
-    do n=1,grid%mesh
+    do n = 1,grid%mesh
       !
       if( grid%r(n) < rcut(ns) ) then
         ik(ns) = n
@@ -232,7 +232,7 @@ subroutine my_gener_pseudo()
       norm1 = sqrt(int_0_inf_dr(gi,grid,grid%mesh,nst))
       !
       IF( rel==2 ) THEN
-        psipaw_rel(:,ns)=psi(:,2,nwf0)
+        psipaw_rel(:,ns) = psi(:,2,nwf0)
         DO n = 1,irc
           gi(n) = psipaw_rel(n,ns)*psipaw_rel(n,ns)
         ENDDO
@@ -241,7 +241,7 @@ subroutine my_gener_pseudo()
                       &,f12.8," missing",f12.8)') els(ns), norm1**2, &
                       norm2**2, 1.0_DP-(norm1**2+norm2**2)
         norm1 = sqrt(norm1**2+norm2**2)
-        psipaw_rel(:,ns)=psipaw_rel(:,ns)/norm1
+        psipaw_rel(:,ns) = psipaw_rel(:,ns)/norm1
         IF( lpaw ) THEN
           speed = psipaw(ikus(ns),ns)*(enls(ns)-vpotpaw(ikus(ns)))*psipaw(ikus(ns),ns)
           WRITE(stdout,'(5x,"Speed at rcutus ",f10.3, " a.u.,  &
@@ -254,7 +254,7 @@ subroutine my_gener_pseudo()
      ENDIF
   ENDDO
   !
-  call write_wfcfile(file_wfcaegen,psipaw,els,nwfs)
+  call write_wfcfile(file_wfcaegen, psipaw, els, nwfs)
   !
   ! compute the pseudowavefunctions by expansion in spherical
   ! bessel function before r_c
@@ -590,7 +590,7 @@ subroutine my_gener_pseudo()
   write(stdout,"(/,5x,19('-'),' End of pseudopotential generation ',19('-'),/)")
 
   WRITE(*,*)
-  WRITE(*,*) '***** EXIT my_gener_pseudo *****'
+  WRITE(*,*) '</div> EXIT my_gener_pseudo'
   WRITE(*,*)
 
   return

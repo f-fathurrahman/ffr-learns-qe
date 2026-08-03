@@ -39,37 +39,37 @@ PROGRAM ld1
   !
   IF( iswitch == 1 ) THEN
     !
-    !   all-electron calculation
+    ! all-electron calculation
     !
     CALL my_all_electron(.true., 1) ! also compute log-deriv
     IF( write_coulomb ) CALL write_ae_pseudo ( )
     !
   ELSEIF( iswitch == 2 ) THEN
-     !
-     !   pseudopotential test
-     !
-     CALL run_test()
-     CALL ld1_writeout()
-     !
+    !
+    ! pseudopotential test
+    !
+    CALL run_test()
+    CALL ld1_writeout()
+    !
   ELSEIF( iswitch == 3 ) THEN
-     !
-     !  pseudopotential generation and test
-     !
-     CALL all_electron(.FALSE., 1) ! do not compute log-deriv
-     CALL my_gener_pseudo()
-     !if(.not. lgipaw_reconstruction) 
-     CALL my_run_test()
-     CALL ld1_writeout()
-     !
+    !
+    ! pseudopotential generation and test
+    !
+    CALL all_electron(.FALSE., 1) ! do not compute log-deriv
+    CALL my_gener_pseudo()
+    !if(.not. lgipaw_reconstruction) 
+    CALL my_run_test()
+    CALL ld1_writeout()
+    !
   ELSEIF( iswitch == 4 ) THEN
-     !
-     ! LDA-1/2 correction to the input pseudopotential 
-     !
-     CALL run_lda_half( )
-     CALL ld1_writeout( )
-     !
+    !
+    ! LDA-1/2 correction to the input pseudopotential 
+    !
+    CALL run_lda_half( )
+    CALL ld1_writeout( )
+    !
   ELSE 
-     CALL errore('ld1', 'iswitch not implemented',1)
+    CALL errore('ld1', 'iswitch not implemented',1)
   ENDIF 
   CALL deallocate_radial_grid( grid )
 

@@ -99,8 +99,8 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   iexch = get_iexch()
   icorr = get_icorr()
-  write(*,*) 'subroutine xc: iexch = ', iexch
-  write(*,*) 'subroutine xc: icorr = ', icorr
+  !write(*,*) 'subroutine xc: iexch = ', iexch
+  !write(*,*) 'subroutine xc: icorr = ', icorr
   !
   ex_out = 0.0_DP ; vx_out = 0.0_DP
   ec_out = 0.0_DP ; vc_out = 0.0_DP
@@ -152,7 +152,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   ! ... EXCHANGE
 
   IF( is_libxc(1) ) THEN
-     write(*,*) 'using libxc: iexch = ', iexch
+     !write(*,*) 'using libxc: iexch = ', iexch
      !write(*,*) 'rho_threshold = ', rho_threshold
      CALL xc_f03_func_init( xc_func, iexch, sv_d )
        xc_info1 = xc_f03_func_get_info( xc_func )
@@ -164,7 +164,7 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   !
   ! ... CORRELATION
   IF ( is_libxc(2) ) THEN
-     write(*,*) 'using libxc: icorr = ', icorr
+     !write(*,*) 'using libxc: icorr = ', icorr
      !write(*,*) 'rho_threshold = ', rho_threshold
       CALL xc_f03_func_init( xc_func, icorr, sv_d )
       xc_info2 = xc_f03_func_get_info( xc_func )
@@ -176,11 +176,11 @@ SUBROUTINE xc( length, sr_d, sv_d, rho_in, ex_out, ec_out, vx_out, vc_out )
   IF ( ((.NOT.is_libxc(1)) .OR. (.NOT.is_libxc(2))) &
         .AND. fkind_x/=XC_EXCHANGE_CORRELATION ) THEN
      
-     write(*,*)
-     write(*,*) '----- INFO: LDA/LSDA: Not using LibXC -----'
-     write(*,*) 'sr_d = ', sr_d
-     write(*,*)
-     flush(0)
+     !write(*,*)
+     !write(*,*) '----- INFO: LDA/LSDA: Not using LibXC -----'
+     !write(*,*) 'sr_d = ', sr_d
+     !write(*,*)
+     !flush(0)
      !stop 'Early stop 184 in xc_lda_lsda_driver'
      SELECT CASE( sr_d )
      CASE( 1 )

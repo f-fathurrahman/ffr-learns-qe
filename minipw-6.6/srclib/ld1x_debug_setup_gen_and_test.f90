@@ -14,16 +14,16 @@ subroutine ld1x_debug_setup_gen_and_test()
   isws = 1
   !
   DO n = 1,nwf
-    core_state(n)=.true.
+    core_state(n) = .true.
   ENDDO
   !
   DO n = 1,nwfs
     nstoae(n) = 0
     DO n1 = 1,nwf
-      IF( rel==2 ) THEN
-        IF( els(n) == el(n1) .and. jjs(n)==jj(n1) ) THEN
-          nstoae(n)=n1
-          core_state(n1)=.false.
+      IF( rel == 2 ) THEN
+        IF( els(n) == el(n1) .and. jjs(n) == jj(n1) ) THEN
+          nstoae(n) = n1
+          core_state(n1) = .false.
         ENDIF
       ELSE
         IF( els(n) == el(n1) ) THEN
@@ -46,8 +46,8 @@ subroutine ld1x_debug_setup_gen_and_test()
       nsloc = nwfs - 1
       nbeta = nwfs - 2
       IF( lls(nsloc+1) /= lloc ) &
-         CALL errore('ld1_setup','mismatch between lloc and l of ' // &
-       &           'spin-orbit split wfc chosen for local potential',nsloc)
+         CALL errore('ld1_setup', 'mismatch between lloc and l of ' // &
+       &           'spin-orbit split wfc chosen for local potential', nsloc)
     ENDIF
     IF( lls(nsloc) /= lloc) THEN
        IF(rel==2) THEN
@@ -65,8 +65,8 @@ subroutine ld1x_debug_setup_gen_and_test()
         CALL errore('ld1_setup','Paw generation with electrons' // &
         &    'in the local channel is not available',1)
   ELSE
-    nsloc=-1
-    nbeta=nwfs
+    nsloc = -1
+    nbeta = nwfs
   ENDIF
   !
   ! test the occupations: for pseudopotential generation

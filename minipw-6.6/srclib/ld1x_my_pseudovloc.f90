@@ -8,7 +8,6 @@ SUBROUTINE my_pseudovloc()
   !      
   USE kinds, ONLY : DP
   USE radial_grids, ONLY : ndmx
-  USE io_global, ONLY : stdout
   USE ld1inc, ONLY : lloc, rcloc, grid, vpot, vpsloc, rel, nsloc, &
                      phis, els, chis, psipsus, &
                      jjs, nstoae, enls, new, psi, enl, rcut, psipaw, &
@@ -32,7 +31,7 @@ SUBROUTINE my_pseudovloc()
        indns(0:1)    ! auxiliary
 
   write(*,*)
-  write(*,*) '**** ENTER my_pseudovloc'
+  write(*,*) '<div> ENTER my_pseudovloc'
   write(*,*)
 
 
@@ -42,7 +41,7 @@ SUBROUTINE my_pseudovloc()
     !
     ! Compute the ik which correspond to this cutoff radius
     !
-    WRITE(stdout, &
+    WRITE(*, &
          "(/,5x,' Generating local potential from pseudized AE potential:',&
            &  /,5x,' Matching radius rcloc = ',f8.4)") rcloc
     ik = 0
@@ -66,24 +65,23 @@ SUBROUTINE my_pseudovloc()
     ! smooth the potential before ik.
     !
     ! with the original recipe
-    IF( lloc==-1 ) THEN
+    IF( lloc == -1 ) THEN
       ! used for example Si_paw
       WRITE(*,*) 'Calling my_compute_potps'
       CALL my_compute_potps(ik, vpot, vpsloc, xc)
     ENDIF
     !
     ! or with a modified recipe that enforce V''(0)=0 as suggested by TM
-    IF( lloc==-2 ) THEN
-      WRITE(stdout,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
+    IF( lloc == -2 ) THEN
+      WRITE(*,"(5x,' Enforcing V''''(0)=0 (lloc=-2)')")
     ENDIF
     ! XXX: merge this if statement?
-    IF( lloc==-2 ) THEN
+    IF( lloc == -2 ) THEN
       CALL compute_potps_new(ik, vpot, vpsloc, xc)
     ENDIF
     
-    WRITE(stdout, 110) grid%r(ik), xc(5)**2 
+    WRITE(*, 110) grid%r(ik), xc(5)**2 
 110  FORMAT(/5x, ' Local pseudo, rcloc=',f6.3,' Estimated cut-off energy= ', f8.2,' Ry')
-  
     !
     !
   ELSE
@@ -135,15 +133,15 @@ SUBROUTINE my_pseudovloc()
       rcloc = rcut(nsloc+indi)
       !
       IF( rep == 0 ) THEN
-        WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+        WRITE(*,"(/,5x,' Generating local pot.: lloc=',i1, &
                 & ', matching radius rcloc = ',f8.4)") lloc, rcloc
       ELSE
         IF( rel==2 ) THEN
-          WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+          WRITE(*,"(/,5x,' Generating local pot.: lloc=',i1, &
                &', j=',f5.2,', matching radius rcloc = ',f8.4)") &
                lloc, lloc-0.5d0+indi, rcloc
         ELSE
-          WRITE(stdout,"(/,5x,' Generating local pot.: lloc=',i1, &
+          WRITE(*,"(/,5x,' Generating local pot.: lloc=',i1, &
                &', spin=',i1,', matching radius rcloc = ',f8.4)") &
                lloc, indi+1, rcloc
         ENDIF
@@ -171,9 +169,9 @@ SUBROUTINE my_pseudovloc()
       !
       DO n=1,grid%mesh
         IF (grid%r(n) > rcloc) then
-          vaux(n,indi+1)=vpot(n,1)
+          vaux(n,indi+1) = vpot(n,1)
         ELSE
-          vaux(n,indi+1)=chis(n,ns)/phis(n,ns)
+          vaux(n,indi+1) = chis(n,ns)/phis(n,ns)
         ENDIF
       ENDDO
       !
@@ -194,7 +192,7 @@ SUBROUTINE my_pseudovloc()
   ENDIF ! lloc
 
   WRITE(*,*)
-  WRITE(*,*) '**** EXIT my_pseudovloc'
+  WRITE(*,*) '</div> EXIT my_pseudovloc'
   WRITE(*,*)
 
   RETURN
