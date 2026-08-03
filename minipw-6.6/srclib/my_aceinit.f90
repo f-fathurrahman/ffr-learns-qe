@@ -17,7 +17,7 @@
   USE mp, ONLY : mp_sum
   USE wavefunctions, ONLY : evc
   !
-  use exx, only: xi, domat, x_nbnd_occ, nbndproj
+  use exx, only: xi, domat, x_nbnd_occ, nbndproj, aceinit_gamma
   !
   IMPLICIT NONE
   !
@@ -106,7 +106,7 @@ SUBROUTINE my_aceinit_k( DoLoc, nnpw, nbnd, phi, xitmp, becpsi, exxe )
   USE klist,                ONLY : wk
   USE noncollin_module,     ONLY : npol
   !
-  use exx, only: nbndproj, vexx, domat, evc0
+  use exx, only: nbndproj, vexx, domat, evc0, vexx_loc_k, vexxace_k
   !
   IMPLICIT NONE
   !
@@ -169,7 +169,8 @@ SUBROUTINE my_aceinit_k( DoLoc, nnpw, nbnd, phi, xitmp, becpsi, exxe )
   IF ( DoLoc ) THEN
     domat0 = domat
     domat = .TRUE.
-    CALL my_vexxace_k( nnpw, nbnd, evc0(1,1,current_k), exxe )
+    CALL vexxace_k( nnpw, nbnd, evc0(1,1,current_k), exxe )
+    !CALL my_vexxace_k( nnpw, nbnd, evc0(1,1,current_k), exxe )
     evc0(:,:,current_k) = phi(:,:)
     domat = domat0
   ENDIF 
