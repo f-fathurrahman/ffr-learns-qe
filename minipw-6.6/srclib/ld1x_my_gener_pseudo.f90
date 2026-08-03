@@ -199,21 +199,23 @@ subroutine my_gener_pseudo()
     enddo
   enddo
   !
-  irc = maxval(ikk(1:nbeta)) + 8
+  irc = maxval(ikk(1:nbeta)) + 8 !ffr: why 8 ?
   IF(mod(irc,2) == 0) then
     irc = irc + 1
   endif
   !
   IF(irc > grid%mesh) then
-    CALL errore('gener_pseudo','irc is too large',1)
-  endif
+    CALL errore('gener_pseudo', 'irc is too large', 1)
+  ENDIF
   !
   ! Set the all-electron wavefunctions, calculating those at user supplied
   ! energies. The wavefunctions are written on file at this point, so
   ! the user can check them also when the pseudopotential generation is  
   ! unsuccessful
   ! 
-  IF (rel==2) WRITE(stdout,'(/,5x,"Fully relativistic calculation: |psi|^2")')
+  IF( rel == 2) THEN
+    WRITE(stdout,'(/,5x,"Fully relativistic calculation: |psi|^2")')
+  ENDIF
   !
   do ns = 1,nbeta
     nwf0 = nstoae(ns)

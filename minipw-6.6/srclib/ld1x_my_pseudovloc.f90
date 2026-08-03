@@ -41,13 +41,18 @@ SUBROUTINE my_pseudovloc()
     !
     ! Compute the ik which correspond to this cutoff radius
     !
+    write(*,*)
+    WRITE(*,*) 'lloc is negative, lloc = ', lloc
+    WRITE(*,*) 'Local potential will be computed from smoothing AE potential'
     WRITE(*, &
          "(/,5x,' Generating local potential from pseudized AE potential:',&
            &  /,5x,' Matching radius rcloc = ',f8.4)") rcloc
     ik = 0
     ! find largest index n for which r(n) < rcloc
     DO n = 1,grid%mesh
-      IF( grid%r(n) < rcloc ) ik = n
+      IF( grid%r(n) < rcloc ) THEN
+        ik = n
+      ENDIF
     ENDDO
     WRITE(*,*) 'ik = ', ik
     !
@@ -70,6 +75,7 @@ SUBROUTINE my_pseudovloc()
       WRITE(*,*) 'Calling my_compute_potps'
       CALL my_compute_potps(ik, vpot, vpsloc, xc)
     ENDIF
+    WRITE(*,*) 'rcloc after my_compute_potps = ', rcloc
     !
     ! or with a modified recipe that enforce V''(0)=0 as suggested by TM
     IF( lloc == -2 ) THEN
@@ -79,7 +85,7 @@ SUBROUTINE my_pseudovloc()
     IF( lloc == -2 ) THEN
       CALL compute_potps_new(ik, vpot, vpsloc, xc)
     ENDIF
-    
+    write(*,*) 'grid%r at at ik = ', grid%r(ik)
     WRITE(*, 110) grid%r(ik), xc(5)**2 
 110  FORMAT(/5x, ' Local pseudo, rcloc=',f6.3,' Estimated cut-off energy= ', f8.2,' Ry')
     !
@@ -88,7 +94,9 @@ SUBROUTINE my_pseudovloc()
     !
     ! if a given angular momentum gives the local component this is done here
     !
+    WRITE(*,*)
     WRITE(*,*) 'lloc is given: lloc = ', lloc
+    WRITE(*,*) 'Choosing lloc as local potential'
     nst = (lloc + 1)*2
     WRITE(*,*) 'nst = ', nst
     !

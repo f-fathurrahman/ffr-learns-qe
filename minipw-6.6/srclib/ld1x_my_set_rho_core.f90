@@ -22,7 +22,7 @@ subroutine my_set_rho_core
   integer :: i, ik, n, ns, ios
 
   write(*,*)
-  write(*,*) '*** ENTER my_set_rho_core'
+  write(*,*) '<div> ENTER my_set_rho_core'
   write(*,*)
 
   if( nlcc ) then
@@ -199,7 +199,7 @@ subroutine my_set_rho_core
   deallocate( rhov )
 
   write(*,*)
-  write(*,*) '*** EXIT my_set_rho_core'
+  write(*,*) '</div> EXIT my_set_rho_core'
   write(*,*)
 
   return
