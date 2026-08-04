@@ -15,7 +15,7 @@ SUBROUTINE my_set_psi_in(ik,l,j,e,psi_out,psi_out_rel)
   REAL(DP) :: ze2, jnor, thrdum=0.0_dp
   INTEGER  :: n, i, nstop
 
-  psi_out_rel=0.0_DP
+  psi_out_rel = 0.0_DP
   IF( rel == 1 ) THEN
     !
     n =  grid%mesh

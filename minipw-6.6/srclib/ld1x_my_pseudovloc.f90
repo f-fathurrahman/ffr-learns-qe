@@ -183,7 +183,7 @@ SUBROUTINE my_pseudovloc()
         ENDIF
       ENDDO
       !
-      psipsus(:,ns)=phis(:,ns)
+      psipsus(:,ns) = phis(:,ns)
       !
     ENDDO  ! indi=0,rep
     !
@@ -193,7 +193,7 @@ SUBROUTINE my_pseudovloc()
       ENDDO
     ELSE
       DO n = 1,grid%mesh
-        vpsloc(n) = (lloc*vaux(n,1)+(lloc+1.0_dp)*vaux(n,2)) / (2.0_dp*lloc + 1.0_dp)
+        vpsloc(n) = ( lloc*vaux(n,1) + (lloc + 1.0_dp)*vaux(n,2) ) / (2.0_dp*lloc + 1.0_dp)
       ENDDO
     ENDIF
   

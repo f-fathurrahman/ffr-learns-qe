@@ -136,13 +136,12 @@ subroutine my_gener_pseudo()
   ikloc = 0
   ! find ik, ikus, and ikloc
   do ns = 1,nbeta
-    !
     do n = 1,grid%mesh
-      !
+      !ffr: cutoff for what? projector?
       if( grid%r(n) < rcut(ns) ) then
         ik(ns) = n
       endif
-      !
+      !ffr: cutoff for uspp ?
       if( grid%r(n) < rcutus(ns) ) then
         ikus(ns) = n
       endif
@@ -335,19 +334,20 @@ subroutine my_gener_pseudo()
   !
   ! for each angular momentum take the same integration point
   !
-  !
   ! construct B_{ij}
   !
+  !ffr: what's this? Need chis?
   bmat = 0.0_dp
+  write(*,*) 'nbeta = ', nbeta
   do ns = 1,nbeta
     do ns1 = 1,nbeta
       if( lls(ns) == lls(ns1) .and. abs(jjs(ns)-jjs(ns1)) < 1.e-7_dp ) then
-        nst = (lls(ns)+1)*2
+        nst = (lls(ns) + 1)*2
         ikl = ikk(ns1)
-        do n=1,grid%mesh
+        do n = 1,grid%mesh
           gi(n) = phis(n,ns)*chis(n,ns1)
         enddo
-        bmat(ns,ns1) = int_0_inf_dr(gi,grid,ikl,nst)
+        bmat(ns,ns1) = int_0_inf_dr(gi, grid, ikl, nst)
       endif
     enddo
   enddo
@@ -376,6 +376,9 @@ subroutine my_gener_pseudo()
     enddo
     !
   elseif( pseudotype == 2 ) then
+    !ffr:
+    ! This is for multiprojector NC, but not properly implemented according
+    ! to ld1.x input manual
     !
     ! symmetrize the B matrix
     !
@@ -385,7 +388,7 @@ subroutine my_gener_pseudo()
         bmat(ns1,ns) = bmat(ns,ns1)
       enddo
     enddo
-  endif
+  endif !
   !
   do ns = 1,nbeta
     do ns1 = 1,nbeta
