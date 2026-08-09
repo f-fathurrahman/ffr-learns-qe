@@ -24,7 +24,6 @@ subroutine my_gener_pseudo()
   use kinds, only: dp
   use radial_grids, only: ndmx
   use ld1_parameters, only: nwfsx
-  use io_global, only : stdout
   use mp,        only : mp_bcast
   use ld1inc, only: grid, lls, jjs, new, psipaw, psi, ecutwfc, ecutrho, &
                     psipsus, tm, ocs, phis, els, nwfs, nspin, rel, nlcc, &
@@ -79,13 +78,12 @@ subroutine my_gener_pseudo()
   WRITE(*,*) '<div> ENTER my_gener_pseudo'
   WRITE(*,*)
 
-
   if (lpaw) then
-    write(stdout, '(/,5x,21(''-''),'' Generating PAW atomic setup '',20(''-''),/)')
+    write(*, '(/,5x,21(''-''),'' Generating PAW atomic setup '',20(''-''),/)')
   elseif (pseudotype == 1 .or. pseudotype == 2) then
-    write(stdout, '(/,5x,21(''-''),'' Generating NC pseudopotential '',21(''-''),/)')
+    write(*, '(/,5x,21(''-''),'' Generating NC pseudopotential '',21(''-''),/)')
   elseif (pseudotype == 3) then
-    write(stdout, '(/,5x,21(''-''),'' Generating US pseudopotential '',21(''-''),/)')
+    write(*, '(/,5x,21(''-''),'' Generating US pseudopotential '',21(''-''),/)')
   else
     call errore('gener_pseudo', 'pseudotype not programmed',1)
   endif
@@ -125,10 +123,13 @@ subroutine my_gener_pseudo()
   ! set the appropriate energies and the correspondence all-electron
   ! pseudo
   !
+  write(*,*)
+  write(*,*) 'Setting appropriate energies (in Ha)'
   do n = 1,nwfs
     if( enls(n) == 0.0_dp ) then
-      enls(n) = enl(nstoae(n))
+      enls(n) = enl(nstoae(n)) ! just assign AE energy
     endif
+    write(*,'(1x,I4,F18.10)') n, enls(n)*0.5d0
   enddo
   !
   ik = 0
@@ -145,7 +146,7 @@ subroutine my_gener_pseudo()
       if( grid%r(n) < rcutus(ns) ) then
         ikus(ns) = n
       endif
-      !
+      !ffr: this does not depend on ns ?
       if( grid%r(n) < rcloc) then
         ikloc = n
       endif
@@ -176,6 +177,7 @@ subroutine my_gener_pseudo()
     endif
     !
     if( pseudotype == 3 ) then
+      !ffr: why choose this value?
       ikk(ns) = max(ikus(ns)+10, ikloc+5)
     else
       ikk(ns) = max(ik(ns)+10, ikloc+5)
@@ -184,19 +186,22 @@ subroutine my_gener_pseudo()
     if( ikk(ns) > grid%mesh) then
       call errore('gener_pseudo', 'ikk is wrong ',ns)
     endif
-  enddo ! ns
+  enddo ! ns, end loop over number of nbeta
   write(*,*) 'nbeta = ', nbeta
   write(*,*) 'ik = ', ik(1:nbeta)
   write(*,*) 'ikus = ', ikus(1:nbeta)
-  write(*,*) 'ikloc = ', ikloc
+  write(*,*) 'ikloc = ', ikloc !XXX ikloc is not needed past here?
   !
+  !ffr: why need this? Make ikk the same?
+  write(*,*) 'ikk before = ', ikk(1:nbeta)
   do ns = 1,nbeta
     do ns1 = 1,nbeta
       if( lls(ns) == lls(ns1) .and. ikk(ns1) > ikk(ns)) then
-        ikk(ns) = ikk(ns1)
+        ikk(ns) = ikk(ns1) !ffr: choose the larger ikk
       endif
     enddo
   enddo
+  write(*,*) 'ikk after = ', ikk(1:nbeta)
   !
   irc = maxval(ikk(1:nbeta)) + 8 !ffr: why 8 ?
   IF(mod(irc,2) == 0) then
@@ -213,15 +218,19 @@ subroutine my_gener_pseudo()
   ! unsuccessful
   ! 
   IF( rel == 2) THEN
-    WRITE(stdout,'(/,5x,"Fully relativistic calculation: |psi|^2")')
+    WRITE(*,'(/,5x,"Fully relativistic calculation: |psi|^2")')
   ENDIF
   !
   do ns = 1,nbeta
     nwf0 = nstoae(ns)
+    write(*,*) 'ns, nwf0 = ', ns, nwf0
     if( new(ns) ) then
-      write(*,*) 'new(ns) is true'
+      !
+      write(*,'(1x,A,I4,A)') 'ns = ', ns, ' new(ns) is true'
       call my_set_psi_in( ikus(ns), lls(ns), jjs(ns), enls(ns), psipaw(1,ns), psipaw_rel(1,ns) )
     else
+      !
+      write(*,'(1x,A,I4,A)') 'ns = ', ns, ' new(ns) is false'
       lam = lls(ns)
       nst = (lam+1)*2
       psipaw(:,ns) = psi(:,1,nwf0)
@@ -230,7 +239,7 @@ subroutine my_gener_pseudo()
         gi(n) = psipaw(n,ns)*psipaw(n,ns)
       enddo
       !
-      norm1 = sqrt(int_0_inf_dr(gi,grid,grid%mesh,nst))
+      norm1 = sqrt(int_0_inf_dr(gi, grid, grid%mesh, nst))
       !
       IF( rel==2 ) THEN
         psipaw_rel(:,ns) = psi(:,2,nwf0)
@@ -238,14 +247,14 @@ subroutine my_gener_pseudo()
           gi(n) = psipaw_rel(n,ns)*psipaw_rel(n,ns)
         ENDDO
         norm2 = sqrt(int_0_inf_dr(gi,grid,irc,nst))
-        WRITE(stdout,'(/,5x,"Wfc ",a2," LC norm =",f12.8," SC norm ="&
+        WRITE(*,'(/,5x,"Wfc ",a2," LC norm =",f12.8," SC norm ="&
                       &,f12.8," missing",f12.8)') els(ns), norm1**2, &
                       norm2**2, 1.0_DP-(norm1**2+norm2**2)
         norm1 = sqrt(norm1**2+norm2**2)
         psipaw_rel(:,ns) = psipaw_rel(:,ns)/norm1
         IF( lpaw ) THEN
           speed = psipaw(ikus(ns),ns)*(enls(ns)-vpotpaw(ikus(ns)))*psipaw(ikus(ns),ns)
-          WRITE(stdout,'(5x,"Speed at rcutus ",f10.3, " a.u.,  &
+          WRITE(*,'(5x,"Speed at rcutus ",f10.3, " a.u.,  &
                &v/c =",f10.6,",  (v/c)^2 =",f12.8 )') sqrt(abs(speed)), &
                             sqrt(abs(speed)/cau_fact**2),speed/cau_fact**2
         ENDIF
@@ -398,9 +407,9 @@ subroutine my_gener_pseudo()
   !
   ! compute the inverse of the matrix B_{ij}:  B_{ij}^-1
   !
-  write(stdout,'(/5x,'' The bmat matrix'')')
+  write(*,'(/5x,'' The bmat matrix'')')
   do ns1=1,nbeta
-    write(stdout,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
+    write(*,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
   enddo
   if( nbeta > 0 ) then
     call invmat(nbeta, b, binv)
@@ -470,13 +479,13 @@ subroutine my_gener_pseudo()
       !
     enddo ! ns: 1..beta
     !
-    write(stdout,'(/5x,'' The bmat + epsilon qq matrix'')')
+    write(*,'(/5x,'' The bmat + epsilon qq matrix'')')
     do ns1=1,nbeta
-      write(stdout,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
+      write(*,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
     enddo
-    write(stdout,'(/5x,'' The qq matrix'')')
+    write(*,'(/5x,'' The qq matrix'')')
     do ns1 = 1,nbeta
-      write(stdout,'(6f12.5)') (qq(ns1,ns),ns=1,nbeta)
+      write(*,'(6f12.5)') (qq(ns1,ns),ns=1,nbeta)
     enddo
   endif
   !
@@ -488,7 +497,7 @@ subroutine my_gener_pseudo()
   !
   if( lpaw ) then
     if (lnc2paw) then
-      write (stdout,'(/5x,''WARNING: __PAW_FROM_NC__'')')
+      write (*,'(/5x,''WARNING: __PAW_FROM_NC__'')')
     endif
     !
     !symbol=atom_name(nint(zed))
@@ -592,7 +601,7 @@ subroutine my_gener_pseudo()
   call write_wfcfile(file_wfcusgen,phis,els,nwfs)
   call write_wfcfile_ft(file_wfcusgen,phis,nwfs)
 
-  write(stdout,"(/,5x,19('-'),' End of pseudopotential generation ',19('-'),/)")
+  write(*,"(/,5x,19('-'),' End of pseudopotential generation ',19('-'),/)")
 
   WRITE(*,*)
   WRITE(*,*) '</div> EXIT my_gener_pseudo'

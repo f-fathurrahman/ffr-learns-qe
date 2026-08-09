@@ -65,7 +65,8 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   !
 
   write(*,*)
-  write(*,*) 'Enter my_lschps'
+  write(*,*) '<div> ENTER my_lschps'
+  write(*,*)
   write(*,*) 'z = ', z
   write(*,*) 'mode = ', mode
   write(*,*) 'cau_fact = ', cau_fact
@@ -311,8 +312,8 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   ENDDO
 
   !PRINT '('' warning: wfc '',2i2,'' not converged'')', n, l
-  u=0.0_dp
-  nstop=1
+  u = 0.0_dp
+  nstop = 1
   !
   ! deallocate arrays and exit
   !
@@ -329,6 +330,11 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   DEALLOCATE(cf)
   DEALLOCATE(upp)
   DEALLOCATE(up)
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_lschps'
+  write(*,*)
+  
   RETURN
 
 END SUBROUTINE my_lschps

@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------
-subroutine my_set_rho_core
+subroutine my_set_rho_core()
 !-----------------------------------------------------------------------
   !
   ! input : all-electron wavefunctions + valence states
@@ -15,11 +15,11 @@ subroutine my_set_rho_core
                      lpaw, lnc2paw
   implicit none
 
-  real(DP) :: drho, const, br1, br2, &
-       eps1, eps2, br12, xc(8), a, b, eps12, totrho
+  real(DP) :: drho, const, br1, br2, eps1, eps2, br12, xc(8), a, b, eps12, totrho
+  real(dp) :: dd1
   real(DP), allocatable:: rhov(:)
   real(DP), external :: int_0_inf_dr
-  integer :: i, ik, n, ns, ios
+  integer :: ik, n, ns, ios
 
   write(*,*)
   write(*,*) '<div> ENTER my_set_rho_core'
@@ -57,10 +57,15 @@ subroutine my_set_rho_core
     enddo
   enddo
   totrho = int_0_inf_dr(rhoc, grid, grid%mesh, 2)
+  write(*,*) 'Computed totrho (integrated core chgden) = ', totrho
+  !
+  !ffr: This is a special case for PAW?
   if(totrho < 1.d-6 .and. lpaw) then
     !
     ! All valence charge for this atom (mainly for H)
     !
+    write(*,*) 'This is special case for H (no core) and using PAW'
+    write(*,*) 'AE core charge and pseudo core chgden are set to zero'
     aeccharge(1:grid%mesh) = 0.0_DP
     psccharge(1:grid%mesh) = 0.0_DP
     goto 1100
@@ -71,6 +76,7 @@ subroutine my_set_rho_core
   !
   if( rcore > 0.0_dp ) then
     ! rcore read on input
+    write(*,*) 'rcore is read from input: rcore = ', rcore
     do ik = 1,grid%mesh
       if( grid%r(ik) > rcore ) GOTO 100
     enddo
@@ -78,13 +84,24 @@ subroutine my_set_rho_core
     return
   else
     ! rcore determined by the condition  rhoc(rcore) = 2*rhov(rcore)
-    do ik=1,grid%mesh
-      if( rhoc(ik) < 2.0 * rhov(ik) ) goto 100
+    do ik = 1,grid%mesh
+      if( rhoc(ik) < 2.0 * rhov(ik) ) THEN
+        write(*,*) 'At this ik = ', ik
+        write(*,*) 'rhoc = ', rhoc(ik)
+        write(*,*) 'rhov = ', rhov(ik)
+        write(*,*) '2*rhov = ', 2*rhov(ik)
+        goto 100
+      ENDIF
     enddo
   endif
   
   100 rcore = grid%r(ik)
-  drho = ( rhoc(ik+1)/grid%r2(ik+1) - rhoc(ik)/grid%r2(ik) ) / grid%dx / grid%r(ik)
+  write(*,*) 'rcore = ', rcore
+  write(*,*) 'ik grid for rcore = ', ik
+  dd1 = rhoc(ik+1)/grid%r2(ik+1) - rhoc(ik)/grid%r2(ik)
+  drho =  dd1 / grid%dx / grid%r(ik)
+  write(*,*) 'dd1 = ', dd1
+  write(*,*) 'drho = ', drho
   !
   ! true_rho = rhoc(r)/r**2/4 pi
   !    (factor 1/r from logarithmic mesh)
@@ -96,6 +113,9 @@ subroutine my_set_rho_core
     ! usually true for PAW
     write(*,*) 'Will call my_compute_phius: in aeccharge, out rhoc'
     call my_compute_phius(1, ik, aeccharge, rhoc, xc, 0, '  ')
+    write(*,*) 'After my_compute_phius:'
+    write(*,'(1x,A,4F18.10)') 'xc(1:4) = ', xc(1:4)
+    write(*,'(1x,A,4F18.10)') 'xc(5:8) = ', xc(5:8)
   else
     ! what's this?
     !
@@ -124,20 +144,22 @@ subroutine my_set_rho_core
       elseif( eps12*eps2 < 0.0_dp ) then
         br1 = br12
       else
-        call errore('set_rho_core','error in bisection',n)
+        call errore('set_rho_core', 'error in bisection', n)
       endif
     enddo
     !
     b = br12/grid%r(ik)
     a = ( rhoc(ik)/grid%r2(ik) ) * grid%r(ik)/sin(br12)
-    do n=1,ik
+    do n = 1,ik
       rhoc(n) = a*sin(b*grid%r(n))/grid%r(n) * grid%r2(n)
     enddo
   endif
   !
   if( lpaw ) then
+    write(*,*) 'lnc2paw = ', lnc2paw
     if( lnc2paw ) then
       ! Mimic NC calculation. If NLCC, the pseudized core charge.
+      write(*,*) 'Mimic NC calculation, using pseudized core charge'
       if( nlcc ) then
         aeccharge(1:grid%mesh) = rhoc(1:grid%mesh)
         ! Here one could set another pseudized ccharge, for
@@ -145,6 +167,7 @@ subroutine my_set_rho_core
         ! just take the same as the AE (ie NC) one:
         psccharge(1:grid%mesh) = rhoc(1:grid%mesh)
       else
+        write(*,*) 'Reference NC calculation does not have core charge'
         ! Reference NC calculation does not have core charge.
         aeccharge(1:grid%mesh) = 0._dp
         psccharge(1:grid%mesh) = 0._dp

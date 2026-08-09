@@ -48,32 +48,36 @@ subroutine my_compute_phius(lam, ik, psi_in, phi_out, xc, iflag, els_in)
   !
   ! compute first and second derivative
   !
+  write(*,*) 'compute_phius: ik = ', ik
   fae = psi_in(ik)
-  f1ae = deriv_7pts(psi_in,ik,grid%r(ik),grid%dx)
-  f2ae = deriv2_7pts(psi_in,ik,grid%r(ik),grid%dx)
-
+  f1ae = deriv_7pts(psi_in, ik, grid%r(ik), grid%dx)
+  f2ae = deriv2_7pts(psi_in, ik, grid%r(ik), grid%dx)
+  !
+  write(*,*) 'fae = ', fae
+  write(*,*) 'f1ae = ', f1ae
+  write(*,*) 'f2ae = ', f2ae
   !
   ! find the q_i of the bessel functions
   !      
-  call find_qi(f1ae/fae,xc(4),ik,lam,2,1,iok)
-  if(iok /= 0) call errore('compute_phius','problems with find_qi',1)
-
+  call my_find_qi(f1ae/fae, xc(4), ik, lam, 2, 1, iok)
+  if( iok /= 0 ) then
+    call errore('compute_phius', 'problems with find_qi',1)
+  endif
   !
   ! compute the functions
   !
-  do nc=1,2
+  do nc = 1,2 ! using two Bessel functions
     call sph_bes(ik+5, grid%r, xc(3+nc), lam, j1(1,nc))
     fact(nc) = psi_in(ik)/( j1(ik,nc)*grid%r(ik) )
-    do n = 1,ik+5
-      j1(n,nc) = j1(n,nc)*grid%r(n)*fact(nc)
+    do n = 1, ik+5
+      j1(n,nc) = j1(n,nc) * grid%r(n) * fact(nc)
     enddo
   enddo
   !
   ! compute the second derivative and impose continuity of zero, 
   ! first and second derivative
-  ! 
-  do nc=1,2
-    bm(nc) = deriv2_7pts(j1(1,nc), ik, grid%r(ik), grid%dx)
+  do nc = 1,2
+    bm(nc) = deriv2_7pts( j1(1,nc), ik, grid%r(ik), grid%dx )
   enddo
 
   xc(2) = (f2ae - bm(1))/(bm(2) - bm(1))

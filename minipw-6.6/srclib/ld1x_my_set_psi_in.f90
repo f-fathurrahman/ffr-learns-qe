@@ -1,4 +1,4 @@
-SUBROUTINE my_set_psi_in(ik,l,j,e,psi_out,psi_out_rel)
+SUBROUTINE my_set_psi_in(ik, l, j, e, psi_out, psi_out_rel)
   !
   ! This subroutine calculates the all electron wavefunction psi at the
   ! input energy e
@@ -19,7 +19,7 @@ SUBROUTINE my_set_psi_in(ik,l,j,e,psi_out,psi_out_rel)
   IF( rel == 1 ) THEN
     !
     n =  grid%mesh
-    CALL lschps( 3, zed, thrdum, grid, n, 1, l, e, vpot, psi_out, nstop )
+    CALL my_lschps( 3, zed, thrdum, grid, n, 1, l, e, vpot, psi_out, nstop )
     !
   ELSEIF (rel == 2) THEN
     CALL dir_outward( ndmx, grid%mesh, l, j, e, grid%dx, psi_dir, &

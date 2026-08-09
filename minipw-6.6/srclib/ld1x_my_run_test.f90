@@ -37,6 +37,10 @@ SUBROUTINE my_run_test()
   character(len=1) :: nch
   real(DP) :: dum
 
+  write(*,*)
+  write(*,*) '<div> ENTER my_run_test'
+  write(*,*)
+
   file_tests = trim(prefix)//'.test'
   if (ionode) &
      open(unit=13, file=file_tests, iostat=ios, err=1111, status='unknown')
@@ -67,8 +71,10 @@ SUBROUTINE my_run_test()
                             oc_old,isw_old, core_state_old,psi_old,lsd_old,-1)
      !EMINE
      core_state_old = core_state
-     call my_set_conf(nc)
-     call my_all_electron(.true., nc)
+     !call my_set_conf(nc)
+     !call my_all_electron(.true., nc)
+     call set_conf(nc)
+     call all_electron(.true., nc)
      if( nc==1 ) then
          etot0 = etot
          call my_save_ae(nwf_old,nn_old,ll_old,jj_old,enl_old,oc_old,isw_old, &
@@ -130,7 +136,7 @@ SUBROUTINE my_run_test()
      !
      !   and run the pseudopotential test
      !
-     call run_pseudo
+     call run_pseudo()
      !
      if (nc.eq.1) etots0=etots
      !
@@ -138,13 +144,17 @@ SUBROUTINE my_run_test()
      !
      call write_resultsps 
      !
-     call test_bessel ( )
+     call test_bessel( )
      !
   enddo
   if (ionode) close (unit = 13)  
 
   !EMINE
   if(use_paw_as_gipaw)core_state = core_state_old
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_run_test'
+  write(*,*)
 
 END SUBROUTINE
 
