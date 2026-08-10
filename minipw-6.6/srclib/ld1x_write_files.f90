@@ -34,7 +34,7 @@ SUBROUTINE write_wfcfile(filename,wfc,elaux,num)
   IF (ionode) THEN
      WRITE(19,'("#",12x,"r",38(18x,a2))') (elaux(n),n=1,num)
      DO n=1,grid%mesh
-        WRITE(19,'(38f20.12)') grid%r(n), (wfc(n,ns), ns=1,num)
+        WRITE(19,'(38ES20.12)') grid%r(n), (wfc(n,ns), ns=1,num)
      ENDDO
      CLOSE(19)
   ENDIF
