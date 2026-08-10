@@ -255,6 +255,8 @@ subroutine my_gener_pseudo()
      ENDIF
   ENDDO
   !
+  write(*,*) 'psipaw will be saved to file: ', trim(file_wfcaegen)
+  !
   call write_wfcfile(file_wfcaegen, psipaw, els, nwfs)
   !
   ! compute the pseudowavefunctions by expansion in spherical

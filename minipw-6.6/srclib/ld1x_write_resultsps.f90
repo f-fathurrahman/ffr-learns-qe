@@ -201,7 +201,8 @@ SUBROUTINE write_resultsps ( )
         counter=counter+1
      ENDDO
      counter = counter - 1
-     CALL write_wfcfile(file_wavefunctionsps,psiaux,elaux,2*counter)
+     write(*,*) 'psiaux will be written to ', trim(file_wavefunctionsps)
+     CALL write_wfcfile(file_wavefunctionsps, psiaux, elaux, 2*counter)
   ENDIF
 
   RETURN

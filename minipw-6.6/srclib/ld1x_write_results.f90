@@ -416,6 +416,7 @@ subroutine write_results
               if (counter>max_out_wfc) exit
            enddo
         endif
+        write(*,*) 'psiaux will be written to ', trim(nomefile)
         call write_wfcfile(nomefile,psiaux,elaux,counter-1)
      enddo
   endif
