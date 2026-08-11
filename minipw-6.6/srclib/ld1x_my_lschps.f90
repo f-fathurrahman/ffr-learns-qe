@@ -74,7 +74,7 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   write(*,*) 'n, l = ', n, l
 
   nstop = 0
-  al   = grid%dx
+  al = grid%dx
   mmax = grid%mesh
 
   ALLOCATE(up(mmax), stat=ierr)
@@ -84,30 +84,27 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   ALLOCATE(fr(mmax), stat=ierr)
   ALLOCATE(frp(mmax), stat=ierr)
 
-  uld=0.0_dp
+  uld = 0.0_dp
   !
   !
   IF(mode == 1 .or. mode == 3) THEN
     ! relativistic calculation
-    !     fss=(1.0_dp/137.036_dp)**2
+    !     fss = (1.0_dp/137.036_dp)**2
     fss = (1.0_dp/cau_fact)**2
     IF(l == 0) THEN
-       gamma = sqrt(1.0_dp-fss*z**2)
+      gamma = sqrt(1.0_dp-fss*z**2)
     ELSE
-       gamma = (l*sqrt(l**2-fss*z**2) + &
-            (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
+      gamma = (l*sqrt(l**2 - fss*z**2) + (l+1)*sqrt((l+1)**2-fss*z**2))/(2*l+1)
     ENDIF
   ELSE
-     ! non-relativistic calculation
-     fss = 1.0e-20_dp
-     gamma = l+1
+    ! non-relativistic calculation
+    fss = 1.0e-20_dp
+    gamma = l + 1
   ENDIF
-  write(*,*) 'fss = ', fss
+  write(*,*) 'fss (fine structure constant) = ', fss
   write(*,*) 'gamma = ', gamma
-
-
   !
-  sls=l*(l+1)
+  sls = l*(l + 1)
   !
   ! emin, emax = estimated bounds for e
   !
@@ -117,15 +114,21 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
     DO i = 1,mmax
       emin = min(emin, v(i) + sls/grid%r(i)**2)
     ENDDO
-    IF(e > emax) e = 1.25_dp*emax
-    IF(e < emin) e = 0.75_dp*emin
-    IF(e > emax) e = 0.5_dp*(emax + emin)
-  ELSEIF(mode == 4) THEN
+    IF( e > emax ) THEN
+      e = 1.25_dp*emax
+    ENDIF
+    IF( e < emin ) THEN
+      e = 0.75_dp*emin
+    ENDIF
+    IF( e > emax ) THEN
+      e = 0.5_dp*(emax + emin)
+    ENDIF
+  ELSEIF( mode == 4 ) THEN
     emax = e + 10.0_dp
     emin = e - 10.0_dp
   ENDIF
   !
-  write(*,*) 'emin, emax (in Ha) = ', emin/2, emax/2
+  write(*,*) 'Starting emin, emax (in Ha) = ', emin/2, emax/2
   !stop 134
   !
   DO i = 1,4
@@ -144,21 +147,19 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   write(*,*) 'dv(500) (in Ry) = ', dv(500)
   !
   !
-  !     starting of loop on energy for bound state
-  !
+  ! starting of loop on energy for bound state
   DO n_it = 1, maxter
-
+    !
     write(*,*) 'iter, e = ', n_it, e
-     !
-     ! coefficient array for u in differential eq.
-     DO i=1,mmax
-        cf(i)=als*(sls + (v(i)-e)*grid%r(i)**2)
-     ENDDO
-     !
-     ! find classical turning point for matching
-     !
-     IF(mode == 1 .or. mode == 2) THEN
-      DO i=mmax,2,-1
+    !
+    ! coefficient array for u in differential eq.
+    DO i = 1,mmax
+      cf(i) = als*(sls + (v(i) - e)*grid%r(i)**2)
+    ENDDO
+    !
+    ! find classical turning point for matching
+    IF(mode == 1 .or. mode == 2) THEN
+      DO i = mmax,2,-1
         IF( cf(i-1) <= 0.0_dp .and. cf(i) > 0.0_dp ) THEN
           mch = i
           GOTO 40
@@ -169,146 +170,154 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
       DO i = 1,mmax
         u(i) = 0.0_dp
       ENDDO
-      nstop = 1
-      GOTO 999
-     ELSE
-        mch=nin
-     ENDIF
-40   CONTINUE
+      nstop = 1 !XXX error?
+      GOTO 999  !XXX is this error? why go to then end of program
+    ELSE
+      mch = nin ! matching point
+    ENDIF
 
-     !  relativistic coefficient arrays for u (fr) and up (frp).
-     DO i=1,mmax
-        fr(i)=als*(grid%r(i)**2)*0.25_dp*(-fss*(v(i)-e)**2 + &
-             fss*dv(i)/ (grid%r(i)*(1.0_dp+0.25_dp*fss*(e-v(i)))))
-        frp(i)=-al*grid%r(i)*0.25_dp*fss*dv(i)/(1.0_dp+0.25_dp*fss*(e-v(i)))
-     ENDDO
-     !
-     ! start wavefunction with series
-     !
-     DO i=1,4
-        u(i)=grid%r(i)**gamma
-        up(i)=al*gamma*grid%r(i)**gamma
-        upp(i)=(al+frp(i))*up(i)+(cf(i)+fr(i))*u(i)
-     ENDDO
-     !
-     ! outward integration using predictor once, corrector
-     ! twice
-     node=0
-     !
-     DO i=4,mch-1
-        u(i+1) = u(i) + my_lschps_aeo(up,i)
-        up(i+1) = up(i) + my_lschps_aeo(upp,i)
-        DO it=1,2
-           upp(i+1) = (al + frp(i+1))*up(i+1)+(cf(i+1)+fr(i+1))*u(i+1)
-           up(i+1) = up(i) + my_lschps_aio(upp,i)
-           u(i+1) = u(i) + my_lschps_aio(up,i)
-        ENDDO
-        IF(u(i+1)*u(i) <= 0.0_dp) node=node+1
-     ENDDO
-     !
-     uout=u(mch)
-     upout=up(mch)
-     !
-     IF(node-n+l+1 == 0 .or. mode == 3 .or. mode == 5) THEN
+40 CONTINUE
+
+    !  relativistic coefficient arrays for u (fr) and up (frp).
+    DO i = 1,mmax
+      fr(i) = als*(grid%r(i)**2)*0.25_dp*(-fss*(v(i)-e)**2 + &
+              fss*dv(i)/ (grid%r(i)*(1.0_dp + 0.25_dp*fss*(e - v(i)))))
+      frp(i) = -al*grid%r(i)*0.25_dp*fss*dv(i)/(1.0_dp + 0.25_dp*fss*(e-v(i)))
+    ENDDO
+    !
+    ! start wavefunction with series
+    !
+    DO i = 1,4
+      u(i) = grid%r(i)**gamma
+      up(i) = al*gamma*grid%r(i)**gamma
+      upp(i) = (al + frp(i))*up(i) + (cf(i) + fr(i))*u(i)
+    ENDDO
+    !
+    ! outward integration using predictor once, corrector twice
+    node = 0
+    !
+    !ffr: integrate until matching point
+    DO i = 4,mch-1
+      u(i+1) = u(i) + my_lschps_aeo(up,i)
+      up(i+1) = up(i) + my_lschps_aeo(upp,i)
+      DO it = 1,2
+        upp(i+1) = (al + frp(i+1))*up(i+1)+(cf(i+1)+fr(i+1))*u(i+1)
+        up(i+1) = up(i) + my_lschps_aio(upp,i)
+        u(i+1) = u(i) + my_lschps_aio(up,i)
+      ENDDO
+      IF(u(i+1)*u(i) <= 0.0_dp) THEN 
+        node = node + 1
+      ENDIF
+    ENDDO
+    !
+    uout = u(mch) !XXX what's this?
+    upout = up(mch)
+    !
+    IF( (node - n + l + 1 == 0) .or. mode == 3 .or. mode == 5) THEN
+      !
+      IF(mode == 1 .or. mode == 2) THEN
         !
-        IF(mode == 1 .or. mode == 2) THEN
-           !
-           ! start inward integration at 10*classical turning
-           ! point with simple exponential
-           nin=mch+2.3_dp/al
-           IF(nin+4 > mmax) nin=mmax-4
-           xkap=sqrt(sls/grid%r(nin)**2 + 2.0_dp*(v(nin)-e))
-           !
-           DO i=nin,nin+4
-              u(i)=exp(-xkap*(grid%r(i)-grid%r(nin)))
-              up(i)=-grid%r(i)*al*xkap*u(i)
-              upp(i)=(al+frp(i))*up(i)+(cf(i)+fr(i))*u(i)
-           ENDDO
-           !
-           ! integrate inward
-           !
-           DO i=nin,mch+1,-1
-              u(i-1) = u(i) + my_lschps_aei(up,i)
-              up(i-1) = up(i) + my_lschps_aei(upp,i)
-              DO it = 1,2
-                 upp(i-1) = (al + frp(i-1))*up(i-1) + (cf(i-1)+fr(i-1))*u(i-1)
-                 up(i-1) = up(i) + my_lschps_aii(upp,i)
-                 u(i-1) = u(i) + my_lschps_aii(up,i)
-              ENDDO
-           ENDDO
-           !
-           ! scale outside wf for continuity
-           sc=uout/u(mch)
-           !
-           DO i=mch,nin
-              up(i)=sc*up(i)
-              u (i)=sc*u (i)
-           ENDDO
-           !
-           upin=up(mch)
-           !
-        ELSE
-           !
-           upin=uld*uout
-           !
+        ! start inward integration at 10*classical turning
+        ! point with simple exponential
+        nin = mch + 2.3_dp/al ! XXX why use this? this will be converted integer
+        IF(nin + 4 > mmax) THEN 
+          nin = mmax - 4
         ENDIF
+        xkap = sqrt(sls/grid%r(nin)**2 + 2.0_dp*(v(nin)-e))
         !
-        ! perform normalization sum
-        !
-        ro=grid%r(1)*exp(-0.5_dp*grid%dx)
-        sn=ro**(2.0_dp*gamma+1.0_dp)/(2.0_dp*gamma+1.0_dp)
-        !
-        DO i=1,nin-3
-           sn=sn+al*grid%r(i)*u(i)**2
+        DO i=nin,nin+4
+          u(i) = exp(-xkap*(grid%r(i) - grid%r(nin)))
+          up(i) = -grid%r(i)*al*xkap*u(i)
+          upp(i) = (al + frp(i))*up(i) + (cf(i) + fr(i))*u(i)
         ENDDO
         !
-        sn=sn + al*(23.0_dp*grid%r(nin-2)*u(nin-2)**2 &
-             + 28.0_dp*grid%r(nin-1)*u(nin-1)**2 &
-             +  9.0_dp*grid%r(nin  )*u(nin  )**2)/24.0_dp
+        ! integrate inward
         !
-        ! normalize u
-        cn=1.0_dp/sqrt(sn)
-        uout=cn*uout
-        upout=cn*upout
-        upin=cn*upin
-        !
-        DO i=1,nin
-           up(i)=cn*up(i)
-           u(i)=cn*u(i)
-        ENDDO
-        DO i=nin+1,mmax
-           u(i)=0.0_dp
+        DO i=nin,mch+1,-1
+          u(i-1) = u(i) + my_lschps_aei(up,i)
+          up(i-1) = up(i) + my_lschps_aei(upp,i)
+          DO it = 1,2
+            upp(i-1) = (al + frp(i-1))*up(i-1) + (cf(i-1)+fr(i-1))*u(i-1)
+            up(i-1) = up(i) + my_lschps_aii(upp,i)
+            u(i-1) = u(i) + my_lschps_aii(up,i)
+          ENDDO
         ENDDO
         !
-        ! exit for fixed-energy calculation
+        ! scale outside wf for continuity
+        sc = uout/u(mch)
         !
-        IF(mode == 3 .or. mode == 5) GOTO 999
-
-        ! perturbation theory for energy shift
-        de=uout*(upout-upin)/(al*grid%r(mch))
+        DO i = mch,nin
+          up(i) = sc*up(i)
+          u(i) = sc*u (i)
+        ENDDO
         !
-        ! convergence test and possible exit
+        upin = up(mch)
         !
-        IF ( abs(de) < max(abs(e),0.2_dp)*eps) GOTO 999
+      ELSE
         !
-        IF(de > 0.0_dp) THEN
-           emin=e
-        ELSE
-           emax=e
-        ENDIF
-        e=e+de
-        IF(e > emax .or. e < emin) e=0.5_dp*(emax+emin)
+        upin = uld*uout
         !
-     ELSEIF(node-n+l+1 < 0) THEN
-        ! too few nodes
-        emin=e
-        e=0.5_dp*(emin+emax)
-
-     ELSE
-        ! too many nodes
-        emax=e
-        e=0.5_dp*(emin+emax)
-     ENDIF
+      ENDIF
+      !
+      ! perform normalization sum
+      !
+      ro = grid%r(1)*exp(-0.5_dp*grid%dx)
+      sn = ro**(2.0_dp*gamma+1.0_dp)/(2.0_dp*gamma+1.0_dp)
+      !
+      DO i=1,nin-3
+        sn = sn + al*grid%r(i)*u(i)**2
+      ENDDO
+      !
+      sn = sn + al*(23.0_dp*grid%r(nin-2)*u(nin-2)**2 &
+              + 28.0_dp*grid%r(nin-1)*u(nin-1)**2 &
+              +  9.0_dp*grid%r(nin)*u(nin)**2)/24.0_dp
+      !
+      ! normalize u
+      cn = 1.0_dp/sqrt(sn)
+      uout = cn*uout
+      upout = cn*upout
+      upin = cn*upin
+      !
+      DO i = 1,nin
+        up(i) = cn*up(i)
+        u(i) = cn*u(i)
+      ENDDO
+      DO i = nin+1,mmax
+        u(i) = 0.0_dp
+      ENDDO
+      !
+      ! exit for fixed-energy calculation
+      !
+      IF(mode == 3 .or. mode == 5) THEN
+        GOTO 999
+      ENDIF
+      !
+      ! perturbation theory for energy shift
+      de = uout*(upout-upin)/(al*grid%r(mch))
+      !
+      ! convergence test and possible exit
+      !
+      IF ( abs(de) < max(abs(e),0.2_dp)*eps) THEN 
+        GOTO 999
+      ENDIF
+      !
+      IF(de > 0.0_dp) THEN
+          emin = e
+      ELSE
+          emax = e
+      ENDIF
+      e = e + de
+      IF(e > emax .or. e < emin) e=0.5_dp*(emax+emin)
+      !
+    ELSEIF(node-n+l+1 < 0) THEN
+      ! too few nodes
+      emin = e
+      e = 0.5_dp*(emin + emax)
+    ELSE
+      ! too many nodes
+      emax = e
+      e = 0.5_dp*(emin + emax)
+    ENDIF
   ENDDO
 
   !PRINT '('' warning: wfc '',2i2,'' not converged'')', n, l
@@ -322,7 +331,6 @@ SUBROUTINE my_lschps( mode, z, eps, grid, nin, n, l, e, v, u, nstop )
   write(*,*) 'Final results: e, nin = ', e, nin
 
   !stop 323
-
 
   DEALLOCATE(frp)
   DEALLOCATE(fr)
@@ -407,7 +415,7 @@ FUNCTION my_lschps_aio(y,j) result(res)
 END FUNCTION
 
 
-SUBROUTINE my_lschps_derV(mmax,al,r,v,dv)
+SUBROUTINE my_lschps_derV(mmax, al, r, v, dv)
   ! dv = dv/dr
   USE kinds, ONLY : dp
   IMPLICIT NONE
@@ -417,20 +425,17 @@ SUBROUTINE my_lschps_derV(mmax,al,r,v,dv)
   !
   INTEGER :: i
   !
-  dv(1)=(-50.0_dp*v(1)+96.0_dp*v(2)-72.0_dp*v(3)+32.0_dp*v(4) &
-       -6.0_dp*v(5))/(24.0_dp*al*r(1))
-  dv(2)=(-6.0_dp*v(1)-20.0_dp*v(2)+36.0_dp*v(3)-12.0_dp*v(4) &
-       +2.0_dp*v(5))/(24.0_dp*al*r(2))
+  dv(1) = (-50.0_dp*v(1)+96.0_dp*v(2)-72.0_dp*v(3)+32.0_dp*v(4) - 6.0_dp*v(5))/(24.0_dp*al*r(1))
+  dv(2) = (-6.0_dp*v(1)-20.0_dp*v(2)+36.0_dp*v(3)-12.0_dp*v(4) + 2.0_dp*v(5))/(24.0_dp*al*r(2))
   !
-  DO i=3,mmax-2
-     dv(i)=(2.0_dp*v(i-2)-16.0_dp*v(i-1)+16.0_dp*v(i+1) &
-          -2.0_dp*v(i+2))/(24.0_dp*al*r(i))
+  DO i = 3,mmax-2
+    dv(i) = (2.0_dp*v(i-2) - 16.0_dp*v(i-1) + 16.0_dp*v(i+1) - 2.0_dp*v(i+2))/(24.0_dp*al*r(i))
   ENDDO
   !
-  dv(mmax-1)=( 3.0_dp*v(mmax)+10.0_dp*v(mmax-1)-18.0_dp*v(mmax-2)+ &
-       6.0_dp*v(mmax-3)-v(mmax-4))/(12.0_dp*al*r(mmax-1))
-  dv(mmax)=( 25.0_dp*v(mmax)-48.0_dp*v(mmax-1)+36.0_dp*v(mmax-2)-&
-       16.0_dp*v(mmax-3)+3.0_dp*v(mmax-4))/(12.0_dp*al*r(mmax))
+  dv(mmax-1) = ( 3.0_dp*v(mmax) + 10.0_dp*v(mmax-1) - 18.0_dp*v(mmax-2)+ &
+                 6.0_dp*v(mmax-3) - v(mmax-4))/(12.0_dp*al*r(mmax-1))
+  dv(mmax) = ( 25.0_dp*v(mmax) - 48.0_dp*v(mmax-1) + 36.0_dp*v(mmax-2) - &
+               16.0_dp*v(mmax-3) + 3.0_dp*v(mmax-4))/(12.0_dp*al*r(mmax))
   !
   RETURN
   !
