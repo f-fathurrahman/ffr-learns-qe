@@ -5,7 +5,6 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   !     This routine computes the chi functions:
   !          |chi> = (\epsilon -T -V_{loc}) |psi>
   !      
-  use io_global, only : stdout, ionode
   use kinds, only : DP
   use radial_grids, only: ndmx, series
   use ld1inc, only:  grid, vpsloc, rho0, verbosity
@@ -35,6 +34,14 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
        integral
 
   integer :: n, nstart, nst
+
+  write(*,*)
+  write(*,*) '<div> ENTER my_compute_chi'
+  write(*,*)
+
+  write(*,*) 'my_compute_chi: ikk_in = ', ikk_in
+  write(*,*) 'e = ', e
+
   !
   ! RRKJ: first expand in a taylor series the phis function
   ! Since we know that the phis functions are a sum of Bessel 
@@ -45,10 +52,11 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   x4l6 = 4*lam + 6
   x6l12 = 6*lam + 12
 
-  do n=1,6
+  do n = 1,6
     j1(n) = phi_in(n)/grid%r(n)**(lam+1)
   enddo
   call seriesbes(j1, grid%r, grid%r2, 6, c)
+  write(*,*) 'After seriesbes: c = ', c
   !
   if( lam == 0 ) then
     !
@@ -169,7 +177,7 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   do n=1,grid%mesh
     chi_out(n) = chi_out(n)*grid%sqr(n)/grid%r2(n)
     !         if(lam.eq.0)
-    !     +    write(stdout,'(5(e20.13,1x))')
+    !     +    write(*,'(5(e20.13,1x))')
     !     +          r(n),chi_out(n),chi_out(n)/r(n)**(lam+1),
     !     +          aux(n),aux(n)*r(n)**(lam+1)
   enddo
@@ -184,7 +192,7 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   enddo
 
 100 if(n == grid%mesh+1 .or. grid%r(min(n,grid%mesh)) > 0.05_dp)then
-    write(stdout,*) lam,n,grid%mesh,grid%r(min(n,grid%mesh))
+    write(*,*) lam,n,grid%mesh,grid%r(min(n,grid%mesh))
     call errore('compute_chi','n is too large',1)
   endif
 !
@@ -224,14 +232,18 @@ subroutine my_compute_chi(lam, ikk_in, phi_in, chi_out, xc, e, lbes4)
   enddo
   integral = int_0_inf_dr(gi, grid, grid%mesh, nst)
   if( integral > 2.e-6_dp ) then
-    write(stdout, '(5x,'' l='',i4, '' integral='',f15.9,'' r(ikk) '',f15.9)') lam, integral, grid%r(ikk_in)
+    write(*,'(5x,'' l='',i4, '' integral='',f15.9,'' r(ikk) '',f15.9)') lam, integral, grid%r(ikk_in)
     IF (verbosity=='high') THEN
          do n=ikk_in,grid%mesh
-            write(stdout,*) grid%r(n),gi(n)
+            write(*,*) grid%r(n),gi(n)
          enddo
      ENDIF
-    call errore ('compute_chi ','chi too large beyond r_c', 1)
+    call errore('my_compute_chi ','chi too large beyond r_c', 1)
   endif
+
+  write(*,*)
+  write(*,*) '</div> EXIT my_compute_chi'
+  write(*,*)
 
   return
 end subroutine

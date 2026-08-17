@@ -306,26 +306,42 @@ subroutine my_gener_pseudo()
       psipaw(1:grid%mesh,ns) = phis(1:grid%mesh,ns)
     endif
     !
+    write(*,*)
+    write(*,*) 'Setting psipsus ...'
+    write(*,*) 'which_augfun = ', trim(which_augfun)
+    write(*,*) 'ik(ns), ikus(ns) = ', ik(ns), ikus(ns) ! compare rcut and rcutus
+    write(*,*) 'lpaw = ', lpaw
+    write(*,*) 'lnc2paw = ', lnc2paw
     IF( (which_augfun=='PSQ' .AND. ik(ns) /= ikus(ns)) .OR. &
          (lpaw .AND. .NOT. lnc2paw) ) THEN
-      psipsus(:,ns)=psi_in(:)
+      !
+      write(*,*)
+      write(*,*) 'Setting psipsus to psi_in'
+      ! 
+      psipsus(:,ns) = psi_in(:)
+      !
     ELSE
+      !
       if( tm ) then
-        call compute_phi_tm(lam,ik(ns), psi_in,phis(1,ns), 1, xc, enls(ns), els(ns))
+        write(*,*) 'Calling compute_phi_tm'
+        call compute_phi_tm(lam,ik(ns), psi_in, phis(1,ns), 1, xc, enls(ns), els(ns))
       else
-        call compute_phi(lam,ik(ns), psi_in, phis(1,ns),xc,1,occ,enls(ns),els(ns))
+        write(*,*) 'Calling compute_phi'
+        call compute_phi(lam,ik(ns), psi_in, phis(1,ns), xc, 1, occ, enls(ns), els(ns))
         ecutrho = max(ecutrho, 8.0_dp*xc(6)**2 )
       endif
       !
       ! US only on the components where ikus <> ik
       ! 
+      write(*,*) 'Setting psipsus to phis from compute_phi'
       psipsus(:,ns) = phis(:,ns) 
     ENDIF
     !
     if( ikus(ns) /= ik(ns) ) then
-      write(*,*) 'Calling compute_phius'
-      call compute_phius(lam,ikus(ns),psipsus(1,ns),phis(1,ns),xc,1,els(ns))
-      ecutwfc = max(ecutwfc,2.0_dp*xc(5)**2)
+      write(*,*) 'Calling my_compute_phius'
+      call my_compute_phius(lam, ikus(ns), psipsus(1,ns), phis(1,ns), xc, 1, els(ns))
+      ecutwfc = max(ecutwfc, 2.0_dp*xc(5)**2)
+      write(*,*) 'ecutwfc = ', ecutwfc
       lbes4 = .true.
     else
       lbes4 = .false.
@@ -333,13 +349,14 @@ subroutine my_gener_pseudo()
         ecutwfc = max(ecutwfc, 2.0_dp*xc(6)**2)
       endif
     endif
+    write(*,*) 'lbes4 = ', lbes4
     !
     if(tm .and. ik(ns)==ikus(ns) ) then
       write(*,*) 'Calling compute_chi_tm'
       call compute_chi_tm(lam,ik(ns),ikk(ns),phis(1,ns),chis(1,ns),xc,enls(ns))
     else
       write(*,*) 'Calling compute_chi'
-      call compute_chi(lam, ikk(ns), phis(1,ns), chis(1,ns), xc, enls(ns), lbes4)
+      call my_compute_chi(lam, ikk(ns), phis(1,ns), chis(1,ns), xc, enls(ns), lbes4)
     endif
   enddo
   !
@@ -349,7 +366,8 @@ subroutine my_gener_pseudo()
   !
   !ffr: what's this? Need chis?
   bmat = 0.0_dp
-  write(*,*) 'nbeta = ', nbeta
+  write(*,*)
+  write(*,*) 'Computing bmat'
   do ns = 1,nbeta
     do ns1 = 1,nbeta
       if( lls(ns) == lls(ns1) .and. abs(jjs(ns)-jjs(ns1)) < 1.e-7_dp ) then
@@ -359,6 +377,7 @@ subroutine my_gener_pseudo()
           gi(n) = phis(n,ns)*chis(n,ns1)
         enddo
         bmat(ns,ns1) = int_0_inf_dr(gi, grid, ikl, nst)
+        write(*,'(1x,A,2I4,F18.10)') 'ns, ns1, bmat = ', ns, ns1, bmat(ns,ns1)
       endif
     enddo
   enddo
