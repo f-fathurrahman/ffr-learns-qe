@@ -429,8 +429,8 @@ subroutine my_gener_pseudo()
   ! compute the inverse of the matrix B_{ij}:  B_{ij}^-1
   !
   write(*,'(/5x,'' The bmat matrix'')')
-  do ns1=1,nbeta
-    write(*,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
+  do ns1 = 1,nbeta
+    write(*,'(6f12.5)') (bmat(ns1,ns), ns=1, nbeta)
   enddo
   if( nbeta > 0 ) then
     call invmat(nbeta, b, binv)
@@ -450,13 +450,15 @@ subroutine my_gener_pseudo()
   !
   qq = 0.0_dp
   write(*,*) 'pseudotype = ', pseudotype
+  write(*,*) 'which_augfun = ', trim(which_augfun)
   if( pseudotype == 3 ) then
     !
     ! compute the Q functions
     !
     do ns = 1,nbeta
       do ns1 = 1,ns
-        ikl = max(ikk(ns),ikk(ns1))
+        ikl = max(ikk(ns), ikk(ns1))
+        !write(*,*) 'ns, ns1, ikl = ', ns, ns1, ikl
         if( which_augfun=='PSQ' .and. rel==2) then
           do n=1, ikl
             qvan(n,ns,ns1) = psipsus(n,ns) * psipsus(n,ns1) &
@@ -465,7 +467,8 @@ subroutine my_gener_pseudo()
             gi(n) = qvan(n,ns,ns1)
           enddo
         else
-          do n=1, ikl
+          !ffr: Is this also default for rel==2 but augfun != 'PSQ'
+          do n = 1, ikl
             qvan(n,ns,ns1) = psipsus(n,ns) * psipsus(n,ns1) - phis(n,ns) * phis(n,ns1)
             gi(n) = qvan(n,ns,ns1)
           enddo
@@ -478,13 +481,13 @@ subroutine my_gener_pseudo()
         ! and puts its integral in qq
         !
         if( lls(ns) == lls(ns1) .and. abs(jjs(ns)-jjs(ns1)) < 1.e-8_dp) then
-          nst = (lls(ns)+1)*2
-          qq(ns,ns1) = int_0_inf_dr(gi,grid,ikl,nst)
+          nst = (lls(ns) + 1)*2
+          qq(ns,ns1) = int_0_inf_dr(gi, grid, ikl, nst)
         endif
         !
         ! set the bmat with the eigenvalue part
         !
-        bmat(ns,ns1) = bmat(ns,ns1)+enls(ns1)*qq(ns,ns1)
+        bmat(ns,ns1) = bmat(ns,ns1) + enls(ns1)*qq(ns,ns1)
         !
         ! Use symmetry of the n,ns1 indices to set qvan and qq and bmat
         !
@@ -501,16 +504,16 @@ subroutine my_gener_pseudo()
     enddo ! ns: 1..beta
     !
     write(*,'(/5x,'' The bmat + epsilon qq matrix'')')
-    do ns1=1,nbeta
-      write(*,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
+    do ns1 = 1,nbeta
+      write(*,'(6f12.5)') (bmat(ns1,ns), ns = 1,nbeta)
     enddo
     write(*,'(/5x,'' The qq matrix'')')
     do ns1 = 1,nbeta
-      write(*,'(6f12.5)') (qq(ns1,ns),ns=1,nbeta)
+      write(*,'(6f12.5)') (qq(ns1,ns), ns = 1,nbeta)
     enddo
   endif
   !
-  do is=1,nspin
+  do is = 1,nspin
     ddd(:,:,is) = bmat(:,:)
   enddo
   !
@@ -526,14 +529,14 @@ subroutine my_gener_pseudo()
     ! compute kinetic energy differences, using:
     ! AE:   T |psi> = (e - Vae) |psi>
     ! PS:   T |phi> = (e - Vps) |phi> - |chi>
-    do ns=1,nbeta
-      do ns1=1,ns
+    do ns = 1,nbeta
+      do ns1 = 1,ns
         if( lls(ns)==lls(ns1) .and. jjs(ns)==jjs(ns1) ) then
           !
           ikl = max(ikk(ns),ikk(ns1))
           nst = 2*(lls(ns)+1)
           !
-          do n=1,ikl
+          do n = 1,ikl
             gi(n) = psipaw(n,ns)*(enls(ns1) - vpotpaw(n))*psipaw(n,ns1)
           enddo
           !
@@ -577,7 +580,7 @@ subroutine my_gener_pseudo()
                & psipaw_rel )
     !
   else
-    write(*,*) 'Calling pseudo_q and descreening'
+    write(*,*) 'Calling pseudo_q and descreening, which_augfun = ', trim(which_augfun)
     !
     !  Pseudize the Q functions if required. This might be needed for
     !  pseudo-potentials with semicore states. In this case the cut-off radius
@@ -585,11 +588,12 @@ subroutine my_gener_pseudo()
     !  the Q pseudization the augmentation charges are very hard making the
     !  ASR in phonon calculation very difficult to converge.
     ! 
-    IF (which_augfun=='PSQ') CALL pseudo_q(qvan,qvanl)
+    IF( which_augfun == 'PSQ' ) THEN
+      CALL my_pseudo_q(qvan, qvanl)
+    ENDIF
     !
     ! unscreen the local potential and the D coefficients
-    !
-    call descreening()
+    call my_descreening()
   endif
   !
   ! write the main functions on files
