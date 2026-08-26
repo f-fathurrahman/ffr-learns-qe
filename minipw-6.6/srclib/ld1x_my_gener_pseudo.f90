@@ -511,8 +511,9 @@ subroutine my_gener_pseudo()
     do ns1 = 1,nbeta
       write(*,'(6f12.5)') (qq(ns1,ns), ns = 1,nbeta)
     enddo
-  endif
+  endif ! is pseudotype == 3
   !
+  !ffr: why it is the same for all spin components? 
   do is = 1,nspin
     ddd(:,:,is) = bmat(:,:)
   enddo

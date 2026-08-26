@@ -21,6 +21,7 @@ SUBROUTINE my_pseudo_q(qfunc, qfuncl)
   write(*,*)
   write(*,*) '<div> ENTER my_pseudo_q'
   write(*,*)
+  write(*,*) 'rmatch_augfunc_nc = ', rmatch_augfun_nc
 
   ecutrho = 0.0_DP
   mesh = grid%mesh
@@ -30,7 +31,7 @@ SUBROUTINE my_pseudo_q(qfunc, qfuncl)
     do ns1 = ns,nbeta
       l2 = lls(ns1)
       !
-      !  Find the matching point
+      ! Find the matching point
       !
       ik = 0
       IF (rmatch_augfun_nc) THEN
@@ -93,7 +94,7 @@ END SUBROUTINE
 
 
 !--------------------------------------------------------------------------
-subroutine my_compute_q_3bess(ldip,lam,ik,chir,phi_out,ecutrho)
+subroutine my_compute_q_3bess(ldip, lam, ik, chir, phi_out, ecutrho)
 !--------------------------------------------------------------------------
   !
   ! This routine computes the phi_out function by pseudizing the
@@ -185,8 +186,7 @@ subroutine my_compute_q_3bess(ldip,lam,ik,chir,phi_out,ecutrho)
     cm(nc) = int_0_inf_dr(gi,grid,ik,nst)
   enddo
   !
-  !    solve the linear system to find the coefficients
-  !
+  ! solve the linear system to find the coefficients
   gam = (bm(3) - bm(1))/(bm(2) - bm(1))
   delta = (f2ae - bm(1))/(bm(2) - bm(1))
   !   
