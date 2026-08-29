@@ -166,8 +166,7 @@ subroutine my_compute_q_3bess(ldip, lam, ik, chir, phi_out, ecutrho)
     call errore('compute_q_3bess', 'problem with the q_i coefficients', 1)
   endif
   !
-  !   compute the Bessel functions and multiply by r**2
-  !
+  ! compute the Bessel functions and multiply by r**2
   do nc = 1,nbes
     call sph_bes(ik + 5, grid%r, xc(nbes+nc), ldip, j1(1,nc))
     jnor = j1(ik,nc)*grid%r2(ik)

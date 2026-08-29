@@ -320,7 +320,6 @@ end subroutine
 !--------------------------------------------------------------------------
 subroutine my_ascheqps_drv(veff, ncom, thresh, flag_all, nerr)
 !--------------------------------------------------------------------------
-
   ! This routine is a driver that calculates for the test
   ! configuration the solutions of the Kohn and Sham equation
   ! with a fixed pseudo-potential. The potentials are assumed
@@ -375,6 +374,12 @@ subroutine my_ascheqps_drv(veff, ncom, thresh, flag_all, nerr)
   nerr = 0
   do ns = 1,nwfts
     if( octs(ns) > 0.0_dp .or. ( octs(ns) > -1.0_dp .and. flag_all ) ) then
+      write(*,*)
+      write(*,*) 'Calling my_ascheqps for input configuration'
+      write(*,*) 'ns, nnts, llts, jjts'
+      write(*,'(1x,3I3,F5.1)') ns, nnts(ns), llts(ns), jjts(ns)
+      write(*,'(1x,A15,F18.10)') 'At input: energy ', enlts(ns)
+      !
       is = iswts(ns)
       if( ncom==1 .and. is==2) then
         call errore('ascheqps_drv','incompatible spin',1)
@@ -403,13 +408,12 @@ subroutine my_ascheqps_drv(veff, ncom, thresh, flag_all, nerr)
         enddo
       endif
       !
-      call my_ascheqps( nnts(ns),llts(ns),jjts(ns),enlts(ns),grid%mesh,ndmx,&
-                    &   grid,vaux(1,is),thresh,phits(1,ns),betas,ddd(1,1,is),qq,nbf, &
-                    &   nwfsx,lls,jjs,ikk,nstop)
-      write(*,*) ns, nnts(ns),llts(ns), jjts(ns), enlts(ns)
+      call my_ascheqps( nnts(ns), llts(ns), jjts(ns), enlts(ns), grid%mesh, ndmx, &
+                    &   grid, vaux(1,is), thresh, phits(1,ns), betas, ddd(1,1,is), qq, nbf, &
+                    &   nwfsx, lls, jjs, ikk, nstop)
+      write(*,'(1x,A15,F18.10)') 'At output: energy ', enlts(ns)
       !
       ! normalize the wavefunctions 
-      !
       call normalize(phits(1,ns), llts(ns), jjts(ns), ns)
       !
       !   not sure whether the "best" error code should be like this:

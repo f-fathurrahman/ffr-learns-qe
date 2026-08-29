@@ -16,6 +16,7 @@ subroutine my_descreening()
                     nbeta, bmat, qvan, qvanl, jjs, lls, ikk, pseudotype, &
                     nwfts, enlts, octs, llts, jjts, phits, nstoaets, &
                     which_augfun
+  use ld1inc, only: nnts, elts, iswts
   implicit none
 
   integer ::  &
@@ -49,6 +50,12 @@ subroutine my_descreening()
     enlts(n) = enl(nstoaets(n))
   enddo
   !
+  write(*,*) 'Test configuration'
+  write(*,*) 'nnts, llts, elts, jjts, iswts, octs, nstoaets, enlts'
+  DO n = 1,nwfts
+    write(*,'(1x,2I4,A4,F6.2,I4,F6.2,I4,F18.10)') nnts(n), llts(n), elts(n), jjts(n), iswts(n), octs(n), nstoaets(n), enlts(n)
+  ENDDO
+  !
   ! compute the pseudowavefunctions in the test configuration
   !
   call my_ascheqps_drv(vpsloc, 1, thresh, .false., nerr)
@@ -77,7 +84,7 @@ subroutine my_descreening()
     enddo ! do ib 
     write(*,'(/5x,'' The ddd matrix'')')
     do ns1 = 1,nbeta
-      write(*,'(6f12.5)') (bmat(ns1,ns),ns=1,nbeta)
+      write(*,'(6f12.5)') (bmat(ns1,ns), ns=1, nbeta)
     enddo
   endif
   !
