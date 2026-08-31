@@ -79,6 +79,10 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
 
   logical, save :: first(0:10,0:10) = .true.
 
+  write(*,*)
+  write(*,*) 'Begin my_ascheqps:'
+  write(*,*) 'entering: n, l, input E = ', nam, lam, e0
+
   if( mesh /= grid%mesh ) then
     call errore('compute_solution','mesh dimension is not as expected',1)
   endif
@@ -93,7 +97,6 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   nstop = 0
   nstart = 0
   e = e0
-  ! write(6,*) 'entering ', nam,lam, e
   eup = 0.3_DP*e
   elw = 1.3_dp*e
   ndcr = nam - lam - 1
@@ -109,7 +112,9 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   do n = 1,4
     y(n) = vpot(n)
   enddo
+  write(*,*) 'y(1:4) = ', y(1:4)
   call series(y, grid%r, grid%r2, b)
+  write(*,*) 'b = ', b
   ! write(*,*) 'enter lam,eup,elw,e',lam,nbeta,eup,elw,e
   !
   !  set up the f-function and determine the position of its last
@@ -118,7 +123,9 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   !  f > 0         "           "        "      forbidden   "
   !
   do iter = 1,maxter
-    ! write(6,*) 'starting iter', iter, elw, e, eup
+    !
+    write(*,*) 'ascheqps: starting iter ', iter, elw, e, eup
+    !
     ik = 1
     f(1) = ddx12*(grid%r2(1)*(vpot(1) - e) + sqlhf)
     do n = 2,mesh
@@ -146,6 +153,7 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
         ik = ikk(ns) + 3
       endif
     enddo
+    write(*,*) 'matching point ik = ', ik
     !
     ! if everything is ok continue the integration and define f
     !
@@ -193,10 +201,11 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
       !
       eup = e
       e = 0.9_dp*elw + 0.1_dp*eup
-      ! write(6,*) 'too many crossing', ncross, ndcr
+      write(*,*) 'Too many crossing', ncross, ndcr
       ! call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
       y = 0.0_DP
       ymx = 0.0_dp
+      write(*,*) "Will goto 300"
       goto 300
     elseif( ndcr > ncross ) then
       !
@@ -205,10 +214,11 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
       !
       elw = e
       e = 0.9_dp*eup + 0.1_dp*elw
-      ! write(6,*) 'too few crossing', ncross, ndcr
+      write(*,*) 'Too few crossing', ncross, ndcr
       ! call errore('aschqps','wrong number of nodes. Probably a Ghost?',1)
       y = 0.0_DP
       ymx = 0.0_dp
+      write(*,*) "Will goto 300"
       goto 300
     endif
     !
@@ -253,8 +263,11 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
     dfe = -y(ik)*f(ik)/grid%dx/integ
     de = -fe*dfe
     eps = abs(de/e)
-    !  write(6,'(i5, 3f20.12)') iter, e, de
-    if(abs(de) < thresh) goto 600
+    write(*,'(1x,A,i5,3f20.12)') 'ascheqps iter, E, dE = ', iter, e, de
+    if(abs(de) < thresh) then
+      write(*,*) 'Converged at iter = ', iter, 'E = ', E, ' de = ', de
+      goto 600
+    endif
     if(eps > 0.25_dp) de = 0.25_dp*de/eps
     if(de > 0.0_dp) elw = e
     if(de < 0.0_dp) eup = e
@@ -372,6 +385,7 @@ subroutine my_ascheqps_drv(veff, ncom, thresh, flag_all, nerr)
   endif
 
   nerr = 0
+  ! Loop over all states for test
   do ns = 1,nwfts
     if( octs(ns) > 0.0_dp .or. ( octs(ns) > -1.0_dp .and. flag_all ) ) then
       write(*,*)

@@ -161,7 +161,7 @@ subroutine integrate_outward (lam,jam,e,mesh,ndm,grid,f, &
   if (iib.gt.0) then
      call dcopy(iib,bm,1,coef,1)
 
-     call DGESV(iib,1,cm,nbeta,iwork,coef,nbeta,info)
+     call DGESV(iib, 1, cm, nbeta, iwork, coef, nbeta, info)
 
      if (info /= 0) call errore('integrate_outward', &
                 &  'problems solving the linear system',info)

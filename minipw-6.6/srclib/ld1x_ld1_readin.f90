@@ -622,6 +622,9 @@ subroutine ld1_readin(input_file)
      end do
      !
      nwftsc(1) = ns1
+     write(*,*) 'Pass here 625 in ld1_readin'
+     write(*,*) 'ns1 = ', ns1
+     write(*,*)
   else
      !
      if (nconf > ncmax1.or.nconf < 1) &
