@@ -36,47 +36,50 @@ subroutine normalize(phi,l,j,ns)
        work1,       & ! the norm
        int_0_inf_dr,& ! integration function
        gi(ndmx)        ! used to compute the integrals
-
-  if (pseudotype.ne.3) return 
   !
-  !    if US pseudopotential compute the augmentation part
+  !ffr: this subroutine is only affecting pseudotype == 3
+  if( pseudotype /= 3 ) then
+    write(*,*)
+    write(*,*) 'ld1x normalize: no need to normalize, early return'
+    return
+  endif
   !
-  nst=(l+1)*2
-  do n1=1,nbeta
-     if (l.eq.lls(n1).and.abs(j-jjs(n1)).lt.1.e-7_dp) then
-        ikl=ikk(n1)
-        do n=1,ikl
-           gi(n)=betas(n,n1)*phi(n)
-        enddo
-        work(n1)=int_0_inf_dr(gi,grid,ikl,nst)
-     else
-        work(n1)=0.0_dp
-     endif
+  ! if US pseudopotential compute the augmentation part
+  !
+  !ffr: ns is not really accessed in this subroutine
+  nst = (l + 1)*2
+  do n1 = 1,nbeta
+    if( l == lls(n1) .and. abs(j-jjs(n1)) < 1.e-7_dp ) then
+      ikl = ikk(n1)
+      do n = 1,ikl
+        gi(n) = betas(n,n1)*phi(n)
+      enddo
+      work(n1) = int_0_inf_dr(gi, grid, ikl, nst)
+    else
+      work(n1) = 0.0_dp
+    endif
   enddo
-  do n=1,grid%mesh
-     gi(n)=phi(n)*phi(n)
+  do n = 1,grid%mesh
+    gi(n) = phi(n)*phi(n)
   enddo
-  work1=int_0_inf_dr(gi,grid,grid%mesh,nst)
+  work1 = int_0_inf_dr(gi,grid,grid%mesh,nst)
   !
-  !   and adding to the charge density
-  !
-  do n1=1,nbeta
-     do n2=1,nbeta
-        work1=work1+qq(n1,n2)*work(n1)*work(n2)  
-     enddo
+  ! and adding to the charge density
+  do n1 = 1,nbeta
+    do n2 = 1,nbeta
+      work1 = work1 + qq(n1,n2)*work(n1)*work(n2)  
+    enddo
   enddo
   if (abs(work1) < 1e-10_dp) then
-     !call infomsg('normalize','zero norm: not a true US PP ?')
-     write(stdout,'(7x,a,i3,a,i3,a,f3.1,a)') &
-     'Zero norm: self consistency problem; state:',ns,' (l=' ,l,', j=',j,')'
-     work1=1.0_dp
-  else if (work1 <= -1e-10_dp) then
+    !call infomsg('normalize','zero norm: not a true US PP ?')
+    write(stdout,'(7x,a,i3,a,i3,a,f3.1,a)') 'Zero norm: self consistency problem; state:',ns,' (l=' ,l,', j=',j,')'
+    work1 = 1.0_dp
+  elseif (work1 <= -1e-10_dp) then
      call errore('normalize','negative norm?',ns)   
-  end if
-  work1=sqrt(work1)
-  do n=1,grid%mesh
-     phi(n)=phi(n)/work1
+  endif
+  work1 = sqrt(work1)
+  do n = 1,grid%mesh
+     phi(n) = phi(n)/work1
   enddo
-
   return
 end subroutine normalize

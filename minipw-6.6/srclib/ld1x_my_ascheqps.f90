@@ -80,8 +80,10 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   logical, save :: first(0:10,0:10) = .true.
 
   write(*,*)
-  write(*,*) 'Begin my_ascheqps:'
-  write(*,*) 'entering: n, l, input E = ', nam, lam, e0
+  write(*,*) '<div> ENTER my_ascheqps'
+  write(*,*)
+
+  write(*,'(1x,A,2I5,F18.10)') 'entering: n, l, input E (in Ha) = ', nam, lam, e0*0.5d0
 
   if( mesh /= grid%mesh ) then
     call errore('compute_solution','mesh dimension is not as expected',1)
@@ -112,9 +114,21 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   do n = 1,4
     y(n) = vpot(n)
   enddo
-  write(*,*) 'y(1:4) = ', y(1:4)
+  write(*,*)
+  write(*,*) 'Before radial grid series expansion, first 1:4 values of y'
+  write(*,'(1x,A,F18.10)') 'y(1) = ', y(1)
+  write(*,'(1x,A,F18.10)') 'y(2) = ', y(2)
+  write(*,'(1x,A,F18.10)') 'y(3) = ', y(3)
+  write(*,'(1x,A,F18.10)') 'y(4) = ', y(4) 
+  !
   call series(y, grid%r, grid%r2, b)
-  write(*,*) 'b = ', b
+  write(*,*)
+  write(*,*) 'After radial grid series expansion, first 0:3 values of b'
+  write(*,'(1x,A,F18.10)') 'b(0) = ', b(0)
+  write(*,'(1x,A,F18.10)') 'b(1) = ', b(1)
+  write(*,'(1x,A,F18.10)') 'b(2) = ', b(2)
+  write(*,'(1x,A,F18.10)') 'b(3) = ', b(3)  
+  write(*,*)
   ! write(*,*) 'enter lam,eup,elw,e',lam,nbeta,eup,elw,e
   !
   !  set up the f-function and determine the position of its last
@@ -325,122 +339,13 @@ subroutine my_ascheqps( nam, lam, jam, e0, mesh, ndm, grid, vpot, thresh,&
   deallocate(f)
   deallocate(c)
   deallocate(fun)
+  
+  write(*,*)
+  write(*,*) '</div> EXIT my_ascheqps'
+  write(*,*)
+  
   return
 
 end subroutine
 
-
-!--------------------------------------------------------------------------
-subroutine my_ascheqps_drv(veff, ncom, thresh, flag_all, nerr)
-!--------------------------------------------------------------------------
-  ! This routine is a driver that calculates for the test
-  ! configuration the solutions of the Kohn and Sham equation
-  ! with a fixed pseudo-potential. The potentials are assumed
-  ! to be screened. The effective potential veff is given in input.
-  ! The output wavefunctions are written in phits and are normalized.
-  ! If flag is .true. compute all wavefunctions, otherwise only
-  ! the wavefunctions with positive occupation.
-  !      
-  use kinds, only: dp
-  use ld1_parameters, only: nwfsx
-  use radial_grids, only: ndmx
-  use ld1inc, only: grid, pseudotype, rel, &
-                    lls, jjs, qq, ikk, ddd, betas, nbeta, vnl, &
-                    nwfts, iswts, octs, llts, jjts, nnts, enlts, phits 
-  implicit none
-
-  integer ::    &
-          nerr, &     ! control the errors of the routine ascheqps
-          ncom        ! number of components of the pseudopotential
-
-  real(DP) :: &
-       veff(ndmx,ncom)    ! work space for writing the potential 
-
-  logical :: flag_all    ! if true calculates all the wavefunctions
-
-  integer ::  &
-       ns,    &  ! counter on pseudo functions
-       is,    &  ! counter on spin
-       nbf,   &  ! auxiliary nbeta
-       n,     &  ! index on r point
-       nstop, &  ! errors in each wavefunction
-       ind
-
-  real(DP) :: &
-       vaux(ndmx,2)     ! work space for writing the potential 
-
-  real(DP) :: thresh         ! threshold for selfconsistency
-  
-  write(*,*)
-  write(*,*) '<div> ENTER my_ascheqps_drv'
-  write(*,*)
-  
-  !
-  ! compute the pseudowavefunctions in the test configuration
-  !
-  if (pseudotype == 1) then
-    nbf = 0
-  else
-    nbf = nbeta
-  endif
-
-  nerr = 0
-  ! Loop over all states for test
-  do ns = 1,nwfts
-    if( octs(ns) > 0.0_dp .or. ( octs(ns) > -1.0_dp .and. flag_all ) ) then
-      write(*,*)
-      write(*,*) 'Calling my_ascheqps for input configuration'
-      write(*,*) 'ns, nnts, llts, jjts'
-      write(*,'(1x,3I3,F5.1)') ns, nnts(ns), llts(ns), jjts(ns)
-      write(*,'(1x,A15,F18.10)') 'At input: energy ', enlts(ns)
-      !
-      is = iswts(ns)
-      if( ncom==1 .and. is==2) then
-        call errore('ascheqps_drv','incompatible spin',1)
-      endif
-      !
-      if( pseudotype == 1 ) then
-        !
-        if( rel < 2 .or. llts(ns) == 0 .or. &
-          & abs(jjts(ns)-llts(ns)+0.5_dp) < 0.001_dp) then
-          ind = 1
-        !
-        elseif( rel == 2 .and. llts(ns) > 0 .and. &
-              & abs(jjts(ns)-llts(ns)-0.5_dp) < 0.001_dp) then
-          ind = 2
-        else
-          call errore('my_ascheqps_drv', 'unexpected case', 1)
-        endif
-        !
-        do n = 1,grid%mesh
-          vaux(n,is) = veff(n,is) + vnl(n,llts(ns),ind)
-        enddo
-      else
-        ! other pseudotypes
-        do n = 1,grid%mesh
-          vaux(n,is) = veff(n,is)
-        enddo
-      endif
-      !
-      call my_ascheqps( nnts(ns), llts(ns), jjts(ns), enlts(ns), grid%mesh, ndmx, &
-                    &   grid, vaux(1,is), thresh, phits(1,ns), betas, ddd(1,1,is), qq, nbf, &
-                    &   nwfsx, lls, jjs, ikk, nstop)
-      write(*,'(1x,A15,F18.10)') 'At output: energy ', enlts(ns)
-      !
-      ! normalize the wavefunctions 
-      call normalize(phits(1,ns), llts(ns), jjts(ns), ns)
-      !
-      !   not sure whether the "best" error code should be like this:
-      ! IF ( octs(ns) > 0.0_dp ) nerr = nerr + nstop
-      !   i.e. only for occupied states, or like this:
-      nerr = nerr + nstop
-    endif ! if octs is larger than zero
-  enddo
-
-  write(*,*)
-  write(*,*) '</div> EXIT my_ascheqps_drv'
-  write(*,*)
-
-  return
-end subroutine
 

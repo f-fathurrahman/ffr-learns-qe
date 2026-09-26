@@ -63,6 +63,7 @@ ld1x_my_compute_chi.o \
 ld1x_my_pseudo_q.o \
 ld1x_my_descreening.o \
 ld1x_my_ascheqps.o \
+ld1x_my_ascheqps_drv.o \
 ld1x_debug_setup_gen_and_test.o \
 ld1x_print_variables.o \
 exposed_ld1x_ffr.o

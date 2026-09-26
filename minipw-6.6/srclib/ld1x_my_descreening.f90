@@ -60,14 +60,32 @@ subroutine my_descreening()
   !
   call my_ascheqps_drv(vpsloc, 1, thresh, .false., nerr)
   !
+  if (pseudotype == 3) then
+    write(*,'(/5x,'' The ddd matrix after my_ascheqps_drv'')')
+    do ns1 = 1,nbeta
+      write(*,'(6f12.5)') (bmat(ns1,ns), ns=1, nbeta)
+    enddo
+  endif
+  !
   ! descreening the D coefficients
   !
   if (pseudotype == 3) then
+    ! bmat
+    write(*,*)
+    write(*,*) 'Computing bmat '
+    write(*,*)
+    !
+    write(*,'(/5x,'' The bmat before descreening D coefs'')')
+    do ns1 = 1,nbeta
+      write(*,'(6f12.5)') (bmat(ns1,ns), ns=1, nbeta)
+    enddo
     do ib = 1,nbeta
       do jb = 1,ib
         if( lls(ib) == lls(jb) .and. abs(jjs(ib)-jjs(jb)) < 1.e-7_dp ) then
           lam = lls(ib)
           nst = (lam+1)*2
+          !
+          !ffr: why this depend on which_augfun?
           IF( which_augfun == 'PSQ' ) then
             do n = 1,ikk(ib)
               vaux(n,1) = qvanl(n,ib,jb,0)*vpsloc(n)
@@ -77,12 +95,20 @@ subroutine my_descreening()
               vaux(n,1) = qvan(n,ib,jb)*vpsloc(n)
             enddo
           ENDIF
-          bmat(ib,jb) = bmat(ib,jb) - int_0_inf_dr(vaux(1,1),grid,ikk(ib),nst)
+          write(*,*)
+          write(*,*) 'ib, jb = ', ib, jb
+          write(*,*) 'which_augfun = ', which_augfun
+          write(*,*) 'ikk(ib) = ', ikk(ib)
+          write(*,*) 'sum qvan(1:ikk(ib),ib,jb) = ', sum( qvan(1:ikk(ib),ib,jb) )
+          write(*,*) 'sum vpsloc(1:ikk(ib)) in Ry = ', sum( vpsloc(1:ikk(ib)) )
+          write(*,*) 'sum vaux(1:ikk(ib)) in Ry = ', sum(vaux(1:ikk(ib),1))
+          write(*,*) 'integral result = ', int_0_inf_dr(vaux(1,1), grid, ikk(ib), nst)
+          bmat(ib,jb) = bmat(ib,jb) - int_0_inf_dr(vaux(1,1), grid, ikk(ib), nst)
         endif
         bmat(jb,ib) = bmat(ib,jb)
       enddo ! do jb
     enddo ! do ib 
-    write(*,'(/5x,'' The ddd matrix'')')
+    write(*,'(/5x,'' The bmat after descreening D coefs'')')
     do ns1 = 1,nbeta
       write(*,'(6f12.5)') (bmat(ns1,ns), ns=1, nbeta)
     enddo
